@@ -52,17 +52,31 @@ namespace BrickSchema.Net
                     if (_e == null) //add new
                     {
                         _e = e;
+                        _e.Behaviors = e.GetProperty<List<BrickBehavior>>(EntityProperties.PropertiesEnum.Behaviors)??new();
                         _entities.Add(_e);
                     }
                     else //update
                     {
                         _e = e;
+                        _e.Behaviors = e.GetProperty<List<BrickBehavior>>(EntityProperties.PropertiesEnum.Behaviors) ?? new();
+                    }
+                    foreach (var _b in _e.Behaviors)
+                    {
+                        _b.Parent = _e;
                     }
                 }
             }
             else
             {
                 _entities = entities;
+                foreach (var _e in _entities)
+                {
+                    _e.Behaviors = _e.GetProperty<List<BrickBehavior>>(EntityProperties.PropertiesEnum.Behaviors) ?? new();
+                    foreach (var _b in _e.Behaviors)
+                    {
+                        _b.Parent = _e;
+                    }
+                }
             }
         }
 

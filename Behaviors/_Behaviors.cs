@@ -63,6 +63,7 @@ namespace BrickSchema.Net
         {
             if (byReference)
             {
+                
                 return Behaviors;
             }
 
