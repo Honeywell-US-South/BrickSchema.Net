@@ -25,7 +25,7 @@ namespace BrickSchema.Net.EntityProperties
         Runable,
         Running,
         Insight,
-        Resoltuion,
+        Resolution,
         ExecutionReturnCode,
         ExecutionExceptionMessage,
         LastExecutionStart,

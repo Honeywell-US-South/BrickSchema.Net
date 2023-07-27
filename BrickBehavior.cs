@@ -61,8 +61,8 @@ namespace BrickSchema.Net
             protected set { AddOrUpdateProperty(PropertiesEnum.Insight, value); }
         }
         public string Resolution { 
-            get { return GetProperty<string>(PropertiesEnum.Resoltuion) ?? string.Empty; }
-            protected set { AddOrUpdateProperty(PropertiesEnum.Resoltuion, value); }
+            get { return GetProperty<string>(PropertiesEnum.Resolution) ?? string.Empty; }
+            protected set { AddOrUpdateProperty(PropertiesEnum.Resolution, value); }
         }
 
         public string Info
