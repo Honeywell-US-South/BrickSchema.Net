@@ -20,7 +20,7 @@ namespace BrickSchema.Net.Behaviors
         public string Type { get; set; } = string.Empty;
         public string Value { get; set; } = string.Empty;
         public DateTime Timestamp { get; set; } = DateTime.Now;
-        public double Weight { get; set; } = 1;
+        public double Weight { get; set; } = 1.0;
 
         public List<BehaviorValue> Histories { get; set; } = new();
 
@@ -37,10 +37,10 @@ namespace BrickSchema.Net.Behaviors
             BehaviorType = behavior?.Type ?? string.Empty;
             BehaviorMode = behavior?.BehaviorMode ?? string.Empty;
             Value = string.Empty;
-            Weight = behavior?.Weight??1;
+            Weight = behavior?.Weight ?? 1.0 ;
         }
 
-        public BehaviorValue(string valueName, string behaviorId, string behaviorName, string behaviorType, string behaviorMode, double weight = 1)
+        public BehaviorValue(string valueName, string behaviorId, string behaviorName, string behaviorType, string behaviorMode, double weight = 1.0)
         {
             BehaviorId = behaviorId;
             Name = valueName;
@@ -54,7 +54,7 @@ namespace BrickSchema.Net.Behaviors
             Histories = new();
         }
 
-        public BehaviorValue(PropertiesEnum valueName, string behaviorId, string behaviorName, string behaviorType, string behaviorMode, double weight = 1)
+        public BehaviorValue(PropertiesEnum valueName, string behaviorId, string behaviorName, string behaviorType, string behaviorMode, double weight = 1.0)
         {
             BehaviorId = behaviorId;
             Name = valueName.ToString();
@@ -148,7 +148,7 @@ namespace BrickSchema.Net.Behaviors
             {
                 T? deserializedObject = JsonConvert.DeserializeObject<T>(this.Value);
                 U? weight = default(U);
-                if (!IsNumericType(uName) || typeof(U) == typeof(string))
+                if (IsNumericType(uName) || typeof(U) == typeof(string))
                 {
                     weight = (U)Convert.ChangeType(Weight, typeof(U));
                     return (deserializedObject, weight);
@@ -180,5 +180,7 @@ namespace BrickSchema.Net.Behaviors
                    type.Contains("double") ||
                    type.Contains("decimal");
         }
+
+
     }
 }
