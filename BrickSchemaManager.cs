@@ -22,6 +22,9 @@ namespace BrickSchema.Net
         private List<BrickEntity> _entities;
         private readonly string? _brickPath;
 
+        // Object used as lock for thread-safety
+        private readonly object _lockObject = new object();
+
 
         public BrickSchemaManager()
         {
@@ -44,71 +47,92 @@ namespace BrickSchema.Net
 
         private void ImportEntities(List<BrickEntity> entities, bool appendOupdate = false)
         {
-            if (appendOupdate)
+            lock (_lockObject) // Locking here 
             {
-                foreach (var e in entities)
+                if (appendOupdate)
                 {
-                    var _e = _entities.FirstOrDefault(x => x.Id == e.Id);
-                    if (_e == null) //add new
+                    foreach (var e in entities)
                     {
-                        _e = e;
-                        _e.Behaviors = e.GetProperty<List<BrickBehavior>>(EntityProperties.PropertiesEnum.Behaviors)??new();
-                        _entities.Add(_e);
-                    }
-                    else //update
-                    {
-                        _e = e;
-                        _e.Behaviors = e.GetProperty<List<BrickBehavior>>(EntityProperties.PropertiesEnum.Behaviors) ?? new();
-                    }
-                    foreach (var _b in _e.Behaviors)
-                    {
-                        _b.Parent = _e;
+                        var _e = _entities.FirstOrDefault(x => x.Id == e.Id);
+                        if (_e == null) //add new
+                        {
+                            _e = e;
+                            _e.Behaviors = e.GetProperty<List<BrickBehavior>>(EntityProperties.PropertiesEnum.Behaviors) ?? new();
+                            _entities.Add(_e);
+                        }
+                        else //update
+                        {
+                            _e = e;
+                            _e.Behaviors = e.GetProperty<List<BrickBehavior>>(EntityProperties.PropertiesEnum.Behaviors) ?? new();
+                        }
+                        foreach (var _b in _e.Behaviors)
+                        {
+                            _b.Parent = _e;
+                        }
+
                     }
                 }
-            }
-            else
-            {
-                _entities = entities;
+                else
+                {
+                    _entities = entities;
+                    foreach (var _e in _entities)
+                    {
+                        _e.Behaviors = _e.GetProperty<List<BrickBehavior>>(EntityProperties.PropertiesEnum.Behaviors) ?? new();
+                        foreach (var _b in _e.Behaviors)
+                        {
+                            _b.Parent = _e;
+                        }
+                    }
+                }
                 foreach (var _e in _entities)
                 {
-                    _e.Behaviors = _e.GetProperty<List<BrickBehavior>>(EntityProperties.PropertiesEnum.Behaviors) ?? new();
-                    foreach (var _b in _e.Behaviors)
-                    {
-                        _b.Parent = _e;
-                    }
+                    _e.OtherEntities = _entities;
                 }
             }
         }
 
         public void LoadSchemaFromFile(string jsonLdFilePath)
         {
-            _entities = BrickSchemaUtility.ImportBrickSchema(jsonLdFilePath);
-            // Update the OtherEntities property of all entities
-            foreach (var existingEntity in _entities)
+            lock (_lockObject) // Locking here
             {
-                foreach (var _e in _entities)
+                _entities = BrickSchemaUtility.ImportBrickSchema(jsonLdFilePath);
+                // Update the OtherEntities property of all entities
+                foreach (var existingEntity in _entities)
                 {
-                    existingEntity.OtherEntities.Add(_e);
+                    foreach (var _e in _entities)
+                    {
+                        existingEntity.OtherEntities.Add(_e);
+                    }
+
                 }
-                
             }
         }
 
         public void SaveSchema()
         {
-            if (!string.IsNullOrEmpty(_brickPath)) { SaveSchema(_brickPath ?? string.Empty); }
-            else throw new NullReferenceException("Brick file path is null or empty.");
+            lock (_lockObject) // Locking here
+            {
+                if (!string.IsNullOrEmpty(_brickPath)) { SaveSchema(_brickPath ?? string.Empty); }
+                else throw new NullReferenceException("Brick file path is null or empty.");
+            }
         }
 
         public void SaveSchema(string jsonLdFilePath)
         {
-            
-            BrickSchemaUtility.WriteBrickSchemaToFile(_entities, jsonLdFilePath);
+            lock (_lockObject) // Locking here
+            {
+                BrickSchemaUtility.WriteBrickSchemaToFile(_entities, jsonLdFilePath);
+            }
         }
 
         public string ToJson()
         {
-            return BrickSchemaUtility.ExportBrickSchemaToJson(_entities);
+            string json = "";
+            lock (_lockObject) // Locking here
+            {
+                json = BrickSchemaUtility.ExportBrickSchemaToJson(_entities);
+            }
+            return json;
         }
 
 
@@ -119,16 +143,18 @@ namespace BrickSchema.Net
 
         public bool UpdateEntity(dynamic updatedEntity)
         {
-            BrickEntity? entityToUpdate = _entities.FirstOrDefault(e => e.Id == updatedEntity.Id);
-            if (entityToUpdate == null)
+            lock (_lockObject) // Locking here
             {
-                return false;
+                BrickEntity? entityToUpdate = _entities.FirstOrDefault(e => e.Id == updatedEntity.Id);
+                if (entityToUpdate == null)
+                {
+                    return false;
+                }
+
+                entityToUpdate.Type = updatedEntity.Type;
+                entityToUpdate.Properties = updatedEntity.Properties;
+                entityToUpdate.Relationships = updatedEntity.Relationships;
             }
-
-            entityToUpdate.Type = updatedEntity.Type;
-            entityToUpdate.Properties = updatedEntity.Properties;
-            entityToUpdate.Relationships = updatedEntity.Relationships;
-
             return true;
         }
 
@@ -150,118 +176,145 @@ namespace BrickSchema.Net
 
         public T AddEntity<T>(string id, string name) where T : BrickEntity, new()
         {
-            if (!string.IsNullOrEmpty(id))
+            T entity = new T();
+            lock (_lockObject) // Locking here
             {
-                var existingEntity = _entities.FirstOrDefault(x => x.Id.Equals(id));
-                if (existingEntity != null) return (T)existingEntity;
-            }
-            T entity = new T
-            {
-                Id = id ?? Guid.NewGuid().ToString(),
-                Type = typeof(T).Name
-                
-            };
-            entity.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Name, name);
+                if (!string.IsNullOrEmpty(id))
+                {
+                    var existingEntity = _entities.FirstOrDefault(x => x.Id.Equals(id));
+                    if (existingEntity != null) return (T)existingEntity;
+                }
+                entity = new T
+                {
+                    Id = id ?? Guid.NewGuid().ToString(),
+                    Type = typeof(T).Name
 
-            foreach (var _e in _entities)
-            {
-                //entity.OtherEntities.Add(_e);
-                var e = _e as BrickEntity;
-                e.OtherEntities.Add(entity);
+                };
+                entity.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Name, name);
+
+                foreach (var _e in _entities)
+                {
+                    //entity.OtherEntities.Add(_e);
+                    var e = _e as BrickEntity;
+                    e.OtherEntities.Add(entity);
+                }
+                entity.OtherEntities = new List<BrickEntity>(_entities);
+                _entities.Add(entity);
             }
-            entity.OtherEntities = new List<BrickEntity>(_entities);
-            _entities.Add(entity);
             return entity;
         }
 
         public T AddEntity<T>(string? id) where T : BrickEntity, new()
         {
             T entity;
-            if (id == null)
+            lock (_lockObject) // Locking here
             {
-                entity = AddEntity<T>();
+                if (id == null)
+                {
+                    entity = AddEntity<T>();
+                }
+                else
+                {
+                    entity = AddEntity<T>(id, "");
+                }
             }
-            else
-            {
-                entity = AddEntity<T>(id, "");
-            }
+        
             return entity;
         }
 
         public T AddEntity<T>() where T : BrickEntity, new()
         {
-            T entity = new T
-            {
-                Id = Guid.NewGuid().ToString(),
-                Type = typeof(T).Name
-            };
 
-            foreach (var _e in _entities)
+            T entity = new T();
+            lock (_lockObject) // Locking here
             {
-                entity.OtherEntities.Add(_e);
+                entity = new T
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Type = typeof(T).Name
+                };
+
+                foreach (var _e in _entities)
+                {
+                    entity.OtherEntities.Add(_e);
+                }
+
+                _entities.Add(entity);
             }
-            _entities.Add(entity);
             return entity;
         }
 
         public BrickEntity? GetEntity(string id, bool byReference = true)
         {
-            var entity = _entities.FirstOrDefault(x => x.Id.Equals(id));
-            var behaviors = entity?.GetBehaviors(false);
-            var e = byReference ? entity : entity?.Clone();
-            e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviors);
-            return e;
+            lock (_lockObject) // Locking here
+            {
+                var entity = _entities.FirstOrDefault(x => x.Id.Equals(id));
+                var behaviors = entity?.GetBehaviors(false);
+                var e = byReference ? entity : entity?.Clone();
+                e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviors);
+                return e;
+            }
+            return null;
         }
         public List<BrickEntity> GetEntities(bool byReference = true)
         {
             
 
             List<BrickEntity> entities = new();
-            foreach (var entity in _entities)
+            lock (_lockObject) // Locking here
             {
-                var behaviors = entity.GetBehaviors(false);
-                var e = byReference ? entity : entity.Clone();
-                e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviors);
-                entities.Add(e);
+                foreach (var entity in _entities)
+                {
+                    var behaviors = entity.GetBehaviors(false);
+                    var e = byReference ? entity : entity.Clone();
+                    e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviors);
+                    entities.Add(e);
 
+                }
             }
             return entities;
 
         }
         public List<BrickEntity> GetEntities<T>(bool byReference = true)
         {
-            var type = Helpers.EntityUntils.GetTypeName<T>();
-            if (string.IsNullOrEmpty(type) || type.Equals("null"))
-            { //no type so get all
-                return GetEntities(byReference);
-            }  else
-            { //get specified type
-                List<BrickEntity> entities = new();
-                var isBrickClass = typeof(T).IsSubclassOf(typeof(BrickClass));
-                foreach (var entity in _entities)
-                {
-                    bool add = entity.GetType() == typeof(T);
-                    if (!add && isBrickClass)
-                    {
-                        var brickClassName = entity.GetProperty<string>(EntityProperties.PropertiesEnum.BrickClass);
-                        if (brickClassName?.Equals(type)??false) {
-                            add = true;
-                        }
-                    }
-
-                    if (add)
-                    {
-                        var behaviors = entity.GetBehaviors(false);
-
-                        var e = byReference ? entity : entity.Clone();
-                        e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviors);
-                        entities.Add(e);
-                        
-                    }
-
+            lock (_lockObject) // Locking here
+            {
+                var type = Helpers.EntityUntils.GetTypeName<T>();
+                if (string.IsNullOrEmpty(type) || type.Equals("null"))
+                { //no type so get all
+                    return GetEntities(byReference);
                 }
-                return entities;
+                else
+                { //get specified type
+                    List<BrickEntity> entities = new();
+                    var isBrickClass = typeof(T).IsSubclassOf(typeof(BrickClass));
+                    foreach (var entity in _entities)
+                    {
+                        bool add = entity.GetType() == typeof(T);
+                        if (!add && isBrickClass)
+                        {
+                            var brickClassName = entity.GetProperty<string>(EntityProperties.PropertiesEnum.BrickClass);
+                            if (brickClassName?.Equals(type) ?? false)
+                            {
+                                add = true;
+                            }
+                        }
+
+                        if (add)
+                        {
+                            var behaviors = entity.GetBehaviors(false);
+
+                            var e = byReference ? entity : entity.Clone();
+                            e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviors);
+                            entities.Add(e);
+
+                        }
+
+                    }
+                    return entities;
+                }
             }
+            return new();
             
         }
 
