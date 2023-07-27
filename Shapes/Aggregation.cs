@@ -3,7 +3,7 @@
     public class Aggregation : BrickShape
     {
 
-        public enum AggregationMode
+        public enum Types
         {
             Min,
             Count,
@@ -13,7 +13,7 @@
             Mode
         }
 
-        public static List<double> AggregateByInterval(List<(DateTime Timestamp, double Value)> timeSeriesData, int intervalInMinutes, AggregationMode mode)
+        public static List<double> AggregateByInterval(List<(DateTime Timestamp, double Value)> timeSeriesData, int intervalInMinutes, Types mode)
         {
             var resampledData = ResampleData(timeSeriesData, intervalInMinutes);
             var aggregatedData = new List<double>();
@@ -33,22 +33,22 @@
 
                 switch (mode)
                 {
-                    case AggregationMode.Min:
+                    case Types.Min:
                         aggregatedData.Add(Min(dataSubset));
                         break;
-                    case AggregationMode.Count:
+                    case Types.Count:
                         aggregatedData.Add(Count(dataSubset));
                         break;
-                    case AggregationMode.Mean:
+                    case Types.Mean:
                         aggregatedData.Add(Mean(dataSubset));
                         break;
-                    case AggregationMode.Sum:
+                    case Types.Sum:
                         aggregatedData.Add(Sum(dataSubset));
                         break;
-                    case AggregationMode.Median:
+                    case Types.Median:
                         aggregatedData.Add(Median(dataSubset));
                         break;
-                    case AggregationMode.Mode:
+                    case Types.Mode:
                         aggregatedData.Add(Mode(dataSubset));
                         break;
                 }

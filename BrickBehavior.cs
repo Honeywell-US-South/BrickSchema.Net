@@ -1,5 +1,6 @@
 ﻿using BrickSchema.Net.Behaviors;
 using BrickSchema.Net.EntityProperties;
+using BrickSchema.Net.Shapes;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -144,20 +145,29 @@ namespace BrickSchema.Net
 
         } 
 
-        public BrickBehavior(string behaviorMode, string behaviorName, double weight = 1, ILogger? logger = null)
+        public BrickBehavior(string behaviorType, string behaviorName, double weight = 1, ILogger? logger = null)
         {
+            Init(behaviorType, behaviorName, weight, logger);
+        }
+
+        public BrickBehavior(BehaviorFunction.Types behaviorType, string behaviorName, double weight = 1, ILogger? logger = null)
+        {
+           Init(behaviorType.ToString(), behaviorName, weight, logger);
+        }
+
+        private void Init(string behaviorType, string behaviorName, double weight = 1, ILogger? logger = null)
+        {
+            AddShape<BehaviorFunction>(behaviorType.ToString());
             AddOrUpdateProperty(PropertiesEnum.Name, behaviorName);
             AddOrUpdateProperty(PropertiesEnum.Running, false);
             AddOrUpdateProperty(PropertiesEnum.Weight, weight);
             Type = this.GetType().Name;
-            AddOrUpdateProperty(PropertiesEnum.BehaviorMode, behaviorMode);
+            AddOrUpdateProperty(PropertiesEnum.BehaviorType, behaviorType);
             _logger = logger;
             _executing = false;
             _executionThread = new Thread(Execute);
             CancelToken = new();
         }
-
-
 
         #region Logger
         public void SetLogger(ILogger? logger)

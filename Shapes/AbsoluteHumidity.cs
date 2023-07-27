@@ -2,35 +2,39 @@
 {
     public class AbsoluteHumidity : BrickShape
     {
-
-        public List<string> HasUnits
+        public enum Types
         {
-            get
-            {
-
-                return new() {
-                    "SLUG-PER-FT3",
-                    "GRAIN-PER-GAL",
-                    "TON_LONG-PER-YD3",
-                    "TON_US-PER-YD3",
-                    "KiloGM-PER-M3",
-                    "OZ_PER-GAL",
-                    "TON_SHORT-PER-YD3",
-                    "LB-PER-GAL_US",
-                    "PlanckDensity",
-                    "LB-PER-GAL_UK",
-                    "MilliGM-PER-DeciL",
-                    "LB-PER-IN3",
-                    "LB-PER-FT3",
-                    "OZ_PER-IN3",
-                    "LB-PER-M3",
-                    "LB-PER-YD3",
-                    "TON_UK-PER-YD3",
-                    "LB-PER-GAL"
-                };
-            }
-
+            SLUG_PER_FT3,
+            GRAIN_PER_GAL,
+            TON_LONG_PER_YD3,
+            TON_US_PER_YD3,
+            KiloGM_PER_M3,
+            OZ_PER_GAL,
+            TON_SHORT_PER_YD3,
+            LB_PER_GAL_US,
+            PlanckDensity,
+            LB_PER_GAL_UK,
+            MilliGM_PER_DeciL,
+            LB_PER_IN3,
+            LB_PER_FT3,
+            OZ_PER_IN3,
+            LB_PER_M3,
+            LB_PER_YD3,
+            TON_UK_PER_YD3,
+            LB_PER_GAL
         }
+        
+        public AbsoluteHumidity() { }
+        public AbsoluteHumidity(string name) { 
+        
+            Value = name;
+        }
+        public AbsoluteHumidity(Types type) {
+
+            Value = type.ToString();
+        }
+
+        
     }
 
 

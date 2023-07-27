@@ -8,10 +8,23 @@ namespace BrickSchema.Net
 {
     public class BrickShape : BrickEntity
     {
+        public string Value
+        {
+            get
+            {
+                return GetProperty<string>(EntityProperties.PropertiesEnum.Value)??string.Empty;
+            }
+            set
+            {
+                AddOrUpdateProperty(EntityProperties.PropertiesEnum.Value, value);
+            }
+        }
+
         public override BrickShape Clone()
         {
             var clone = (BrickShape)base.Clone();
             return clone;
         }
+
     }
 }

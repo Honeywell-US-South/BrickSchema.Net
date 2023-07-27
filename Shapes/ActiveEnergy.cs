@@ -2,19 +2,13 @@
 {
     public class ActiveEnergy : BrickShape
     {
-        public List<string> HasUnits
+        public enum Types
         {
-            get
-            {
-
-                return new() {
-                    "W-HR",
-                    "MegaW-HR",
-                    "KiloW-HR"
-                };
-            }
-
+            W_HR,
+            MegaW_HR,
+            KiloW_HR
         }
+        
     }
 
 

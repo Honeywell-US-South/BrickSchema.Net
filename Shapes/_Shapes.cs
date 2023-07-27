@@ -28,6 +28,19 @@ namespace BrickSchema.Net
             return shape;
         }
 
+        public T AddShape<T>(string value) where T : BrickShape, new()
+        {
+            T shape = new T
+            {
+                Id = Guid.NewGuid().ToString(),
+                Type = typeof(T).Name,
+                Value = value
+            };
+
+            Shapes.Add(shape);
+            return shape;
+        }
+
         public List<BrickShape> GetShapes()
         {
             return Shapes;
