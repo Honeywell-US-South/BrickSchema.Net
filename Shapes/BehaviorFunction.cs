@@ -14,7 +14,7 @@ namespace BrickSchema.Net.Shapes
             Background,
             DataAcccess,
             Performance,
-
+            Fault
 
         }
     }
