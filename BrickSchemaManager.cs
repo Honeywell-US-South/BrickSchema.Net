@@ -101,6 +101,7 @@ namespace BrickSchema.Net
                 {
                     foreach (var _e in _entities)
                     {
+                        _e.CleanUpDuplicatedProperties();
                         existingEntity.OtherEntities.Add(_e);
                     }
 

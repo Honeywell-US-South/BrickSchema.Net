@@ -140,6 +140,10 @@ namespace BrickSchema.Net
             AddOrUpdateProperty(PropertiesEnum.HasError, false);
         }
 
+        public BrickBehavior()
+        {
+
+        }
         private BrickBehavior(BrickEntity entity):base(entity) //this is for cloning only
         {
 

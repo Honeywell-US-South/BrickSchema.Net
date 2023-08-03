@@ -113,6 +113,32 @@ namespace BrickSchema.Net
         }
 
 
+        public void CleanUpDuplicatedProperties()
+        {
+            bool hasDuplidated = true;
+            while (hasDuplidated)
+            {
+                bool found = false;
+                for (int i = 0; i < Properties.Count; i++)
+                {
+                    found = false;
+                    var p = Properties[i];
+                    
+                    for (int j = i + 1; j < Properties.Count; j++)
+                    {
+                        if (p.Type == Properties[j].Type && p.Name == Properties[j].Name)
+                        {
+                            found = true;
+                            Properties.RemoveAt(j);
+                            break;
+                        }
+                    }
+                    if (found) break;
+
+                }
+                hasDuplidated = found;
+            }
+        }
         public void AddOrUpdateProperty<T>(string propertyName, T propertyValue)
         {
             var properties = Properties.Where(x => x.Name.Equals(propertyName)).ToList();
