@@ -37,7 +37,8 @@ namespace BrickSchema.Net
         {
             
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
-            JsonConvert.SerializeObject(entities, settings);
+            //JsonConvert.SerializeObject(entities, settings);
+           
             var json = JsonConvert.SerializeObject(entities, settings);
             return json;
         }

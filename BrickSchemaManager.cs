@@ -131,6 +131,16 @@ namespace BrickSchema.Net
             string json = "";
             lock (_lockObject) // Locking here
             {
+                foreach (var _e in _entities)
+                {
+                    var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
+                    //JsonConvert.SerializeObject(entities, settings);
+
+                    var bjson = JsonConvert.SerializeObject(_e.Behaviors, settings);
+                    _e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, bjson);
+                    _e.CleanUpDuplicatedProperties();
+
+                }
                 json = BrickSchemaUtility.ExportBrickSchemaToJson(_entities);
             }
             return json;
