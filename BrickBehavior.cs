@@ -40,35 +40,47 @@ namespace BrickSchema.Net
         #endregion protected properties
 
         #region Public properties
+        [JsonIgnore]
         public bool IsRunning
         {
             get { return GetProperty<bool>(PropertiesEnum.Running); }
             protected set { AddOrUpdateProperty(PropertiesEnum.Running, value); }
         }
+
+        [JsonIgnore]
         public string BehaviorMode { 
             get { return GetProperty<string>(PropertiesEnum.BehaviorMode) ?? string.Empty; }
         }
 
+        [JsonIgnore]
         public string Name { get { return GetProperty<string>(PropertiesEnum.Name)??string.Empty; } }
 
+        [JsonIgnore]
         public string Description { 
             get { return GetProperty<string>(PropertiesEnum.Description) ?? string.Empty; } 
             protected set { AddOrUpdateProperty(PropertiesEnum.Description, value); }
         }
+
+        [JsonIgnore]
         public string Insight { 
             get { return GetProperty<string>(PropertiesEnum.Insight) ?? string.Empty; }
             protected set { AddOrUpdateProperty(PropertiesEnum.Insight, value); }
         }
+
+        [JsonIgnore]
         public string Resolution { 
             get { return GetProperty<string>(PropertiesEnum.Resolution) ?? string.Empty; }
             protected set { AddOrUpdateProperty(PropertiesEnum.Resolution, value); }
         }
 
+        [JsonIgnore]
         public string Info
         {
             get { return GetProperty<string>(PropertiesEnum.Info) ?? string.Empty; }
             protected set { AddOrUpdateProperty(PropertiesEnum.Info, value); }
         }
+
+        [JsonIgnore]
         public DateTime LastExecutionStart 
         { 
             get 
@@ -82,6 +94,8 @@ namespace BrickSchema.Net
                 return (DateTime)d;  
             } 
         }
+
+        [JsonIgnore]
         public DateTime LastExecutionEnd
         {
             get
@@ -96,6 +110,7 @@ namespace BrickSchema.Net
             }
         }
 
+        [JsonIgnore]
         public double Weight
         {
             get
@@ -105,6 +120,7 @@ namespace BrickSchema.Net
             }
         }
 
+        [JsonIgnore]
         public BrickEntity? Parent = null;
         #endregion public properties
 
