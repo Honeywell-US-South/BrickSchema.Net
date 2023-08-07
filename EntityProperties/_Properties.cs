@@ -29,7 +29,9 @@ namespace BrickSchema.Net
             {
                 myValue.SetValue(value);
             }
+            CleanUpDuplicatedProperties();
             AddOrUpdateProperty(PropertiesEnum.BehaviorValues, results);
+            
         }
 
         public void SetBehaviorValue(BehaviorValue value)
@@ -46,7 +48,9 @@ namespace BrickSchema.Net
             {
                 myValue.UpdateValue(value);
             }
+            CleanUpDuplicatedProperties();
             AddOrUpdateProperty(PropertiesEnum.BehaviorValues, results);
+            
         }
 
         public void SetBehaviorValue(List<BehaviorValue> values)
@@ -66,6 +70,7 @@ namespace BrickSchema.Net
                     myValue.UpdateValue(value);
                 }
             }
+            CleanUpDuplicatedProperties();
             AddOrUpdateProperty(PropertiesEnum.BehaviorValues, results);
         }
 

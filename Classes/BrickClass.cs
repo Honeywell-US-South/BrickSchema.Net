@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using Newtonsoft.Json;
+using System.Runtime.CompilerServices;
 
 namespace BrickSchema.Net.Classes
 {
@@ -21,6 +22,7 @@ namespace BrickSchema.Net.Classes
 
         internal BrickClass(BrickEntity entity) : base(entity) { } //for internal cloning
 
+        [JsonIgnore]
         public string Name
         {
             get { return GetProperty<string>(EntityProperties.PropertiesEnum.Name) ?? string.Empty; }
@@ -28,6 +30,7 @@ namespace BrickSchema.Net.Classes
             set { AddOrUpdateProperty(EntityProperties.PropertiesEnum.Name, value); }
         }
 
+        [JsonIgnore]
         public string Description
         {
             get { return GetProperty<string>(EntityProperties.PropertiesEnum.Description) ?? string.Empty; }
