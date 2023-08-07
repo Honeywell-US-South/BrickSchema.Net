@@ -133,7 +133,7 @@ namespace BrickSchema.Net
             {
                 foreach (var _e in _entities)
                 {
-                    var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
+                    var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, Formatting = Newtonsoft.Json.Formatting.Indented };
                     //JsonConvert.SerializeObject(entities, settings);
 
                     var bjson = JsonConvert.SerializeObject(_e.Behaviors, settings);
