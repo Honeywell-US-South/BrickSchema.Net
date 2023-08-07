@@ -2,6 +2,7 @@
 using BrickSchema.Net.EntityProperties;
 using BrickSchema.Net.Shapes;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -14,8 +15,9 @@ namespace BrickSchema.Net
     public class BrickBehavior : BrickEntity
     {
 
-        
+
         #region Private properties
+        [JsonIgnore]
         private Thread? _executionThread;
         private bool _executing = false;
         private bool _executeByTimer = true;
@@ -25,20 +27,16 @@ namespace BrickSchema.Net
         private bool _isDescriptionRunning = false;
         private bool _isInsightRunning = false;
         private bool _isResolutionRunning = false;
-
         #endregion private properties
 
         #region Protected properties
+        [JsonIgnore]
         protected ILogger? _logger;
-        
+
         protected CancellationTokenSource? CancelToken;
-
-
         protected DateTime LastRun = DateTime.Now;
         protected bool Processing = false;
-
         protected Dictionary<string, DateTime> Errors = new Dictionary<string, DateTime>();
-
         #endregion protected properties
 
         #region Public properties
