@@ -36,7 +36,7 @@ namespace BrickSchema.Net
         public static string ExportBrickSchemaToJson(List<BrickEntity> entities)
         {
             
-            var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
+            var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, Formatting = Newtonsoft.Json.Formatting.Indented };
             //JsonConvert.SerializeObject(entities, settings);
            
             var json = JsonConvert.SerializeObject(entities, settings);
