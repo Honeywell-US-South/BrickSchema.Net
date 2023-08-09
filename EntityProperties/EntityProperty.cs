@@ -48,19 +48,30 @@ namespace BrickSchema.Net.EntityProperties
             } catch (Exception ex) { Console.WriteLine($"Property Set Value [{name}:{ex.Message}]"); }
         }
 
-        
-
-        public T? GetValue<T> ()
+        public T? GetValue<T>()
         {
             if (Type == null) return default(T);
 
             string tName = GetTypeName<T>();
-            //if (!Type.Equals(tName)) throw new InvalidCastException($"Cannot convert {Type} to {tName}.");
+
+            // Configure the JsonSerializerSettings with TypeNameHandling.Auto
+            var settings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Auto,
+                Formatting = Formatting.Indented
+            };
+
             try
             {
-                T? deserializedObject = JsonConvert.DeserializeObject<T>(this.Value);
+                T? deserializedObject = JsonConvert.DeserializeObject<T>(this.Value, settings);
                 return deserializedObject;
-            } catch (Exception ex) { /* throw new InvalidCastException($"Cannot convert {Type} to {tName}. {ex.Message}");*/ }
+            }
+            catch (Exception ex)
+            {
+                // Logging or handle the exception as needed
+                Console.WriteLine($"Error deserializing the value for type {tName}: {ex.Message}");
+            }
+
             return default(T?);
         }
 
@@ -72,7 +83,6 @@ namespace BrickSchema.Net.EntityProperties
                 Type nullableType = typeof(T?);
                 Type underlyingType = Nullable.GetUnderlyingType(nullableType);
                 tName = underlyingType.Name;
-
             }
             return tName;
         }
