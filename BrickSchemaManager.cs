@@ -57,13 +57,17 @@ namespace BrickSchema.Net
                         if (_e == null) //add new
                         {
                             _e = e;
-                            _e.Behaviors = e.GetProperty<List<BrickBehavior>>(EntityProperties.PropertiesEnum.Behaviors) ?? new();
+                            var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors);
+
+                            _e.Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
                             _entities.Add(_e);
                         }
                         else //update
                         {
                             _e = e;
-                            _e.Behaviors = e.GetProperty<List<BrickBehavior>>(EntityProperties.PropertiesEnum.Behaviors) ?? new();
+                            var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors);
+
+                            _e.Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
                         }
                         foreach (var _b in _e.Behaviors)
                         {
@@ -77,7 +81,9 @@ namespace BrickSchema.Net
                     _entities = entities;
                     foreach (var _e in _entities)
                     {
-                        _e.Behaviors = _e.GetProperty<List<BrickBehavior>>(EntityProperties.PropertiesEnum.Behaviors) ?? new();
+                        var json = _e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors);
+
+                        _e.Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
                         foreach (var _b in _e.Behaviors)
                         {
                             _b.Parent = _e;
@@ -131,13 +137,14 @@ namespace BrickSchema.Net
             string json = "";
             lock (_lockObject) // Locking here
             {
+                var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, Formatting = Newtonsoft.Json.Formatting.Indented };
                 foreach (var _e in _entities)
                 {
-                    var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, Formatting = Newtonsoft.Json.Formatting.Indented };
+                    
                     //JsonConvert.SerializeObject(entities, settings);
-
-                    var bjson = JsonConvert.SerializeObject(_e.Behaviors, settings);
-                    _e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, bjson);
+                    var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(_e.Behaviors);
+                    
+                    _e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
                     _e.CleanUpDuplicatedProperties();
 
                 }
@@ -262,7 +269,14 @@ namespace BrickSchema.Net
                 var entity = _entities.FirstOrDefault(x => x.Id.Equals(id));
                 var behaviors = entity?.GetBehaviors(false);
                 var e = byReference ? entity : entity?.Clone();
-                e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviors);
+                
+
+                //JsonConvert.SerializeObject(entities, settings);
+                var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(e.Behaviors);
+
+                e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+                e.CleanUpDuplicatedProperties();
+
                 return e;
             }
             return null;
@@ -278,7 +292,10 @@ namespace BrickSchema.Net
                 {
                     var behaviors = entity.GetBehaviors(false);
                     var e = byReference ? entity : entity.Clone();
-                    e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviors);
+                    var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(e.Behaviors);
+
+                    e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+                    e.CleanUpDuplicatedProperties();
                     entities.Add(e);
 
                 }
@@ -316,7 +333,10 @@ namespace BrickSchema.Net
                             var behaviors = entity.GetBehaviors(false);
 
                             var e = byReference ? entity : entity.Clone();
-                            e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviors);
+                            var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(e.Behaviors);
+
+                            e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+                            e.CleanUpDuplicatedProperties();
                             entities.Add(e);
 
                         }
@@ -354,7 +374,10 @@ namespace BrickSchema.Net
                     var behaviors = entity.GetBehaviors(false);
           
                     var e = byReference ? entity : entity.Clone();
-                    e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviors);
+                    var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(e.Behaviors);
+
+                    e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+                    e.CleanUpDuplicatedProperties();
                     entities.Add(e);
                 }
             }
