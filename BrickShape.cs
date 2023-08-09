@@ -24,7 +24,23 @@ namespace BrickSchema.Net
 
         public override BrickShape Clone()
         {
-            var clone = (BrickShape)base.Clone();
+            var clone = new BrickShape();
+            clone.Id = Id;
+            clone.Type = Type;
+            foreach (var p in Properties ?? new())
+            {
+                clone.Properties.Add(p.Clone());
+            }
+            foreach (var r in Relationships ?? new())
+            {
+                clone.Relationships.Add(r.Clone());
+            }
+            clone.RegisteredBehaviors = new(RegisteredBehaviors);
+            //do not clone behaviors
+            foreach (var s in Shapes ?? new())
+            {
+                clone.Shapes.Add(s.Clone());
+            }
             return clone;
         }
 

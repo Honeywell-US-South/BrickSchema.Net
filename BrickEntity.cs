@@ -69,7 +69,9 @@ namespace BrickSchema.Net
             }
             return clone;
         }
-    
+
+        
+
         public List<BrickEntity> GetChildEntities()
         {
             var entities = OtherEntities
