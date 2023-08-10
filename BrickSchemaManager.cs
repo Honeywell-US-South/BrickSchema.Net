@@ -75,25 +75,31 @@ namespace BrickSchema.Net
                         }
 
                     }
+                    foreach (var _e in _entities)
+                    {
+                        _e.OtherEntities = _entities;
+                    }
                 }
                 else
                 {
-                    _entities = entities;
-                    foreach (var _e in _entities)
+                    
+                    foreach (var e in entities)
                     {
-                        var json = _e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors);
+                        var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors);
 
-                        _e.Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
-                        foreach (var _b in _e.Behaviors)
+                        e.Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
+                        foreach (var b in e.Behaviors)
                         {
-                            _b.Parent = _e;
+                            b.Parent = e;
                         }
                     }
+                    foreach (var e in entities)
+                    {
+                        e.OtherEntities = entities;
+                    }
+                    _entities = entities;
                 }
-                foreach (var _e in _entities)
-                {
-                    _e.OtherEntities = _entities;
-                }
+                
             }
         }
 
