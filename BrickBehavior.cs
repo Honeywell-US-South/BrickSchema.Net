@@ -1,42 +1,40 @@
 ﻿using BrickSchema.Net.Behaviors;
+using BrickSchema.Net.Classes;
 using BrickSchema.Net.EntityProperties;
 using BrickSchema.Net.Shapes;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace BrickSchema.Net
 {
-    public class BrickBehavior : BrickEntity
+    public partial class BrickBehavior : BrickEntity
     {
 
 
         #region Private properties
         [JsonIgnore]
         private Thread? _executionThread;
-        private bool _executing = false;
+        private int _pollRateSeconds = -1;
+        private int _changedOfValueDelay = -1;
         private bool _executeByTimer = true;
         private bool _isTaskRunning = false;
-        private bool _isAnalyticsRunning = false;
+        private bool _isOnTimerTaskRunning = false;
+        private bool _isOnParentPointValueChangedTaskRunning = false;
         private bool _isInfoRunning = false;
         private bool _isDescriptionRunning = false;
         private bool _isInsightRunning = false;
         private bool _isResolutionRunning = false;
+        private DateTime _lastInfoUpdate = DateTime.MinValue;
+        private Dictionary<string, DateTime> Errors = new Dictionary<string, DateTime>();
         #endregion private properties
 
         #region Protected properties
         [JsonIgnore]
+        protected bool isExecuting = false;
         protected ILogger? _logger;
-
         protected CancellationTokenSource? CancelToken;
-        protected DateTime LastRun = DateTime.Now;
-        protected bool Processing = false;
-        protected Dictionary<string, DateTime> Errors = new Dictionary<string, DateTime>();
+        
         #endregion protected properties
 
         #region Public properties
@@ -182,7 +180,7 @@ namespace BrickSchema.Net
             Type = this.GetType().Name;
             AddOrUpdateProperty(PropertiesEnum.BehaviorType, behaviorType);
             _logger = logger;
-            _executing = false;
+            isExecuting = false;
             _executionThread = new Thread(Execute);
             CancelToken = new();
         }
@@ -237,7 +235,7 @@ namespace BrickSchema.Net
         {
             if (_executeByTimer)
             {
-                if (!_executing && IsRunning && !_executionThread.IsAlive)
+                if (!isExecuting && IsRunning && !_executionThread.IsAlive)
                 {
                     
                     try
@@ -277,15 +275,73 @@ namespace BrickSchema.Net
 
         #region default Functions
 
+        internal override async void HandleOnPropertyValueChanged(string sourceId, string propertyName)
+        {
+            var e = Parent?.OtherEntities.FirstOrDefault(x => x.Id == sourceId);
+            if (e == null) return;
+           
+            await ProcessParentPointValueChange(e, propertyName);
+        }
 
+        private async Task ProcessParentPointValueChange(BrickEntity e, string propertyName)
+        {
+            if (!(e is Point) || !propertyName.Equals(PropertiesEnum.Value)) return;
+            if (!_isOnParentPointValueChangedTaskRunning)
+            {
+                _isOnParentPointValueChangedTaskRunning = true;
+                try
+                {
+                    if (_changedOfValueDelay >= 0)
+                    {
+                        await Task.Delay(1000 * _changedOfValueDelay);
+
+                        var returnCode = OnParentPointValueChangedTask(e as Point, out List<BehaviorValue> values);
+                        if (returnCode == BehaviorTaskReturnCodes.Good)
+                        {
+                            Parent?.SetBehaviorValue(values);
+                        }
+
+                    }
+                }
+                catch { }
+                _isOnParentPointValueChangedTaskRunning = false;
+            }
+        }
         // Add a virtual Start method
+        protected void RegisterOnTimerTask(int poleRateSeconds)
+        {
+            _pollRateSeconds = poleRateSeconds;
+            _changedOfValueDelay = -1;
+        }
+        
+        protected void UnRegisterTime()
+        {
+            _pollRateSeconds = -1;
+        }
 
+        protected void RegisterParentPropertyValueChangedEvent(int delaySeconds = 0)
+        {
+            _changedOfValueDelay = delaySeconds;
+            _pollRateSeconds -= 1;
+        }
+
+        protected void UnRegisterParentPropertyValueChangedEvent()
+        {
+            _changedOfValueDelay = -1;
+        }
+        private bool IsTimeToRun()
+        {
+            if (_pollRateSeconds < 0) return false;
+            DateTime lastExecutionTime = GetProperty<DateTime>(PropertiesEnum.LastExecutionStart);
+            bool ok = lastExecutionTime.AddSeconds(_pollRateSeconds) > DateTime.Now;
+            return ok;
+        }
         
         public void Execute()
         {
-            if (!_executing)
+            if (!isExecuting)
             {
-                _executing = true;
+                isExecuting = true;
                 try
                 {
                     AddOrUpdateProperty(PropertiesEnum.LastExecutionStart, DateTime.Now);
@@ -296,7 +352,7 @@ namespace BrickSchema.Net
                         try
                         {
                             var returnCode = ProcessTask(out List<BehaviorValue> values);
-                            if (returnCode == BehaviorReturnCodes.Good)
+                            if (returnCode == BehaviorTaskReturnCodes.Good)
                             {
                                 Parent?.SetBehaviorValue(values);
                             }
@@ -304,36 +360,26 @@ namespace BrickSchema.Net
                         catch { }
                         _isTaskRunning = false;
                     }
-                    if (!_isAnalyticsRunning)
+                    if (!_isOnTimerTaskRunning)
                     {
-                        _isAnalyticsRunning = true;
+                        _isOnTimerTaskRunning = true;
                         try
                         {
-                            var returnCode = ProcessAnalytics(out List<BehaviorValue> values);
-                            if (returnCode == BehaviorReturnCodes.Good)
+                            if (IsTimeToRun())
                             {
-                                Parent?.SetBehaviorValue(values);
+                                var returnCode = OnTimerTask(out List<BehaviorValue> values);
+                                if (returnCode == BehaviorTaskReturnCodes.Good)
+                                {
+                                    Parent?.SetBehaviorValue(values);
+                                }
                             }
                         }
                         catch { }
-                        _isAnalyticsRunning = false;
+                        _isOnTimerTaskRunning = false;
                     }
-                    if (!_isInfoRunning)
-                    {
-                        _isInfoRunning = true;
-                        try
-                        {
-                            var returnCode = GenerateDescription(out string info);
-                            Info = string.Empty;
-                            if (returnCode != BehaviorReturnCodes.Good)
-                            {
-                                Info = $"**** {DateTime.Now.ToLongDateString()} Execution Result {returnCode.ToString()} **** \n\r\n\r";
-                            }
-                            Info += info;
-                        }
-                        catch { }
-                        _isInfoRunning = false;
-                    }
+
+                    GenerateInfo();
+
                     if (!_isDescriptionRunning)
                     {
                         _isDescriptionRunning = true;
@@ -341,7 +387,7 @@ namespace BrickSchema.Net
                         {
                             var returnCode = GenerateDescription(out string description);
                             Description = string.Empty;
-                            if (returnCode != BehaviorReturnCodes.Good)
+                            if (returnCode != BehaviorTaskReturnCodes.Good)
                             {
                                 Description = $"**** {DateTime.Now.ToLongDateString()} Execution Result {returnCode.ToString()} **** \n\r\n\r";
                             }
@@ -357,7 +403,7 @@ namespace BrickSchema.Net
                         {
                             var returnCode = GenerateInsight(out string insight);
                             Insight = string.Empty;
-                            if (returnCode != BehaviorReturnCodes.Good)
+                            if (returnCode != BehaviorTaskReturnCodes.Good)
                             {
                                 Insight = $"**** {DateTime.Now.ToLongDateString()} Execution Result {returnCode.ToString()} **** \n\r\n\r";
                             }
@@ -373,7 +419,7 @@ namespace BrickSchema.Net
                         {
                             var returnCode = GenerateResolution(out string resolution);
                             Resolution = string.Empty;
-                            if (returnCode != BehaviorReturnCodes.Good)
+                            if (returnCode != BehaviorTaskReturnCodes.Good)
                             {
                                 Resolution = $"**** {DateTime.Now.ToLongDateString()} Execution Result {returnCode.ToString()} **** \n\r\n\r";
                             }
@@ -382,9 +428,79 @@ namespace BrickSchema.Net
                         catch { };
                         _isResolutionRunning = false;
                     }
+                    
                 }
                 catch { }
-                _executing = false;
+                isExecuting = false;
+                AddOrUpdateProperty(PropertiesEnum.LastExecutionEnd, DateTime.Now);
+            }
+        }
+
+        private void GenerateInfo()
+        {
+            if (!_isInfoRunning && _lastInfoUpdate.AddMinutes(10) <= DateTime.Now)
+            {
+                _isInfoRunning = true;
+                try
+                {
+                    var returnCode = TechnicalInfo(out List<string> requiredTags, out List<string> optionalTags, out string runCondition);
+                    string info = $"## {Name} Technical Information";
+                    info += $"Behavior ID: {Id}\r\n";
+                    info += $"Behavior Type: {BehaviorMode}\r\n";
+                    if (_pollRateSeconds >= 0)
+                    {
+                        info += $"Execution Cycle: {_pollRateSeconds} seconds\r\n";
+                    }
+                    info += $"Required Point Tags: \r\n";
+                    foreach (var tag in requiredTags)
+                    {
+                        info += $"-{tag}\r\n";
+                    }
+
+                    info += $"Optional Point Tag: \r\n";
+                    foreach (var tag in optionalTags)
+                    {
+                        info += $"-{tag}\r\n";
+                    }
+
+                    info += "\r\n";
+
+                    info += $"Run Condition: {runCondition}";
+                    info += "\r\n";
+
+                    info += "### Mapped Entities:\r\n";
+                    if (Parent != null)
+                    {
+                        info += $"Parent: {Parent.GetProperty<string>(BrickSchema.Net.EntityProperties.PropertiesEnum.Name)}\r\n";
+                        info += $"Required Point Tag: \r\n";
+                        foreach (var tag in requiredTags)
+                        {
+                            Point? p = Parent.GetPointEntity(tag);
+                            info += $"- [{p != null}] {tag}\r\n";
+                        }
+                        info += $"Optional Point Tag: \r\n";
+                        foreach (var tag in optionalTags)
+                        {
+                            Point? p = Parent.GetPointEntity(tag);
+                            info += $"- [{p != null}] {tag}\r\n";
+                        }
+
+
+                    }
+                    else
+                    {
+                        info += "Error: Missing Parent Entity.\r\n";
+                    }
+
+                    info += $"\r\n";
+                    
+                    Info = info;
+                    
+
+                }
+                catch { }
+                _lastInfoUpdate = DateTime.Now;
+                _isInfoRunning = false;
             }
         }
 
@@ -394,36 +510,48 @@ namespace BrickSchema.Net
             _executeByTimer = false; 
             Execute();
         }
-        protected virtual BehaviorReturnCodes ProcessTask(out List<BehaviorValue> behaviorValues)
+
+        protected virtual bool IsBehaviorRunnable()
+        {
+            return false;
+        }
+        protected virtual BehaviorTaskReturnCodes ProcessTask(out List<BehaviorValue> behaviorValues)
         {
             behaviorValues = new();
-            return BehaviorReturnCodes.NotImplemented;
+            return BehaviorTaskReturnCodes.NotImplemented;
         }
-        protected virtual BehaviorReturnCodes ProcessAnalytics(out List<BehaviorValue> behaviorValues) 
+        protected virtual BehaviorTaskReturnCodes OnTimerTask(out List<BehaviorValue> behaviorValues) 
         {
             behaviorValues = new();
-            return BehaviorReturnCodes.NotImplemented;
+            return BehaviorTaskReturnCodes.NotImplemented;
         }
-        protected virtual BehaviorReturnCodes GenerateInfo(out string info)
+        protected virtual BehaviorTaskReturnCodes OnParentPointValueChangedTask(Point? point, out List<BehaviorValue> behaviorValues)
         {
-            info = "Not Implimented.";
-            return BehaviorReturnCodes.NotImplemented;
+            behaviorValues = new();
+            return BehaviorTaskReturnCodes.NotImplemented;
         }
-        protected virtual BehaviorReturnCodes GenerateDescription(out string description)
+        protected virtual BehaviorTaskReturnCodes TechnicalInfo(out List<string> requiredTags, out List<string> optionalTags, out string runCondition)
+        {
+            requiredTags = new();
+            optionalTags = new();
+            runCondition = "Not Implimented";
+            return BehaviorTaskReturnCodes.NotImplemented;
+        }
+        protected virtual BehaviorTaskReturnCodes GenerateDescription(out string description)
         {
             description = "Not Implimented.";
-            return BehaviorReturnCodes.NotImplemented;
+            return BehaviorTaskReturnCodes.NotImplemented;
         }
-        protected virtual BehaviorReturnCodes GenerateInsight(out string insight)
+        protected virtual BehaviorTaskReturnCodes GenerateInsight(out string insight)
         {
             insight = "Not Implimented.";
-            return BehaviorReturnCodes.NotImplemented;
+            return BehaviorTaskReturnCodes.NotImplemented;
         }
 
-        protected virtual BehaviorReturnCodes GenerateResolution(out string resolution)
+        protected virtual BehaviorTaskReturnCodes GenerateResolution(out string resolution)
         {
             resolution = "Not Implimented.";
-            return BehaviorReturnCodes.NotImplemented;
+            return BehaviorTaskReturnCodes.NotImplemented;
         }
 
         protected virtual void Load()    {      }

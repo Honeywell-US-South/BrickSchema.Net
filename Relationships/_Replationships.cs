@@ -20,9 +20,18 @@ namespace BrickSchema.Net
             {
                 Id = Guid.NewGuid().ToString(),
                 Type = typeof(T).Name,
-                ParentId = parentId,
-            };
+                ParentId = parentId
+               
 
+            };
+            if (typeof(T) == typeof(PointOf))
+            {
+                var e = OtherEntities.FirstOrDefault(x => x.Id == parentId);
+                if (e != null)
+                {
+                    OnPropertyValueChanged += e.HandleOnPropertyValueChanged;
+                }
+            }
             Relationships.Add(relationship);
             return relationship;
         }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BrickSchema.Net.Behaviors
 {
-    public enum BehaviorReturnCodes
+    public enum BehaviorTaskReturnCodes
     {
         NotImplemented = -1,
         Good = 0,

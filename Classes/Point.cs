@@ -1,5 +1,5 @@
 ﻿using BrickSchema.Net.Classes.Points;
-
+using BrickSchema.Net.EntityProperties;
 
 namespace BrickSchema.Net.Classes
 {
@@ -28,7 +28,7 @@ namespace BrickSchema.Net.Classes
                 if (Value != value)
                 {
                     AddOrUpdateProperty(EntityProperties.PropertiesEnum.Value, value);
-                    NotifyValueChange();
+                    NotifyPropertyValueChange(PropertiesEnum.Value);
                 }
             }
         }

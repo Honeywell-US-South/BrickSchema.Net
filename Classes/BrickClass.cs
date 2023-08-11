@@ -5,15 +5,7 @@ namespace BrickSchema.Net.Classes
 {
     public class BrickClass : BrickEntity {
 
-        //events
-        public event EventHandler OnValueChanged;
         
-        
-
-        internal void NotifyValueChange()
-        {
-            OnValueChanged?.Invoke(this, EventArgs.Empty);
-        }
 
         public BrickClass() { 
         
