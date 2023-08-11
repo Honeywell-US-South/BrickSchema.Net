@@ -10,8 +10,6 @@ namespace BrickSchema.Net
 {
     public partial class BrickBehavior : BrickEntity
     {
-
-
         #region Private properties
         [JsonIgnore]
         private Thread? _executionThread;
@@ -20,10 +18,9 @@ namespace BrickSchema.Net
         private bool _isOnTimerTaskRunning = false;
         private bool _isOnParentPointValueChangedTaskRunning = false;
         private bool _isInfoRunning = false;
-        private bool _isDescriptionRunning = false;
-        private bool _isInsightRunning = false;
-        private bool _isResolutionRunning = false;
         private DateTime _lastInfoUpdate = DateTime.MinValue;
+        private Dictionary<string, Point?> _requiredPoints = new();
+        private Dictionary<string, Point?> _optionalPoints = new();
         private Dictionary<string, DateTime> Errors = new Dictionary<string, DateTime>();
         #endregion private properties
 
@@ -288,30 +285,7 @@ namespace BrickSchema.Net
             await ProcessParentPointValueChange(e, propertyName);
         }
 
-        private async Task ProcessParentPointValueChange(BrickEntity e, string propertyName)
-        {
-            if (!(e is Point) || !propertyName.Equals(PropertiesEnum.Value)) return;
-            if (!_isOnParentPointValueChangedTaskRunning)
-            {
-                _isOnParentPointValueChangedTaskRunning = true;
-                try
-                {
-                    if (_changedOfValueDelay >= 0)
-                    {
-                        await Task.Delay(1000 * _changedOfValueDelay);
-
-                        var returnCode = OnParentPointValueChangedTask(e as Point, out List<BehaviorValue> values);
-                        if (returnCode == BehaviorTaskReturnCodes.Good)
-                        {
-                            Parent?.SetBehaviorValue(values);
-                        }
-
-                    }
-                }
-                catch { }
-                _isOnParentPointValueChangedTaskRunning = false;
-            }
-        }
+        
         // Add a virtual Start method
         protected void RegisterOnTimerTask(int poleRateSeconds)
         {
@@ -342,6 +316,47 @@ namespace BrickSchema.Net
             return ok;
         }
 
+        private async Task ProcessParentPointValueChange(BrickEntity e, string propertyName)
+        {
+            if (!(e is Point) || !propertyName.Equals(PropertiesEnum.Value)) return;
+            if (!_isOnParentPointValueChangedTaskRunning)
+            {
+                _isOnParentPointValueChangedTaskRunning = true;
+                try
+                {
+
+                    if (_changedOfValueDelay >= 0)
+                    {
+                        await Task.Delay(1000 * _changedOfValueDelay);
+                        if (!IsBehaviorRunnable())
+                        {
+                            string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                            text += "\n- This behavior doesn't meet required conditions to run.";
+                            text += "\n- Please review technical info for more information.";
+                            Insight = text;
+                            Resolution = text;
+                        }
+
+                        var analyticsReturnCode = OnParentPointValueChangedTask(e as Point, out List<BehaviorValue> values);
+                        if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
+                        {
+                            Parent?.SetBehaviorValue(values);
+                        }
+                        var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
+                        string header = $"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
+                        Insight = $"{header}{insight}";
+
+                        var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
+
+                        Resolution = $"{header}{resolution}";
+                    }
+                }
+                catch { }
+                _isOnParentPointValueChangedTaskRunning = false;
+            }
+        }
+
+
         public void Execute()
         {
             if (!isExecuting)
@@ -350,21 +365,7 @@ namespace BrickSchema.Net
                 try
                 {
                     AddOrUpdateProperty(PropertiesEnum.LastExecutionStart, DateTime.Now);
-                    // Default implementation does nothing
-                    //if (!_isTaskRunning)
-                    //{
-                    //    _isTaskRunning = true;
-                    //    try
-                    //    {
-                    //        var returnCode = ProcessTask(out List<BehaviorValue> values);
-                    //        if (returnCode == BehaviorTaskReturnCodes.Good)
-                    //        {
-                    //            Parent?.SetBehaviorValue(values);
-                    //        }
-                    //    }
-                    //    catch { }
-                    //    _isTaskRunning = false;
-                    //}
+
                     if (!_isOnTimerTaskRunning)
                     {
                         _isOnTimerTaskRunning = true;
@@ -398,10 +399,6 @@ namespace BrickSchema.Net
                         _isOnTimerTaskRunning = false;
                     }
 
-
-
-
-
                 }
                 catch { }
                 isExecuting = false;
@@ -421,21 +418,27 @@ namespace BrickSchema.Net
 
 
                     returnCode = TechnicalInfo(out List<string> requiredTags, out List<string> optionalTags, out string runCondition);
+
+                    UpdatePointLists(requiredTags, optionalTags);
+
                     string info = $"## {Name} Technical Information";
                     info += $"Behavior ID: {Id}\r\n";
                     info += $"Behavior Type: {BehaviorMode}\r\n";
                     if (_pollRateSeconds >= 0)
                     {
                         info += $"Execution Cycle: {_pollRateSeconds} seconds\r\n";
+                    } else if (_changedOfValueDelay >= 0)
+                    {
+                        info += $"Execution Cycle: On Point Value Changed. Delay {_changedOfValueDelay} seconds\r\n";
                     }
                     info += $"Required Point Tags: \r\n";
-                    foreach (var tag in requiredTags)
+                    foreach (var tag in requiredTags.Distinct())
                     {
                         info += $"-{tag}\r\n";
                     }
 
                     info += $"Optional Point Tag: \r\n";
-                    foreach (var tag in optionalTags)
+                    foreach (var tag in optionalTags.Distinct())
                     {
                         info += $"-{tag}\r\n";
                     }
@@ -448,20 +451,18 @@ namespace BrickSchema.Net
                     info += "### Mapped Entities:\r\n";
                     if (Parent != null)
                     {
-                        info += $"Parent: {Parent.GetProperty<string>(BrickSchema.Net.EntityProperties.PropertiesEnum.Name)}\r\n";
+                        info += $"Parent: {Parent.GetProperty<string>(PropertiesEnum.Name)}\r\n";
                         info += $"Required Point Tag: \r\n";
-                        foreach (var tag in requiredTags)
+                        foreach (var point in _requiredPoints)
                         {
-                            Point? p = Parent.GetPointEntity(tag);
-                            info += $"- [{p != null}] {tag}\r\n";
+                            
+                            info += $"- [{point.Value != null}] {point.Key}\r\n";
                         }
                         info += $"Optional Point Tag: \r\n";
-                        foreach (var tag in optionalTags)
+                        foreach (var point in _optionalPoints)
                         {
-                            Point? p = Parent.GetPointEntity(tag);
-                            info += $"- [{p != null}] {tag}\r\n";
+                            info += $"- [{point.Value != null}] {point.Key}\r\n";
                         }
-
 
                     }
                     else
@@ -478,6 +479,101 @@ namespace BrickSchema.Net
                 catch { }
                 _lastInfoUpdate = DateTime.Now;
                 _isInfoRunning = false;
+            }
+        }
+
+        protected List<string> GetRequiredTags()
+        {
+            List<string> tags= new List<string>();
+            foreach (var point in _requiredPoints)
+            {
+                tags.Add(point.Key);
+            }
+            return tags;
+        }
+        protected Point? GetRequiredPoint(string Tag)
+        {
+            if (_requiredPoints.ContainsKey(Tag)) return _requiredPoints[Tag];
+
+            return null;
+        }
+
+        protected List<Point> GetRequiredPoints()
+        {
+            List<Point> points = new List<Point>();
+            foreach (var point in _requiredPoints)
+            {
+                if (point.Value != null) points.Add(point.Value);
+            }
+            return points;
+        }
+
+        protected List<string> GetOptionalTags()
+        {
+            List<string> tags = new List<string>();
+            foreach (var point in _optionalPoints)
+            {
+                tags.Add(point.Key);
+            }
+            return tags;
+        }
+
+        protected Point? GetOptionalPoint(string Tag)
+        {
+            if (_optionalPoints.ContainsKey(Tag)) return _optionalPoints[Tag];
+
+            return null;
+        }
+
+        protected List<Point> GetOptionalPoints()
+        {
+            List<Point> points = new List<Point>();
+            foreach (var point in _optionalPoints)
+            {
+                if (point.Value != null) points.Add(point.Value);
+            }
+            return points;
+        }
+
+        private void UpdatePointLists(List<string> requireds, List<string> optionals)
+        {
+            bool gate = true;
+            while (gate)
+            {
+                gate = false;
+                foreach (var r in _requiredPoints)
+                {
+                    if (!requireds.Contains(r.Key))
+                    {
+                        _requiredPoints.Remove(r.Key);
+                        gate = true;
+                        break;
+                    }
+                }
+            }
+            gate = true;
+            while (gate)
+            {
+                gate = false;
+                foreach (var o in _optionalPoints)
+                {
+                    if (!optionals.Contains(o.Key))
+                    {
+                        _optionalPoints.Remove(o.Key);
+                        gate = true;
+                        break;
+                    }
+                }
+            }
+            foreach (var require in requireds.Distinct())
+            {
+                if (!_requiredPoints.ContainsKey(require)) _requiredPoints.Add(require, null);
+                _requiredPoints[require] = Parent.GetPointEntity(require);
+            }
+            foreach (var optional in optionals.Distinct())
+            {
+                if (!_optionalPoints.ContainsKey(optional)) _optionalPoints.Add(optional, null);
+                _optionalPoints[optional] = Parent.GetPointEntity(optional);
             }
         }
 
