@@ -328,27 +328,35 @@ namespace BrickSchema.Net
                     if (_changedOfValueDelay >= 0)
                     {
                         await Task.Delay(1000 * _changedOfValueDelay);
-                        if (!IsBehaviorRunnable())
+                        List<string> reasons = new();
+                        if (!IsBehaviorRunnable(reasons))
                         {
                             string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
                             text += "\n- This behavior doesn't meet required conditions to run.";
                             text += "\n- Please review technical info for more information.";
+                            foreach (var r in reasons)
+                            {
+                                text += $"\n- {r}";
+                            }
                             Insight = text;
                             Resolution = text;
                         }
-
-                        var analyticsReturnCode = OnParentPointValueChangedTask(e as Point, out List<BehaviorValue> values);
-                        if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
+                        else
                         {
-                            Parent?.SetBehaviorValue(values);
+
+                            var analyticsReturnCode = OnParentPointValueChangedTask(e as Point, out List<BehaviorValue> values);
+                            if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
+                            {
+                                Parent?.SetBehaviorValue(values);
+                            }
+                            var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
+                            string header = $"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
+                            Insight = $"{header}{insight}";
+
+                            var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
+
+                            Resolution = $"{header}{resolution}";
                         }
-                        var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
-                        string header = $"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
-                        Insight = $"{header}{insight}";
-
-                        var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
-
-                        Resolution = $"{header}{resolution}";
                     }
                 }
                 catch { }
@@ -371,27 +379,34 @@ namespace BrickSchema.Net
                         _isOnTimerTaskRunning = true;
                         try
                         {
-
-                            if (!IsBehaviorRunnable())
+                            List<string> reasons = new();
+                            if (!IsBehaviorRunnable(reasons))
                             {
                                 string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
                                 text += "\n- This behavior doesn't meet required conditions to run.";
                                 text += "\n- Please review technical info for more information.";
+                                foreach(var r in reasons)
+                                {
+                                    text += $"\n- {r}";
+                                }
                                 Insight = text;
                                 Resolution = text;
                             }
-                            var analyticsReturnCode = OnTimerTask(out List<BehaviorValue> values);
-                            if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
+                            else
                             {
-                                Parent?.SetBehaviorValue(values);
+                                var analyticsReturnCode = OnTimerTask(out List<BehaviorValue> values);
+                                if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
+                                {
+                                    Parent?.SetBehaviorValue(values);
+                                }
+                                var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
+                                string header = $"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
+                                Insight = $"{header}{insight}";
+
+                                var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
+
+                                Resolution = $"{header}{resolution}";
                             }
-                            var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
-                            string header = $"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
-                            Insight = $"{header}{insight}";
-
-                            var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
-
-                            Resolution = $"{header}{resolution}";
                         }
 
 
@@ -587,9 +602,22 @@ namespace BrickSchema.Net
             }
         }
 
-        protected virtual bool IsBehaviorRunnable()
+        protected virtual bool IsBehaviorRunnable(List<string>? reasons = null)
         {
-            return true;
+            bool runnable = true;
+            foreach (var p in _requiredPoints)
+            {
+                if (p.Value == null)
+                {
+                    runnable = false;
+                    reasons?.Add($"Required point tag [{p.Key}] is not mapped.");
+                }
+            }
+            if (runnable)
+            {
+                reasons?.Add("All required point tags have been mapped.");
+            }
+            return runnable;
         }
         protected virtual BehaviorTaskReturnCodes ProcessTask(out List<BehaviorValue> behaviorValues)
         {
