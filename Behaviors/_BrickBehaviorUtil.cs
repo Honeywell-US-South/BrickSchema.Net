@@ -21,8 +21,9 @@ namespace BrickSchema.Net
                     Text = message,
                     Status = BehaviorResultStatusTypes.Skipped
                 });
+                _logger?.LogWarning($"Behavior {Name} for {Parent?.GetProperty<string>(BrickSchema.Net.EntityProperties.PropertiesEnum.Name)}: {message}.");
             }
-            _logger?.LogWarning($"Behavior {Name} for {Parent?.GetProperty<string>(BrickSchema.Net.EntityProperties.PropertiesEnum.Name)}: {message}.");
+            
 
         }
     }
