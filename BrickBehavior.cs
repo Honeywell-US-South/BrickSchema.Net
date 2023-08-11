@@ -497,6 +497,13 @@ namespace BrickSchema.Net
             }
         }
 
+        protected Point? GetPoint(string Tag)
+        {
+            if (_requiredPoints.ContainsKey(Tag)) return _requiredPoints[Tag];
+            if(_optionalPoints.ContainsKey(Tag)) return _optionalPoints[Tag];
+            return null;
+        }
+
         protected List<string> GetRequiredTags()
         {
             List<string> tags= new List<string>();
