@@ -215,17 +215,18 @@ namespace BrickSchema.Net
 
         }
 
-        public BehaviorValue SetBehaviorValue<T>(string valueName, T value)
+        public BehaviorValue SetBehaviorValue<T>(string valueName, T value, string description = "")
         {
             AddOrUpdateProperty(valueName, value);
             BehaviorValue bv = new(valueName, Id, Name, Type, BehaviorMode);
             bv.SetValue(value);
+            bv.Description = description;
             return bv;
         }
 
-        public BehaviorValue SetBehaviorValue<T>(PropertiesEnum valueName, T value)
+        public BehaviorValue SetBehaviorValue<T>(PropertiesEnum valueName, T value, string description = "")
         {
-            return SetBehaviorValue(valueName.ToString(), value);
+            return SetBehaviorValue(valueName.ToString(), value, description);
         }
         
         #endregion public fucntions
