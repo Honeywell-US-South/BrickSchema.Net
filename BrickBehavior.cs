@@ -10,22 +10,17 @@ namespace BrickSchema.Net
 {
     public partial class BrickBehavior : BrickEntity
     {
-
-
         #region Private properties
         [JsonIgnore]
         private Thread? _executionThread;
         private int _pollRateSeconds = -1;
         private int _changedOfValueDelay = -1;
-        private bool _executeByTimer = true;
-        private bool _isTaskRunning = false;
         private bool _isOnTimerTaskRunning = false;
         private bool _isOnParentPointValueChangedTaskRunning = false;
         private bool _isInfoRunning = false;
-        private bool _isDescriptionRunning = false;
-        private bool _isInsightRunning = false;
-        private bool _isResolutionRunning = false;
         private DateTime _lastInfoUpdate = DateTime.MinValue;
+        private Dictionary<string, Point?> _requiredPoints = new();
+        private Dictionary<string, Point?> _optionalPoints = new();
         private Dictionary<string, DateTime> Errors = new Dictionary<string, DateTime>();
         #endregion private properties
 
@@ -34,7 +29,7 @@ namespace BrickSchema.Net
         protected bool isExecuting = false;
         protected ILogger? _logger;
         protected CancellationTokenSource? CancelToken;
-        
+
         #endregion protected properties
 
         #region Public properties
@@ -46,27 +41,31 @@ namespace BrickSchema.Net
         }
 
         [JsonIgnore]
-        public string BehaviorMode { 
+        public string BehaviorMode
+        {
             get { return GetProperty<string>(PropertiesEnum.BehaviorMode) ?? string.Empty; }
         }
 
         [JsonIgnore]
-        public string Name { get { return GetProperty<string>(PropertiesEnum.Name)??string.Empty; } }
+        public string Name { get { return GetProperty<string>(PropertiesEnum.Name) ?? string.Empty; } }
 
         [JsonIgnore]
-        public string Description { 
-            get { return GetProperty<string>(PropertiesEnum.Description) ?? string.Empty; } 
+        public string Description
+        {
+            get { return GetProperty<string>(PropertiesEnum.Description) ?? string.Empty; }
             protected set { AddOrUpdateProperty(PropertiesEnum.Description, value); }
         }
 
         [JsonIgnore]
-        public string Insight { 
+        public string Insight
+        {
             get { return GetProperty<string>(PropertiesEnum.Insight) ?? string.Empty; }
             protected set { AddOrUpdateProperty(PropertiesEnum.Insight, value); }
         }
 
         [JsonIgnore]
-        public string Resolution { 
+        public string Resolution
+        {
             get { return GetProperty<string>(PropertiesEnum.Resolution) ?? string.Empty; }
             protected set { AddOrUpdateProperty(PropertiesEnum.Resolution, value); }
         }
@@ -79,18 +78,18 @@ namespace BrickSchema.Net
         }
 
         [JsonIgnore]
-        public DateTime LastExecutionStart 
-        { 
-            get 
-            { 
+        public DateTime LastExecutionStart
+        {
+            get
+            {
                 var d = GetProperty<DateTime?>(PropertiesEnum.LastExecutionStart);
                 if (d == null)
                 {
                     d = DateTime.Now;
                     AddOrUpdateProperty(PropertiesEnum.LastExecutionStart, d);
                 }
-                return (DateTime)d;  
-            } 
+                return (DateTime)d;
+            }
         }
 
         [JsonIgnore]
@@ -114,7 +113,7 @@ namespace BrickSchema.Net
             get
             {
                 var w = GetProperty<double>(PropertiesEnum.Weight);
-                return w == 0 ? 1: w;
+                return w == 0 ? 1 : w;
             }
         }
 
@@ -134,7 +133,8 @@ namespace BrickSchema.Net
                     answer = true;
                     Errors[error] = DateTime.Now;
                 }
-            } else
+            }
+            else
             {
                 answer = true;
                 Errors.Add(error, DateTime.Now);
@@ -156,10 +156,10 @@ namespace BrickSchema.Net
         {
 
         }
-        private BrickBehavior(BrickEntity entity):base(entity) //this is for cloning only
+        private BrickBehavior(BrickEntity entity) : base(entity) //this is for cloning only
         {
 
-        } 
+        }
 
         public BrickBehavior(string behaviorType, string behaviorName, double weight = 1, ILogger? logger = null)
         {
@@ -168,7 +168,7 @@ namespace BrickSchema.Net
 
         public BrickBehavior(BehaviorFunction.Types behaviorType, string behaviorName, double weight = 1, ILogger? logger = null)
         {
-           Init(behaviorType.ToString(), behaviorName, weight, logger);
+            Init(behaviorType.ToString(), behaviorName, weight, logger);
         }
 
         private void Init(string behaviorType, string behaviorName, double weight = 1, ILogger? logger = null)
@@ -228,33 +228,35 @@ namespace BrickSchema.Net
         {
             return SetBehaviorValue(valueName.ToString(), value, description);
         }
-        
+
         #endregion public fucntions
 
         #region CallBack
         public void OnTimerTick()
         {
-            if (_executeByTimer)
+            GenerateInfo();
+            if (IsTimeToRun())
             {
                 if (!isExecuting && IsRunning && !_executionThread.IsAlive)
                 {
-                    
+
                     try
                     {
                         CancelToken = new CancellationTokenSource();
                         _executionThread = new Thread(Execute);
                         _executionThread.Start();
                         _executionThread.Join();
-                        
+
                     }
                     catch (Exception ex)
                     {
-                       
+
                         _logger?.LogError(ex, $"Bahavior OnTimerTick: Excpetion: {ex.Message}");
                     }
 
                 }
             }
+            
         }
 
         public void Start()
@@ -280,41 +282,18 @@ namespace BrickSchema.Net
         {
             var e = Parent?.OtherEntities.FirstOrDefault(x => x.Id == sourceId);
             if (e == null) return;
-           
+
             await ProcessParentPointValueChange(e, propertyName);
         }
 
-        private async Task ProcessParentPointValueChange(BrickEntity e, string propertyName)
-        {
-            if (!(e is Point) || !propertyName.Equals(PropertiesEnum.Value)) return;
-            if (!_isOnParentPointValueChangedTaskRunning)
-            {
-                _isOnParentPointValueChangedTaskRunning = true;
-                try
-                {
-                    if (_changedOfValueDelay >= 0)
-                    {
-                        await Task.Delay(1000 * _changedOfValueDelay);
-
-                        var returnCode = OnParentPointValueChangedTask(e as Point, out List<BehaviorValue> values);
-                        if (returnCode == BehaviorTaskReturnCodes.Good)
-                        {
-                            Parent?.SetBehaviorValue(values);
-                        }
-
-                    }
-                }
-                catch { }
-                _isOnParentPointValueChangedTaskRunning = false;
-            }
-        }
+        
         // Add a virtual Start method
         protected void RegisterOnTimerTask(int poleRateSeconds)
         {
             _pollRateSeconds = poleRateSeconds;
             _changedOfValueDelay = -1;
         }
-        
+
         protected void UnRegisterTime()
         {
             _pollRateSeconds = -1;
@@ -334,10 +313,59 @@ namespace BrickSchema.Net
         {
             if (_pollRateSeconds < 0) return false;
             DateTime lastExecutionTime = GetProperty<DateTime>(PropertiesEnum.LastExecutionStart);
-            bool ok = lastExecutionTime.AddSeconds(_pollRateSeconds) > DateTime.Now;
+            bool ok = lastExecutionTime.AddSeconds(_pollRateSeconds) <= DateTime.Now;
             return ok;
         }
-        
+
+        private async Task ProcessParentPointValueChange(BrickEntity e, string propertyName)
+        {
+            if (!(e is Point) || !propertyName.Equals(PropertiesEnum.Value)) return;
+            if (!_isOnParentPointValueChangedTaskRunning)
+            {
+                _isOnParentPointValueChangedTaskRunning = true;
+                try
+                {
+
+                    if (_changedOfValueDelay >= 0)
+                    {
+                        await Task.Delay(1000 * _changedOfValueDelay);
+                        List<string> reasons = new();
+                        if (!IsBehaviorRunnable(reasons))
+                        {
+                            string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                            text += "\n- This behavior doesn't meet required conditions to run.";
+                            text += "\n- Please review technical info for more information.";
+                            foreach (var r in reasons)
+                            {
+                                text += $"\n- {r}";
+                            }
+                            Insight = text;
+                            Resolution = text;
+                        }
+                        else
+                        {
+
+                            var analyticsReturnCode = OnParentPointValueChangedTask(e as Point, out List<BehaviorValue> values);
+                            if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
+                            {
+                                Parent?.SetBehaviorValue(values);
+                            }
+                            var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
+                            string header = $"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
+                            Insight = $"{header}{insight}";
+
+                            var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
+
+                            Resolution = $"{header}{resolution}";
+                        }
+                    }
+                }
+                catch { }
+                _isOnParentPointValueChangedTaskRunning = false;
+            }
+        }
+
+
         public void Execute()
         {
             if (!isExecuting)
@@ -346,90 +374,47 @@ namespace BrickSchema.Net
                 try
                 {
                     AddOrUpdateProperty(PropertiesEnum.LastExecutionStart, DateTime.Now);
-                    // Default implementation does nothing
-                    if (!_isTaskRunning)
-                    {
-                        _isTaskRunning = true;
-                        try
-                        {
-                            var returnCode = ProcessTask(out List<BehaviorValue> values);
-                            if (returnCode == BehaviorTaskReturnCodes.Good)
-                            {
-                                Parent?.SetBehaviorValue(values);
-                            }
-                        }
-                        catch { }
-                        _isTaskRunning = false;
-                    }
+
                     if (!_isOnTimerTaskRunning)
                     {
                         _isOnTimerTaskRunning = true;
                         try
                         {
-                            if (IsTimeToRun())
+                            List<string> reasons = new();
+                            if (!IsBehaviorRunnable(reasons))
                             {
-                                var returnCode = OnTimerTask(out List<BehaviorValue> values);
-                                if (returnCode == BehaviorTaskReturnCodes.Good)
+                                string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                                text += "\n- This behavior doesn't meet required conditions to run.";
+                                text += "\n- Please review technical info for more information.";
+                                foreach(var r in reasons)
+                                {
+                                    text += $"\n- {r}";
+                                }
+                                Insight = text;
+                                Resolution = text;
+                            }
+                            else
+                            {
+                                var analyticsReturnCode = OnTimerTask(out List<BehaviorValue> values);
+                                if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
                                 {
                                     Parent?.SetBehaviorValue(values);
                                 }
+                                var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
+                                string header = $"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
+                                Insight = $"{header}{insight}";
+
+                                var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
+
+                                Resolution = $"{header}{resolution}";
                             }
                         }
+
+
                         catch { }
                         _isOnTimerTaskRunning = false;
                     }
 
-                    GenerateInfo();
-
-                    if (!_isDescriptionRunning)
-                    {
-                        _isDescriptionRunning = true;
-                        try
-                        {
-                            var returnCode = GenerateDescription(out string description);
-                            Description = string.Empty;
-                            if (returnCode != BehaviorTaskReturnCodes.Good)
-                            {
-                                Description = $"**** {DateTime.Now.ToLongDateString()} Execution Result {returnCode.ToString()} **** \n\r\n\r";
-                            }
-                            Description += description;
-                        }
-                        catch { }
-                        _isDescriptionRunning = false;
-                    }
-                    if (!_isInsightRunning)
-                    {
-                        _isInsightRunning = true;
-                        try
-                        {
-                            var returnCode = GenerateInsight(out string insight);
-                            Insight = string.Empty;
-                            if (returnCode != BehaviorTaskReturnCodes.Good)
-                            {
-                                Insight = $"**** {DateTime.Now.ToLongDateString()} Execution Result {returnCode.ToString()} **** \n\r\n\r";
-                            }
-                            Insight += insight;
-                        }
-                        catch { }
-                        _isInsightRunning = false;
-                    }
-                    if (!_isResolutionRunning)
-                    {
-                        _isResolutionRunning = true;
-                        try
-                        {
-                            var returnCode = GenerateResolution(out string resolution);
-                            Resolution = string.Empty;
-                            if (returnCode != BehaviorTaskReturnCodes.Good)
-                            {
-                                Resolution = $"**** {DateTime.Now.ToLongDateString()} Execution Result {returnCode.ToString()} **** \n\r\n\r";
-                            }
-                            Resolution += resolution;
-                        }
-                        catch { };
-                        _isResolutionRunning = false;
-                    }
-                    
                 }
                 catch { }
                 isExecuting = false;
@@ -444,22 +429,32 @@ namespace BrickSchema.Net
                 _isInfoRunning = true;
                 try
                 {
-                    var returnCode = TechnicalInfo(out List<string> requiredTags, out List<string> optionalTags, out string runCondition);
+                    var returnCode = GenerateDescription(out string description);
+                    Description = description;
+
+
+                    returnCode = TechnicalInfo(out List<string> requiredTags, out List<string> optionalTags, out string runCondition);
+
+                    UpdatePointLists(requiredTags, optionalTags);
+
                     string info = $"## {Name} Technical Information";
                     info += $"Behavior ID: {Id}\r\n";
                     info += $"Behavior Type: {BehaviorMode}\r\n";
                     if (_pollRateSeconds >= 0)
                     {
                         info += $"Execution Cycle: {_pollRateSeconds} seconds\r\n";
+                    } else if (_changedOfValueDelay >= 0)
+                    {
+                        info += $"Execution Cycle: On Point Value Changed. Delay {_changedOfValueDelay} seconds\r\n";
                     }
                     info += $"Required Point Tags: \r\n";
-                    foreach (var tag in requiredTags)
+                    foreach (var tag in requiredTags.Distinct())
                     {
                         info += $"-{tag}\r\n";
                     }
 
                     info += $"Optional Point Tag: \r\n";
-                    foreach (var tag in optionalTags)
+                    foreach (var tag in optionalTags.Distinct())
                     {
                         info += $"-{tag}\r\n";
                     }
@@ -472,20 +467,18 @@ namespace BrickSchema.Net
                     info += "### Mapped Entities:\r\n";
                     if (Parent != null)
                     {
-                        info += $"Parent: {Parent.GetProperty<string>(BrickSchema.Net.EntityProperties.PropertiesEnum.Name)}\r\n";
+                        info += $"Parent: {Parent.GetProperty<string>(PropertiesEnum.Name)}\r\n";
                         info += $"Required Point Tag: \r\n";
-                        foreach (var tag in requiredTags)
+                        foreach (var point in _requiredPoints)
                         {
-                            Point? p = Parent.GetPointEntity(tag);
-                            info += $"- [{p != null}] {tag}\r\n";
+                            
+                            info += $"- [{point.Value != null}] {point.Key}\r\n";
                         }
                         info += $"Optional Point Tag: \r\n";
-                        foreach (var tag in optionalTags)
+                        foreach (var point in _optionalPoints)
                         {
-                            Point? p = Parent.GetPointEntity(tag);
-                            info += $"- [{p != null}] {tag}\r\n";
+                            info += $"- [{point.Value != null}] {point.Key}\r\n";
                         }
-
 
                     }
                     else
@@ -494,9 +487,9 @@ namespace BrickSchema.Net
                     }
 
                     info += $"\r\n";
-                    
+
                     Info = info;
-                    
+
 
                 }
                 catch { }
@@ -505,23 +498,133 @@ namespace BrickSchema.Net
             }
         }
 
-        protected void Execute(object? sender, EventArgs e)
+        protected Point? GetPoint(string Tag)
         {
-            //this function is dedicated for event call back
-            _executeByTimer = false; 
-            Execute();
+            if (_requiredPoints.ContainsKey(Tag)) return _requiredPoints[Tag];
+            if(_optionalPoints.ContainsKey(Tag)) return _optionalPoints[Tag];
+            return null;
         }
 
-        protected virtual bool IsBehaviorRunnable()
+        protected List<string> GetRequiredTags()
         {
-            return false;
+            List<string> tags= new List<string>();
+            foreach (var point in _requiredPoints)
+            {
+                tags.Add(point.Key);
+            }
+            return tags;
+        }
+
+        protected Point? GetTaggedPoint(string Tag)
+        {
+            if (_requiredPoints.ContainsKey(Tag)) return _requiredPoints[Tag];
+
+            return null;
+        }
+
+
+        protected List<Point> GetRequiredPoints()
+        {
+            List<Point> points = new List<Point>();
+            foreach (var point in _requiredPoints)
+            {
+                if (point.Value != null) points.Add(point.Value);
+            }
+            return points;
+        }
+
+        protected List<string> GetOptionalTags()
+        {
+            List<string> tags = new List<string>();
+            foreach (var point in _optionalPoints)
+            {
+                tags.Add(point.Key);
+            }
+            return tags;
+        }
+
+        protected Point? GetOptionalPoint(string Tag)
+        {
+            if (_optionalPoints.ContainsKey(Tag)) return _optionalPoints[Tag];
+
+            return null;
+        }
+
+        protected List<Point> GetOptionalPoints()
+        {
+            List<Point> points = new List<Point>();
+            foreach (var point in _optionalPoints)
+            {
+                if (point.Value != null) points.Add(point.Value);
+            }
+            return points;
+        }
+
+        private void UpdatePointLists(List<string> requireds, List<string> optionals)
+        {
+            bool gate = true;
+            while (gate)
+            {
+                gate = false;
+                foreach (var r in _requiredPoints)
+                {
+                    if (!requireds.Contains(r.Key))
+                    {
+                        _requiredPoints.Remove(r.Key);
+                        gate = true;
+                        break;
+                    }
+                }
+            }
+            gate = true;
+            while (gate)
+            {
+                gate = false;
+                foreach (var o in _optionalPoints)
+                {
+                    if (!optionals.Contains(o.Key))
+                    {
+                        _optionalPoints.Remove(o.Key);
+                        gate = true;
+                        break;
+                    }
+                }
+            }
+            foreach (var require in requireds.Distinct())
+            {
+                if (!_requiredPoints.ContainsKey(require)) _requiredPoints.Add(require, null);
+                _requiredPoints[require] = Parent.GetPointEntity(require);
+            }
+            foreach (var optional in optionals.Distinct())
+            {
+                if (!_optionalPoints.ContainsKey(optional)) _optionalPoints.Add(optional, null);
+                _optionalPoints[optional] = Parent.GetPointEntity(optional);
+            }
+        }
+
+        protected virtual bool IsBehaviorRunnable(List<string>? reasons = null)
+        {
+            bool runnable = true;
+            foreach (var p in _requiredPoints)
+            {
+                if (p.Value == null)
+                {
+                    runnable = false;
+                    reasons?.Add($"Required point tag [{p.Key}] is not mapped.");
+                }
+            }
+            if (runnable)
+            {
+                reasons?.Add("All required point tags have been mapped.");
+            }
+            return runnable;
         }
         protected virtual BehaviorTaskReturnCodes ProcessTask(out List<BehaviorValue> behaviorValues)
         {
             behaviorValues = new();
             return BehaviorTaskReturnCodes.NotImplemented;
         }
-        protected virtual BehaviorTaskReturnCodes OnTimerTask(out List<BehaviorValue> behaviorValues) 
+        protected virtual BehaviorTaskReturnCodes OnTimerTask(out List<BehaviorValue> behaviorValues)
         {
             behaviorValues = new();
             return BehaviorTaskReturnCodes.NotImplemented;
@@ -543,32 +646,61 @@ namespace BrickSchema.Net
             description = "Not Implimented.";
             return BehaviorTaskReturnCodes.NotImplemented;
         }
-        protected virtual BehaviorTaskReturnCodes GenerateInsight(out string insight)
+        protected virtual BehaviorTaskReturnCodes GenerateInsight(BehaviorTaskReturnCodes analyticsReturnCode, List<BehaviorValue> behaviorValues, out string insight)
         {
-            insight = "Not Implimented.";
+            string text = $"";
+            if (behaviorValues.Count < 1)
+            {
+                text += "\n###### Analytics result is empty.";
+            }
+            else
+            {
+                text += "\n###### Analytics Results";
+                
+                foreach (var bv in behaviorValues)
+                {
+                    text += $"\n\r**Value Label: {bv.Name}**";
+                    if (double.TryParse(bv.Value, out double value))
+                    {
+                        text += $"\n- Value: {value.ToString("F2")}";
+                    } else
+                    {
+                        text += $"\n- Value: {bv.Value}";
+                    }
+                    text += $"\n- Timestamp: {bv.Timestamp}";
+                    text += $"\n- Weight: {bv.Weight}";
+                    text += $"\n- History size: {bv.Histories.Count}";
+                    text += "\n\r***";
+                }
+            }
+
+
+            insight = text;
+            
             return BehaviorTaskReturnCodes.NotImplemented;
         }
 
-        protected virtual BehaviorTaskReturnCodes GenerateResolution(out string resolution)
+        protected virtual BehaviorTaskReturnCodes GenerateResolution(BehaviorTaskReturnCodes analyticsReturnCode, List<BehaviorValue> behaviorValues, out string resolution)
         {
             resolution = "Not Implimented.";
             return BehaviorTaskReturnCodes.NotImplemented;
         }
 
-        protected virtual void Load()    {      }
+        protected virtual void Load() { }
 
         protected virtual void Unload() { }
 
         #endregion default Functions
 
-        
 
 
-        public BrickEntity? AskAssociatedWith(params dynamic[] args) {  
-            
+
+        public BrickEntity? AskAssociatedWith(params dynamic[] args)
+        {
+
             if (Parent == null) { return null; }
 
-            return null; 
+            return null;
         }
 
         public BrickEntity? AskFedby(params dynamic[] args)
@@ -596,9 +728,9 @@ namespace BrickSchema.Net
         {
             if (Parent == null) { return null; }
             var pointOfs = Parent.GetPointOfParent();
-            foreach ( var point in pointOfs )
+            foreach (var point in pointOfs)
             {
-                if ( point != null )
+                if (point != null)
                 {
                     var behaviors = point.Behaviors.Where(x => x.Type?.Equals(type) ?? false);
                     behaviors.Except(args);
