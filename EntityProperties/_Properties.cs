@@ -30,7 +30,7 @@ namespace BrickSchema.Net
                 myValue.SetValue(value);
             }
             CleanUpDuplicatedProperties();
-            AddOrUpdateProperty(PropertiesEnum.BehaviorValues, results);
+            SetProperty(PropertiesEnum.BehaviorValues, results);
             
         }
 
@@ -49,7 +49,7 @@ namespace BrickSchema.Net
                 myValue.UpdateValue(value);
             }
             CleanUpDuplicatedProperties();
-            AddOrUpdateProperty(PropertiesEnum.BehaviorValues, results);
+            SetProperty(PropertiesEnum.BehaviorValues, results);
             
         }
 
@@ -71,7 +71,7 @@ namespace BrickSchema.Net
                 }
             }
             CleanUpDuplicatedProperties();
-            AddOrUpdateProperty(PropertiesEnum.BehaviorValues, results);
+            SetProperty(PropertiesEnum.BehaviorValues, results);
         }
 
         public BehaviorValue? GetBehaviorValue(string  behaviorId, string valueName)
@@ -144,7 +144,7 @@ namespace BrickSchema.Net
                 hasDuplidated = found;
             }
         }
-        public void AddOrUpdateProperty<T>(string propertyName, T propertyValue)
+        public void SetProperty<T>(string propertyName, T propertyValue)
         {
             var properties = Properties.Where(x => x.Name.Equals(propertyName)).ToList();
             EntityProperty? property = null;
@@ -174,9 +174,9 @@ namespace BrickSchema.Net
             }
         }
 
-        public void AddOrUpdateProperty<T>(PropertiesEnum property, T propertyValue)
+        public void SetProperty<T>(PropertiesEnum property, T propertyValue)
         {
-            AddOrUpdateProperty(property.ToString(), propertyValue);
+            SetProperty(property.ToString(), propertyValue);
         }
         public T? GetProperty<T>(string propertyName)
         {
@@ -209,6 +209,15 @@ namespace BrickSchema.Net
             return GetProperty<T>(property.ToString());
         }
 
+        public bool IsProperty(string propertyName)
+        {
+            return Properties.Any(x=>x.Name.Equals(propertyName));
+        }
+
+        public bool IsProperty(PropertiesEnum property)
+        {
+            return IsProperty(property.ToString());
+        }
 
 
     }

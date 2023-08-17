@@ -150,7 +150,7 @@ namespace BrickSchema.Net
                     //JsonConvert.SerializeObject(entities, settings);
                     var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(_e.Behaviors);
                     
-                    _e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+                    _e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
                     _e.CleanUpDuplicatedProperties();
 
                 }
@@ -214,7 +214,7 @@ namespace BrickSchema.Net
                     Type = typeof(T).Name
 
                 };
-                entity.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Name, name);
+                entity.SetProperty(EntityProperties.PropertiesEnum.Name, name);
 
                 foreach (var _e in _entities)
                 {
@@ -280,7 +280,7 @@ namespace BrickSchema.Net
                 //JsonConvert.SerializeObject(entities, settings);
                 var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(e.Behaviors);
 
-                e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+                e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
                 e.CleanUpDuplicatedProperties();
 
                 return e;
@@ -300,7 +300,7 @@ namespace BrickSchema.Net
                     var e = byReference ? entity : entity.Clone();
                     var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(e.Behaviors);
 
-                    e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+                    e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
                     e.CleanUpDuplicatedProperties();
                     entities.Add(e);
 
@@ -341,7 +341,7 @@ namespace BrickSchema.Net
                             var e = byReference ? entity : entity.Clone();
                             var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(e.Behaviors);
 
-                            e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+                            e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
                             e.CleanUpDuplicatedProperties();
                             entities.Add(e);
 
@@ -382,7 +382,7 @@ namespace BrickSchema.Net
                     var e = byReference ? entity : entity.Clone();
                     var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(e.Behaviors);
 
-                    e.AddOrUpdateProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+                    e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
                     e.CleanUpDuplicatedProperties();
                     entities.Add(e);
                 }

@@ -11,12 +11,12 @@ namespace BrickSchema.Net.Classes
 
         public Tag()
         {
-            AddOrUpdateProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Tag).Name);
+            SetProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Tag).Name);
         }
 
         internal Tag(BrickEntity entity) : base(entity) //for internal cloning
         {
-            AddOrUpdateProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Tag).Name);
+            SetProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Tag).Name);
         }
 
         public List<BrickEntity> GetEntities()

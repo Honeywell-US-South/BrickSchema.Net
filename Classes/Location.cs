@@ -13,7 +13,7 @@ namespace BrickSchema.Net.Classes
     {
         public Location() 
         {
-            AddOrUpdateProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Location).Name);
+            SetProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Location).Name);
         }
         public List<BrickEntity> GetEntities()
         {

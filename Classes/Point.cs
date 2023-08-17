@@ -10,11 +10,11 @@ namespace BrickSchema.Net.Classes
         
         public Point() 
         {
-            AddOrUpdateProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Point).Name);
+            SetProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Point).Name);
         }
         internal Point(BrickEntity entity) : base(entity) //for internal cloning
         {
-            AddOrUpdateProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Point).Name);
+            SetProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Point).Name);
         }
 
         public double? Value
@@ -27,7 +27,7 @@ namespace BrickSchema.Net.Classes
             {
                 if (Value != value)
                 {
-                    AddOrUpdateProperty(EntityProperties.PropertiesEnum.Value, value);
+                    SetProperty(EntityProperties.PropertiesEnum.Value, value);
                     NotifyPropertyValueChange(PropertiesEnum.Value);
                 }
             }
@@ -40,7 +40,7 @@ namespace BrickSchema.Net.Classes
             }
             private set
             {
-                AddOrUpdateProperty(EntityProperties.PropertiesEnum.Timestamp, value);
+                SetProperty(EntityProperties.PropertiesEnum.Timestamp, value);
             }
         }
         public PointValueQuality Quality {
@@ -50,7 +50,7 @@ namespace BrickSchema.Net.Classes
             }
             private set
             {
-                AddOrUpdateProperty(EntityProperties.PropertiesEnum.ValueQuality, value);
+                SetProperty(EntityProperties.PropertiesEnum.ValueQuality, value);
             }
         } 
 

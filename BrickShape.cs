@@ -18,7 +18,7 @@ namespace BrickSchema.Net
             }
             set
             {
-                AddOrUpdateProperty(EntityProperties.PropertiesEnum.Value, value);
+                SetProperty(EntityProperties.PropertiesEnum.Value, value);
             }
         }
 

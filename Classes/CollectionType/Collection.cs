@@ -11,7 +11,7 @@ namespace BrickSchema.Net.Classes.Collection
     {
         public Collection()
         {
-            AddOrUpdateProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Collection).Name);
+            SetProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Collection).Name);
         }
 
     }

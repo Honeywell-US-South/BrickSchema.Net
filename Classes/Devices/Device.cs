@@ -11,7 +11,7 @@ namespace BrickSchema.Net.Classes.Devices
         public string? Address { get; set; }
         public Device()
         {
-            AddOrUpdateProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Device).Name);
+            SetProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Device).Name);
         }
         
     }

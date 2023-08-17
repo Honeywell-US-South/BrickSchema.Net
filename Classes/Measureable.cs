@@ -13,7 +13,7 @@ namespace BrickSchema.Net.Classes
         
         public Measurable()
         {
-            AddOrUpdateProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Measurable).Name);
+            SetProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Measurable).Name);
         }
     }
 }

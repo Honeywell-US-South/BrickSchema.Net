@@ -19,7 +19,7 @@ namespace BrickSchema.Net.Classes
         {
             get { return GetProperty<string>(EntityProperties.PropertiesEnum.Name) ?? string.Empty; }
 
-            set { AddOrUpdateProperty(EntityProperties.PropertiesEnum.Name, value); }
+            set { SetProperty(EntityProperties.PropertiesEnum.Name, value); }
         }
 
         [JsonIgnore]
@@ -27,7 +27,7 @@ namespace BrickSchema.Net.Classes
         {
             get { return GetProperty<string>(EntityProperties.PropertiesEnum.Description) ?? string.Empty; }
 
-            set { AddOrUpdateProperty(EntityProperties.PropertiesEnum.Description, value); }
+            set { SetProperty(EntityProperties.PropertiesEnum.Description, value); }
         }
 
         public override BrickClass Clone()

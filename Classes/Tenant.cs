@@ -10,7 +10,7 @@ namespace BrickSchema.Net.Classes
     {
         public Tenant() 
         {
-            AddOrUpdateProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Tenant).Name);
+            SetProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Tenant).Name);
         }
     }
 }

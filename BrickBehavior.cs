@@ -37,7 +37,7 @@ namespace BrickSchema.Net
         public bool IsRunning
         {
             get { return GetProperty<bool>(PropertiesEnum.Running); }
-            protected set { AddOrUpdateProperty(PropertiesEnum.Running, value); }
+            protected set { SetProperty(PropertiesEnum.Running, value); }
         }
 
         [JsonIgnore]
@@ -53,28 +53,28 @@ namespace BrickSchema.Net
         public string Description
         {
             get { return GetProperty<string>(PropertiesEnum.Description) ?? string.Empty; }
-            protected set { AddOrUpdateProperty(PropertiesEnum.Description, value); }
+            protected set { SetProperty(PropertiesEnum.Description, value); }
         }
 
         [JsonIgnore]
         public string Insight
         {
             get { return GetProperty<string>(PropertiesEnum.Insight) ?? string.Empty; }
-            protected set { AddOrUpdateProperty(PropertiesEnum.Insight, value); }
+            protected set { SetProperty(PropertiesEnum.Insight, value); }
         }
 
         [JsonIgnore]
         public string Resolution
         {
             get { return GetProperty<string>(PropertiesEnum.Resolution) ?? string.Empty; }
-            protected set { AddOrUpdateProperty(PropertiesEnum.Resolution, value); }
+            protected set { SetProperty(PropertiesEnum.Resolution, value); }
         }
 
         [JsonIgnore]
         public string Info
         {
             get { return GetProperty<string>(PropertiesEnum.Info) ?? string.Empty; }
-            protected set { AddOrUpdateProperty(PropertiesEnum.Info, value); }
+            protected set { SetProperty(PropertiesEnum.Info, value); }
         }
 
         [JsonIgnore]
@@ -86,7 +86,7 @@ namespace BrickSchema.Net
                 if (d == null)
                 {
                     d = DateTime.Now;
-                    AddOrUpdateProperty(PropertiesEnum.LastExecutionStart, d);
+                    SetProperty(PropertiesEnum.LastExecutionStart, d);
                 }
                 return (DateTime)d;
             }
@@ -101,7 +101,7 @@ namespace BrickSchema.Net
                 if (d == null)
                 {
                     d = DateTime.Now;
-                    AddOrUpdateProperty(PropertiesEnum.LastExecutionEnd, d);
+                    SetProperty(PropertiesEnum.LastExecutionEnd, d);
                 }
                 return (DateTime)d;
             }
@@ -140,8 +140,8 @@ namespace BrickSchema.Net
                 Errors.Add(error, DateTime.Now);
             }
 
-            AddOrUpdateProperty(PropertiesEnum.Errors, Errors);
-            AddOrUpdateProperty(PropertiesEnum.HasError, true);
+            SetProperty(PropertiesEnum.Errors, Errors);
+            SetProperty(PropertiesEnum.HasError, true);
             return answer;
         }
 
@@ -149,7 +149,7 @@ namespace BrickSchema.Net
         protected void ClearErrors()
         {
             Errors.Clear();
-            AddOrUpdateProperty(PropertiesEnum.HasError, false);
+            SetProperty(PropertiesEnum.HasError, false);
         }
 
         public BrickBehavior()
@@ -173,15 +173,15 @@ namespace BrickSchema.Net
 
         private void Init(string behaviorType, string behaviorName, double weight = 1, ILogger? logger = null)
         {
-            AddShape<BehaviorFunction>(behaviorType.ToString());
-            AddOrUpdateProperty(PropertiesEnum.Name, behaviorName);
-            AddOrUpdateProperty(PropertiesEnum.Running, false);
-            AddOrUpdateProperty(PropertiesEnum.Weight, weight);
+            AddShape<BehaviorFunction>(behaviorType);
+            SetProperty(PropertiesEnum.Name, behaviorName);
+            SetProperty(PropertiesEnum.Running, false);
+            SetProperty(PropertiesEnum.Weight, weight);
             Type = this.GetType().Name;
-            AddOrUpdateProperty(PropertiesEnum.BehaviorType, behaviorType);
+            SetProperty(PropertiesEnum.BehaviorType, behaviorType);
             _logger = logger;
             isExecuting = false;
-            _executionThread = new Thread(Execute);
+            _executionThread = new Thread(ExecuteTimerTask);
             CancelToken = new();
         }
 
@@ -208,7 +208,7 @@ namespace BrickSchema.Net
 
         public BehaviorValue SetConformance(double value)
         {
-            AddOrUpdateProperty(PropertiesEnum.Conformance, value);
+            SetProperty(PropertiesEnum.Conformance, value);
             BehaviorValue bv = new(PropertiesEnum.Conformance, Id, Name, Type, BehaviorMode);
             bv.SetValue(value);
             return bv;
@@ -217,7 +217,7 @@ namespace BrickSchema.Net
 
         public BehaviorValue SetBehaviorValue<T>(string valueName, T value, string description = "")
         {
-            AddOrUpdateProperty(valueName, value);
+            SetProperty(valueName, value);
             BehaviorValue bv = new(valueName, Id, Name, Type, BehaviorMode);
             bv.SetValue(value);
             bv.Description = description;
@@ -243,7 +243,7 @@ namespace BrickSchema.Net
                     try
                     {
                         CancelToken = new CancellationTokenSource();
-                        _executionThread = new Thread(Execute);
+                        _executionThread = new Thread(ExecuteTimerTask);
                         _executionThread.Start();
                         _executionThread.Join();
 
@@ -317,6 +317,7 @@ namespace BrickSchema.Net
             return ok;
         }
 
+
         private async Task ProcessParentPointValueChange(BrickEntity e, string propertyName)
         {
             if (!(e is Point) || !propertyName.Equals(PropertiesEnum.Value)) return;
@@ -366,14 +367,14 @@ namespace BrickSchema.Net
         }
 
 
-        public void Execute()
+        public void ExecuteTimerTask()
         {
             if (!isExecuting)
             {
                 isExecuting = true;
                 try
                 {
-                    AddOrUpdateProperty(PropertiesEnum.LastExecutionStart, DateTime.Now);
+                    SetProperty(PropertiesEnum.LastExecutionStart, DateTime.Now);
 
                     if (!_isOnTimerTaskRunning)
                     {
@@ -418,7 +419,61 @@ namespace BrickSchema.Net
                 }
                 catch { }
                 isExecuting = false;
-                AddOrUpdateProperty(PropertiesEnum.LastExecutionEnd, DateTime.Now);
+                SetProperty(PropertiesEnum.LastExecutionEnd, DateTime.Now);
+            }
+        }
+
+        public void ExecuteManualTask()
+        {
+            if (!isExecuting)
+            {
+                isExecuting = true;
+                try
+                {
+                    SetProperty(PropertiesEnum.LastExecutionStart, DateTime.Now);
+
+                      _isOnTimerTaskRunning = true;
+                        try
+                        {
+                            List<string> reasons = new();
+                            if (!IsBehaviorRunnable(reasons))
+                            {
+                                string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                                text += "\n- This behavior doesn't meet required conditions to run.";
+                                text += "\n- Please review technical info for more information.";
+                                foreach (var r in reasons)
+                                {
+                                    text += $"\n- {r}";
+                                }
+                                Insight = text;
+                                Resolution = text;
+                            }
+                            else
+                            {
+                                var analyticsReturnCode = ManualTask(out List<BehaviorValue> values);
+                                if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
+                                {
+                                    Parent?.SetBehaviorValue(values);
+                                }
+                                var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
+                                string header = $"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
+                                Insight = $"{header}{insight}";
+
+                                var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
+
+                                Resolution = $"{header}{resolution}";
+                            }
+                        }
+
+
+                        catch { }
+                        _isOnTimerTaskRunning = false;
+                    
+
+                }
+                catch { }
+                isExecuting = false;
+                SetProperty(PropertiesEnum.LastExecutionEnd, DateTime.Now);
             }
         }
 
@@ -602,6 +657,18 @@ namespace BrickSchema.Net
             }
         }
 
+        protected virtual bool IsEnabled()
+        {
+            if (IsProperty(PropertiesEnum.BehaviorEnable)) return GetProperty<bool>(PropertiesEnum.BehaviorEnable);
+            return true;
+        }
+
+        protected virtual bool IsBehaviorActive<T>(List<T> operatingModes)
+        {
+            if (operatingModes.Count == 0) return true;
+            return false;
+        }
+
         protected virtual bool IsBehaviorRunnable(List<string>? reasons = null)
         {
             bool runnable = true;
@@ -619,7 +686,7 @@ namespace BrickSchema.Net
             }
             return runnable;
         }
-        protected virtual BehaviorTaskReturnCodes ProcessTask(out List<BehaviorValue> behaviorValues)
+        protected virtual BehaviorTaskReturnCodes ManualTask(out List<BehaviorValue> behaviorValues)
         {
             behaviorValues = new();
             return BehaviorTaskReturnCodes.NotImplemented;
