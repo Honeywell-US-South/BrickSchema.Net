@@ -75,7 +75,7 @@ namespace BrickSchema.Net
         public List<BrickEntity> GetChildEntities()
         {
             var entities = OtherEntities
-            .Where(entity => entity.Relationships.Any(relationship => (relationship.Type?.Equals(typeof(AssociatedWith).Name) ?? false) && relationship.ParentId == this.Id))
+            .Where(entity => entity.Relationships.Any(relationship => ((relationship.Type?.Equals(typeof(LocationOf).Name) ?? false) || (relationship.Type?.Equals(typeof(PointOf).Name) ?? false)) && relationship.ParentId == this.Id))
             .ToList();
             entities.AddRange(GetFedEntitites().Except(entities));
             entities.AddRange(GetMeterEntities().Except(entities));
@@ -212,6 +212,12 @@ namespace BrickSchema.Net
             return entities;
         }
 
+        public List<BrickEntity> GetEquipmentEntities()
+        {
+            var entities = OtherEntities
+                .Where(e => e is Equipment && e.Relationships.Any(x => x.ParentId == this.Id)).ToList();
+            return entities;
+        }
 
 
     }

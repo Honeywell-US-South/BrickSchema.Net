@@ -256,7 +256,7 @@ namespace BrickSchema.Net
 
                 }
             }
-            
+
         }
 
         public void Start()
@@ -286,7 +286,7 @@ namespace BrickSchema.Net
             await ProcessParentPointValueChange(e, propertyName);
         }
 
-        
+
         // Add a virtual Start method
         protected void RegisterOnTimerTask(int poleRateSeconds)
         {
@@ -331,7 +331,17 @@ namespace BrickSchema.Net
                     {
                         await Task.Delay(1000 * _changedOfValueDelay);
                         List<string> reasons = new();
-                        if (!IsBehaviorRunnable(reasons))
+                        if (!IsBehaviorEnabled())
+                        {
+
+                            string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                            text += "\n- This behavior is disabled.";
+                            text += "\n- Please enable behavior if needed to run.";
+
+                            Insight = text;
+                            Resolution = text;
+                        }
+                        else if (!IsBehaviorRunnable(reasons))
                         {
                             string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
                             text += "\n- This behavior doesn't meet required conditions to run.";
@@ -382,12 +392,22 @@ namespace BrickSchema.Net
                         try
                         {
                             List<string> reasons = new();
-                            if (!IsBehaviorRunnable(reasons))
+                            if (!IsBehaviorEnabled())
+                            {
+
+                                string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                                text += "\n- This behavior is disabled.";
+                                text += "\n- Please enable behavior if needed to run.";
+
+                                Insight = text;
+                                Resolution = text;
+                            }
+                            else if (!IsBehaviorRunnable(reasons))
                             {
                                 string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
                                 text += "\n- This behavior doesn't meet required conditions to run.";
                                 text += "\n- Please review technical info for more information.";
-                                foreach(var r in reasons)
+                                foreach (var r in reasons)
                                 {
                                     text += $"\n- {r}";
                                 }
@@ -423,7 +443,7 @@ namespace BrickSchema.Net
             }
         }
 
-        public void ExecuteManualTask()
+        public void ExecuteManualTaske<T>(T? operatingMode = default(T?))
         {
             if (!isExecuting)
             {
@@ -432,43 +452,64 @@ namespace BrickSchema.Net
                 {
                     SetProperty(PropertiesEnum.LastExecutionStart, DateTime.Now);
 
-                      _isOnTimerTaskRunning = true;
-                        try
+                    _isOnTimerTaskRunning = true;
+                    try
+                    {
+                        List<string> reasons = new();
+                        if (!IsBehaviorEnabled())
                         {
-                            List<string> reasons = new();
-                            if (!IsBehaviorRunnable(reasons))
-                            {
-                                string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
-                                text += "\n- This behavior doesn't meet required conditions to run.";
-                                text += "\n- Please review technical info for more information.";
-                                foreach (var r in reasons)
-                                {
-                                    text += $"\n- {r}";
-                                }
-                                Insight = text;
-                                Resolution = text;
-                            }
-                            else
-                            {
-                                var analyticsReturnCode = ManualTask(out List<BehaviorValue> values);
-                                if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
-                                {
-                                    Parent?.SetBehaviorValue(values);
-                                }
-                                var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
-                                string header = $"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
-                                Insight = $"{header}{insight}";
 
-                                var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
+                            string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                            text += "\n- This behavior is disabled.";
+                            text += "\n- Please enable behavior if needed to run.";
 
-                                Resolution = $"{header}{resolution}";
-                            }
+                            Insight = text;
+                            Resolution = text;
                         }
+                        else if (!IsBehaviorActive(operatingMode))
+                        {
+                            SetProperty(PropertiesEnum.BehaviorActive, false);
+                            string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                            text += $"\n- This behavior is NOT active based on Operating Mode [{operatingMode?.ToString()}].";
+
+                            Insight = text;
+                            Resolution = text;
+                        }
+                        else if (!IsBehaviorRunnable(reasons))
+                        {
+                            SetProperty(PropertiesEnum.BehaviorActive, true);
+                            string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                            text += "\n- This behavior doesn't meet required conditions to run.";
+                            text += "\n- Please review technical info for more information.";
+                            foreach (var r in reasons)
+                            {
+                                text += $"\n- {r}";
+                            }
+                            Insight = text;
+                            Resolution = text;
+                        }
+                        else
+                        {
+                            SetProperty(PropertiesEnum.BehaviorActive, true);
+                            var analyticsReturnCode = ManualTask(out List<BehaviorValue> values);
+                            if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
+                            {
+                                Parent?.SetBehaviorValue(values);
+                            }
+                            var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
+                            string header = $"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
+                            Insight = $"{header}{insight}";
+
+                            var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
+
+                            Resolution = $"{header}{resolution}";
+                        }
+                    }
 
 
-                        catch { }
-                        _isOnTimerTaskRunning = false;
-                    
+                    catch { }
+                    _isOnTimerTaskRunning = false;
+
 
                 }
                 catch { }
@@ -498,7 +539,8 @@ namespace BrickSchema.Net
                     if (_pollRateSeconds >= 0)
                     {
                         info += $"Execution Cycle: {_pollRateSeconds} seconds\r\n";
-                    } else if (_changedOfValueDelay >= 0)
+                    }
+                    else if (_changedOfValueDelay >= 0)
                     {
                         info += $"Execution Cycle: On Point Value Changed. Delay {_changedOfValueDelay} seconds\r\n";
                     }
@@ -526,7 +568,7 @@ namespace BrickSchema.Net
                         info += $"Required Point Tag: \r\n";
                         foreach (var point in _requiredPoints)
                         {
-                            
+
                             info += $"- [{point.Value != null}] {point.Key}\r\n";
                         }
                         info += $"Optional Point Tag: \r\n";
@@ -556,13 +598,13 @@ namespace BrickSchema.Net
         protected Point? GetPoint(string Tag)
         {
             if (_requiredPoints.ContainsKey(Tag)) return _requiredPoints[Tag];
-            if(_optionalPoints.ContainsKey(Tag)) return _optionalPoints[Tag];
+            if (_optionalPoints.ContainsKey(Tag)) return _optionalPoints[Tag];
             return null;
         }
 
         protected List<string> GetRequiredTags()
         {
-            List<string> tags= new List<string>();
+            List<string> tags = new List<string>();
             foreach (var point in _requiredPoints)
             {
                 tags.Add(point.Key);
@@ -657,7 +699,7 @@ namespace BrickSchema.Net
             }
         }
 
-        protected virtual bool IsBehaviorEnabled()
+        protected bool IsBehaviorEnabled()
         {
             if (IsProperty(PropertiesEnum.BehaviorEnable)) return GetProperty<bool>(PropertiesEnum.BehaviorEnable);
             return true;
@@ -723,14 +765,15 @@ namespace BrickSchema.Net
             else
             {
                 text += "\n###### Analytics Results";
-                
+
                 foreach (var bv in behaviorValues)
                 {
                     text += $"\n\r**Value Label: {bv.Name}**";
                     if (double.TryParse(bv.Value, out double value))
                     {
                         text += $"\n- Value: {value.ToString("F2")}";
-                    } else
+                    }
+                    else
                     {
                         text += $"\n- Value: {bv.Value}";
                     }
@@ -743,7 +786,7 @@ namespace BrickSchema.Net
 
 
             insight = text;
-            
+
             return BehaviorTaskReturnCodes.NotImplemented;
         }
 

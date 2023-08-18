@@ -68,11 +68,28 @@ namespace BrickSchema.Net.EntityProperties
             }
             catch (Exception ex)
             {
+                try
+                {
+                    if (typeof(T) == typeof(bool))
+                    {
+                        return (T)(object)DeserializeToBool(Value);
+                    }
+                } catch { }
                 // Logging or handle the exception as needed
                 Console.WriteLine($"Error deserializing the value for type {tName}: {ex.Message}");
             }
 
             return default(T?);
+        }
+
+        bool DeserializeToBool(string value)
+        {
+            if (double.TryParse(value, out double result))
+            {
+                return result != 0;
+            }
+
+            return false;
         }
 
         private string GetTypeName<T>()
