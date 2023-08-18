@@ -37,7 +37,7 @@ namespace BrickSchema.Net
         public bool IsRunning
         {
             get { return GetProperty<bool>(PropertiesEnum.Running); }
-            protected set { SetProperty(PropertiesEnum.Running, value); }
+            protected set { AddOrUpdateProperty(PropertiesEnum.Running, value); }
         }
 
         [JsonIgnore]
@@ -53,28 +53,28 @@ namespace BrickSchema.Net
         public string Description
         {
             get { return GetProperty<string>(PropertiesEnum.Description) ?? string.Empty; }
-            protected set { SetProperty(PropertiesEnum.Description, value); }
+            protected set { AddOrUpdateProperty(PropertiesEnum.Description, value); }
         }
 
         [JsonIgnore]
         public string Insight
         {
             get { return GetProperty<string>(PropertiesEnum.Insight) ?? string.Empty; }
-            protected set { SetProperty(PropertiesEnum.Insight, value); }
+            protected set { AddOrUpdateProperty(PropertiesEnum.Insight, value); }
         }
 
         [JsonIgnore]
         public string Resolution
         {
             get { return GetProperty<string>(PropertiesEnum.Resolution) ?? string.Empty; }
-            protected set { SetProperty(PropertiesEnum.Resolution, value); }
+            protected set { AddOrUpdateProperty(PropertiesEnum.Resolution, value); }
         }
 
         [JsonIgnore]
         public string Info
         {
             get { return GetProperty<string>(PropertiesEnum.Info) ?? string.Empty; }
-            protected set { SetProperty(PropertiesEnum.Info, value); }
+            protected set { AddOrUpdateProperty(PropertiesEnum.Info, value); }
         }
 
         [JsonIgnore]
@@ -86,7 +86,7 @@ namespace BrickSchema.Net
                 if (d == null)
                 {
                     d = DateTime.Now;
-                    SetProperty(PropertiesEnum.LastExecutionStart, d);
+                    AddOrUpdateProperty(PropertiesEnum.LastExecutionStart, d);
                 }
                 return (DateTime)d;
             }
@@ -101,7 +101,7 @@ namespace BrickSchema.Net
                 if (d == null)
                 {
                     d = DateTime.Now;
-                    SetProperty(PropertiesEnum.LastExecutionEnd, d);
+                    AddOrUpdateProperty(PropertiesEnum.LastExecutionEnd, d);
                 }
                 return (DateTime)d;
             }
@@ -140,8 +140,8 @@ namespace BrickSchema.Net
                 Errors.Add(error, DateTime.Now);
             }
 
-            SetProperty(PropertiesEnum.Errors, Errors);
-            SetProperty(PropertiesEnum.HasError, true);
+            AddOrUpdateProperty(PropertiesEnum.Errors, Errors);
+            AddOrUpdateProperty(PropertiesEnum.HasError, true);
             return answer;
         }
 
@@ -149,7 +149,7 @@ namespace BrickSchema.Net
         protected void ClearErrors()
         {
             Errors.Clear();
-            SetProperty(PropertiesEnum.HasError, false);
+            AddOrUpdateProperty(PropertiesEnum.HasError, false);
         }
 
         public BrickBehavior()
@@ -174,11 +174,11 @@ namespace BrickSchema.Net
         private void Init(string behaviorType, string behaviorName, double weight = 1, ILogger? logger = null)
         {
             AddShape<BehaviorFunction>(behaviorType);
-            SetProperty(PropertiesEnum.Name, behaviorName);
-            SetProperty(PropertiesEnum.Running, false);
-            SetProperty(PropertiesEnum.Weight, weight);
+            AddOrUpdateProperty(PropertiesEnum.Name, behaviorName);
+            AddOrUpdateProperty(PropertiesEnum.Running, false);
+            AddOrUpdateProperty(PropertiesEnum.Weight, weight);
             Type = this.GetType().Name;
-            SetProperty(PropertiesEnum.BehaviorType, behaviorType);
+            AddOrUpdateProperty(PropertiesEnum.BehaviorType, behaviorType);
             _logger = logger;
             isExecuting = false;
             _executionThread = new Thread(ExecuteTimerTask);
@@ -208,7 +208,7 @@ namespace BrickSchema.Net
 
         public BehaviorValue SetConformance(double value)
         {
-            SetProperty(PropertiesEnum.Conformance, value);
+            AddOrUpdateProperty(PropertiesEnum.Conformance, value);
             BehaviorValue bv = new(PropertiesEnum.Conformance, Id, Name, Type, BehaviorMode);
             bv.SetValue(value);
             return bv;
@@ -217,7 +217,7 @@ namespace BrickSchema.Net
 
         public BehaviorValue SetBehaviorValue<T>(string valueName, T value, string description = "")
         {
-            SetProperty(valueName, value);
+            AddOrUpdateProperty(valueName, value);
             BehaviorValue bv = new(valueName, Id, Name, Type, BehaviorMode);
             bv.SetValue(value);
             bv.Description = description;
@@ -374,7 +374,7 @@ namespace BrickSchema.Net
                 isExecuting = true;
                 try
                 {
-                    SetProperty(PropertiesEnum.LastExecutionStart, DateTime.Now);
+                    AddOrUpdateProperty(PropertiesEnum.LastExecutionStart, DateTime.Now);
 
                     if (!_isOnTimerTaskRunning)
                     {
@@ -419,7 +419,7 @@ namespace BrickSchema.Net
                 }
                 catch { }
                 isExecuting = false;
-                SetProperty(PropertiesEnum.LastExecutionEnd, DateTime.Now);
+                AddOrUpdateProperty(PropertiesEnum.LastExecutionEnd, DateTime.Now);
             }
         }
 
@@ -430,7 +430,7 @@ namespace BrickSchema.Net
                 isExecuting = true;
                 try
                 {
-                    SetProperty(PropertiesEnum.LastExecutionStart, DateTime.Now);
+                    AddOrUpdateProperty(PropertiesEnum.LastExecutionStart, DateTime.Now);
 
                       _isOnTimerTaskRunning = true;
                         try
@@ -473,7 +473,7 @@ namespace BrickSchema.Net
                 }
                 catch { }
                 isExecuting = false;
-                SetProperty(PropertiesEnum.LastExecutionEnd, DateTime.Now);
+                AddOrUpdateProperty(PropertiesEnum.LastExecutionEnd, DateTime.Now);
             }
         }
 
