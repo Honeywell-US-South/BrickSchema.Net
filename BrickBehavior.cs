@@ -443,7 +443,7 @@ namespace BrickSchema.Net
             }
         }
 
-        public void ExecuteManualTaske<T>(T? operatingMode = default(T?))
+        public void ExecuteManualTask<T>(T? operatingMode = default(T?))
         {
             if (!isExecuting)
             {

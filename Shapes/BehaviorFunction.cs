@@ -12,8 +12,8 @@ namespace BrickSchema.Net.Shapes
         {
             Core,
             Background,
-            DataAcccess,
-            Performance,
+            DataAccess,
+            Analytic,
             Fault
 
         }
