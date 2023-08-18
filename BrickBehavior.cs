@@ -663,9 +663,9 @@ namespace BrickSchema.Net
             return true;
         }
 
-        protected virtual bool IsBehaviorActive<T>(List<T> operatingModes)
+        protected virtual bool IsBehaviorActive<T>(T? operatingMode = default(T?))
         {
-            if (operatingModes.Count == 0) return true;
+            if (operatingMode == null) return true;
             return false;
         }
 
