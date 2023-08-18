@@ -657,7 +657,7 @@ namespace BrickSchema.Net
             }
         }
 
-        protected virtual bool IsEnabled()
+        protected virtual bool IsBehaviorEnabled()
         {
             if (IsProperty(PropertiesEnum.BehaviorEnable)) return GetProperty<bool>(PropertiesEnum.BehaviorEnable);
             return true;
