@@ -657,15 +657,15 @@ namespace BrickSchema.Net
             }
         }
 
-        protected virtual bool IsEnabled()
+        protected virtual bool IsBehaviorEnabled()
         {
             if (IsProperty(PropertiesEnum.BehaviorEnable)) return GetProperty<bool>(PropertiesEnum.BehaviorEnable);
             return true;
         }
 
-        protected virtual bool IsBehaviorActive<T>(List<T> operatingModes)
+        protected virtual bool IsBehaviorActive<T>(T? operatingMode = default(T?))
         {
-            if (operatingModes.Count == 0) return true;
+            if (operatingMode == null) return true;
             return false;
         }
 
