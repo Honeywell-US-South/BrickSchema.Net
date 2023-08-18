@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BrickSchema.Net.Shapes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -88,5 +89,27 @@ namespace BrickSchema.Net
             return brickBehaviors;
         }
 
+        public BrickBehavior? GetBehavior(string type)
+        {
+            var behaviors = GetBehaviors(type);
+            if (behaviors.Count >= 1)
+            {
+                for (int i = 0; i < behaviors.Count - 1; i++)
+                {
+                    RemoveBehavior(behaviors[i]);
+                }
+                var foundBehavior = behaviors[behaviors.Count - 1];
+                return foundBehavior;
+
+            }
+            return null;
+        }
+
+        public List<BrickBehavior> GetBehaviorsByShapeType(BehaviorFunction.Types type)
+        {
+            var behaviors = Behaviors.Where(x=>x.Shapes.Any(y=>y.Type == type.ToString())).ToList();
+            return behaviors;
+        }
+        
     }
 }
