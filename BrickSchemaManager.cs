@@ -275,14 +275,15 @@ namespace BrickSchema.Net
                 var entity = _entities.FirstOrDefault(x => x.Id.Equals(id));
                 var behaviors = entity?.GetBehaviors(false);
                 var e = byReference ? entity : entity?.Clone();
-                
 
-                //JsonConvert.SerializeObject(entities, settings);
-                var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(e.Behaviors);
+                if (e != null)
+                {
+                    //JsonConvert.SerializeObject(entities, settings);
+                    var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(e.Behaviors);
 
-                e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
-                e.CleanUpDuplicatedProperties();
-
+                    e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+                    e.CleanUpDuplicatedProperties();
+                }
                 return e;
             }
             return null;

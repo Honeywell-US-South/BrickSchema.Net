@@ -30,5 +30,7 @@ namespace BrickSchema.Net
         public Storey AddLocationStorey(string? id = null) => AddEntity<Storey>(id);
         public Wing AddLocationWing(string? id = null) => AddEntity<Wing>(id);
         public Zone AddLocationZone(string? id = null) => AddEntity<Zone>(id);
+        public ChilledWaterPlant AddLocationChilledWaterPlant(string? id = null) => AddEntity<ChilledWaterPlant>(id);
+        public HotWaterPlant AddLocationHotWaterPlant(string? id = null) => AddEntity<HotWaterPlant>(id);
     }
 }
