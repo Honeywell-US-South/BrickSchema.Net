@@ -119,5 +119,14 @@ namespace BrickSchema.Net.EntityProperties
 
         //chiller
         COP,
+        KWTon,
+        Tons,
+
+        //Cooling Tower
+        Approach,
+        Range,
+
+        //Thermal
+        ThermalEfficiency,
     }
 }
