@@ -156,24 +156,24 @@ namespace BrickSchema.Net
 
         }
 
-        public BrickBehavior(string behaviorType, string behaviorName, double weight = 1, ILogger? logger = null)
+        public BrickBehavior(string behaviorFunction, string behaviorName, double weight = 1, ILogger? logger = null)
         {
-            Init(behaviorType, behaviorName, weight, logger);
+            Init(behaviorFunction, behaviorName, weight, logger);
         }
 
-        public BrickBehavior(BehaviorFunction.Types behaviorType, string behaviorName, double weight = 1, ILogger? logger = null)
+        public BrickBehavior(BehaviorFunction.Types behaviorFunction, string behaviorName, double weight = 1, ILogger? logger = null)
         {
-            Init(behaviorType.ToString(), behaviorName, weight, logger);
+            Init(behaviorFunction.ToString(), behaviorName, weight, logger);
         }
 
-        private void Init(string behaviorType, string behaviorName, double weight = 1, ILogger? logger = null)
+        private void Init(string behaviorFunction, string behaviorName, double weight = 1, ILogger? logger = null)
         {
-            AddShape<BehaviorFunction>(behaviorType);
+            AddShape<BehaviorFunction>(behaviorFunction);
             SetProperty(PropertiesEnum.Name, behaviorName);
             SetProperty(PropertiesEnum.Running, false);
             SetProperty(PropertiesEnum.Weight, weight);
             Type = this.GetType().Name;
-            SetProperty(PropertiesEnum.BehaviorType, behaviorType);
+            SetProperty(PropertiesEnum.BehaviorFunction, behaviorFunction);
             _logger = logger;
             isExecuting = false;
             _executionThread = new Thread(ExecuteTimerTask);

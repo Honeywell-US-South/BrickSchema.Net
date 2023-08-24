@@ -1,4 +1,6 @@
-﻿using BrickSchema.Net.Shapes;
+﻿using BrickSchema.Net.Classes.Equipments.HVACType;
+using BrickSchema.Net.EntityProperties;
+using BrickSchema.Net.Shapes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,6 +47,19 @@ namespace BrickSchema.Net
         {
             return Shapes;
         }
+        public BrickShape GetShape<T>()
+        {
+            var shape = Shapes.FirstOrDefault(x=>x.Type.Equals(typeof(T).Name));
+            return shape;
+        }
+
+        public string GetShapeValue<T>()
+        {
+            var shape = GetShape<T>();
+            return shape.Value;
+        }
+
+       
         //Shape
 
         public AbsoluteHumidity AddShape() => AddShape<AbsoluteHumidity>();

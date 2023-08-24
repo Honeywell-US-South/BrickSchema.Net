@@ -13,7 +13,7 @@ namespace BrickSchema.Net.Shapes
             Core,
             Background,
             DataAccess,
-            Analytic,
+            Analytics,
             Fault
 
         }

@@ -22,7 +22,7 @@ namespace BrickSchema.Net.EntityProperties
         Behaviors,
         PollRate,
 
-        BehaviorType,
+        BehaviorFunction,
         BehaviorEnable,
         BehaviorActive,
         BehaviorRunable,
