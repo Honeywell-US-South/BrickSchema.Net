@@ -70,7 +70,11 @@ namespace BrickSchema.Net
             return clone;
         }
 
-        
+        public BrickEntity? GetEntity(string Id)
+        {
+            var entity = OtherEntities.FirstOrDefault(x => x.Id == Id);
+            return entity;
+        }
 
         public List<BrickEntity> GetChildEntities()
         {
