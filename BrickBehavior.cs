@@ -327,7 +327,7 @@ namespace BrickSchema.Net
                         if (!IsBehaviorEnabled())
                         {
 
-                            string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                            string text = $"###### {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
                             text += "\n- This behavior is disabled.";
                             text += "\n- Please enable behavior if needed to run.";
 
@@ -336,7 +336,7 @@ namespace BrickSchema.Net
                         }
                         else if (!IsBehaviorRunnable(reasons))
                         {
-                            string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                            string text = $"###### {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
                             text += "\n- This behavior doesn't meet required conditions to run.";
                             text += "\n- Please review technical info for more information.";
                             foreach (var r in reasons)
@@ -388,7 +388,7 @@ namespace BrickSchema.Net
                             if (!IsBehaviorEnabled())
                             {
 
-                                string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                                string text = $"###### {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
                                 text += "\n- This behavior is disabled.";
                                 text += "\n- Please enable behavior if needed to run.";
 
@@ -397,7 +397,7 @@ namespace BrickSchema.Net
                             }
                             else if (!IsBehaviorRunnable(reasons))
                             {
-                                string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                                string text = $"###### {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
                                 text += "\n- This behavior doesn't meet required conditions to run.";
                                 text += "\n- Please review technical info for more information.";
                                 foreach (var r in reasons)
@@ -452,7 +452,7 @@ namespace BrickSchema.Net
                         if (!IsBehaviorEnabled())
                         {
 
-                            string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                            string text = $"###### {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
                             text += "\n- This behavior is disabled.";
                             text += "\n- Please enable behavior if needed to run.";
 
@@ -462,7 +462,7 @@ namespace BrickSchema.Net
                         else if (!IsBehaviorActive(operatingMode))
                         {
                             SetProperty(PropertiesEnum.BehaviorActive, false);
-                            string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                            string text = $"###### {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
                             text += $"\n- This behavior is NOT active based on Operating Mode [{operatingMode?.ToString()}].";
 
                             Insight = text;
@@ -471,7 +471,7 @@ namespace BrickSchema.Net
                         else if (!IsBehaviorRunnable(reasons))
                         {
                             SetProperty(PropertiesEnum.BehaviorActive, true);
-                            string text = $"## {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                            string text = $"###### {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
                             text += "\n- This behavior doesn't meet required conditions to run.";
                             text += "\n- Please review technical info for more information.";
                             foreach (var r in reasons)
