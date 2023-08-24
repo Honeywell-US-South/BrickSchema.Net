@@ -21,7 +21,8 @@ namespace BrickSchema.Net.EntityProperties
         //behavior
         Behaviors,
         PollRate,
-        
+
+        BehaviorType,
         BehaviorEnable,
         BehaviorActive,
         BehaviorRunable,
@@ -32,8 +33,7 @@ namespace BrickSchema.Net.EntityProperties
         ExecutionExceptionMessage,
         LastExecutionStart,
         LastExecutionEnd,
-        BehaviorType,
-        BehaviorMode,
+        
         Errors,
         HasError,
         BehaviorValues,

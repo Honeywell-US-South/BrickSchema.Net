@@ -40,11 +40,6 @@ namespace BrickSchema.Net
             protected set { SetProperty(PropertiesEnum.Running, value); }
         }
 
-        [JsonIgnore]
-        public string BehaviorMode
-        {
-            get { return GetProperty<string>(PropertiesEnum.BehaviorMode) ?? string.Empty; }
-        }
 
         [JsonIgnore]
         public string Name { get { return GetProperty<string>(PropertiesEnum.Name) ?? string.Empty; } }
@@ -209,16 +204,15 @@ namespace BrickSchema.Net
         public BehaviorValue SetConformance(double value)
         {
             SetProperty(PropertiesEnum.Conformance, value);
-            BehaviorValue bv = new(PropertiesEnum.Conformance, Id, Name, Type, BehaviorMode);
+            BehaviorValue bv = new(PropertiesEnum.Conformance, Id, Name, Type);
             bv.SetValue(value);
             return bv;
-
         }
 
         public BehaviorValue SetBehaviorValue<T>(string valueName, T value, string description = "")
         {
             SetProperty(valueName, value);
-            BehaviorValue bv = new(valueName, Id, Name, Type, BehaviorMode);
+            BehaviorValue bv = new(valueName, Id, Name, Type);
             bv.SetValue(value);
             bv.Description = description;
             return bv;
@@ -535,7 +529,7 @@ namespace BrickSchema.Net
 
                     string info = $"## {Name} Technical Information";
                     info += $"Behavior ID: {Id}\r\n";
-                    info += $"Behavior Type: {BehaviorMode}\r\n";
+                    info += $"Behavior Type: {Type}\r\n";
                     if (_pollRateSeconds >= 0)
                     {
                         info += $"Execution Cycle: {_pollRateSeconds} seconds\r\n";

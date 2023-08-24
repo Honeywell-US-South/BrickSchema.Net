@@ -15,7 +15,6 @@ namespace BrickSchema.Net.Behaviors
         public string BehaviorId { get; set; } = string.Empty;
         public string BehaviorName { get; set; } = string.Empty;
         public string BehaviorType { get; set; } = string.Empty;
-        public string BehaviorMode { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
@@ -36,33 +35,30 @@ namespace BrickSchema.Net.Behaviors
             Type = string.Empty;
             BehaviorName = behavior.Name;
             BehaviorType = behavior?.Type ?? string.Empty;
-            BehaviorMode = behavior?.BehaviorMode ?? string.Empty;
             Value = string.Empty;
             Weight = behavior?.Weight ?? 1.0 ;
         }
 
-        public BehaviorValue(string valueName, string behaviorId, string behaviorName, string behaviorType, string behaviorMode, double weight = 1.0)
+        public BehaviorValue(string valueName, string behaviorId, string behaviorName, string behaviorType, double weight = 1.0)
         {
             BehaviorId = behaviorId;
             Name = valueName;
             Type = string.Empty;
             BehaviorName = behaviorName;
             BehaviorType = behaviorType;
-            BehaviorMode = behaviorMode;
             Value = string.Empty;
             Weight = weight;
 
             Histories = new();
         }
 
-        public BehaviorValue(PropertiesEnum valueName, string behaviorId, string behaviorName, string behaviorType, string behaviorMode, double weight = 1.0)
+        public BehaviorValue(PropertiesEnum valueName, string behaviorId, string behaviorName, string behaviorType, double weight = 1.0)
         {
             BehaviorId = behaviorId;
             Name = valueName.ToString();
             Type = string.Empty;
             BehaviorName = behaviorName;
             BehaviorType = behaviorType;
-            BehaviorMode = behaviorMode;
             Value = string.Empty;
             Weight = weight;
 
@@ -77,7 +73,6 @@ namespace BrickSchema.Net.Behaviors
                 Name = Name,
                 Type = Type,
                 BehaviorType = BehaviorType,
-                BehaviorMode = BehaviorMode,
                 Value = Value,
                 Weight = Weight,
                

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BrickSchema.Net.Shapes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,18 @@ namespace BrickSchema.Net
             {
                 var e = entity as BrickEntity;
                 brickBehaviors.AddRange(e.GetBehaviors(byReference).Where(x => behaviorIds.Contains(x.Id) || behaviorIds.Count == 0));// e?.Behaviors.Where(x => behaviorIds.Contains(x.Id) || behaviorIds.Count == 0) ?? new List<BrickBehavior>());
+            }
+
+            return brickBehaviors;
+        }
+
+        public List<BrickBehavior> GetBehaviorsByShapeType(List<string> behaviorIds, BehaviorFunction.Types type, bool byReference = true)
+        {
+            List<BrickBehavior> brickBehaviors = new List<BrickBehavior>();
+            foreach (var entity in _entities)
+            {
+                var e = entity as BrickEntity;
+                brickBehaviors.AddRange(e.GetBehaviorsByShapeType(type).Where(x => behaviorIds.Contains(x.Id) || behaviorIds.Count == 0) ?? new List<BrickBehavior>());
             }
 
             return brickBehaviors;
