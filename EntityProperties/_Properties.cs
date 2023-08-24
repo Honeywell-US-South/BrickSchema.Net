@@ -35,19 +35,19 @@ namespace BrickSchema.Net
             
         }
 
-        public void SetBehaviorValue(BehaviorValue value)
+        public void SetBehaviorValue(BehaviorValue behaviorValue)
         {
             var results = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
             if (results == null) results = new();
-            var myValue = results?.FirstOrDefault(x => x.Name == value.Name && x.BehaviorId == value.BehaviorId);
+            var myValue = results?.FirstOrDefault(x => x.Name == behaviorValue.Name && x.BehaviorId == behaviorValue.BehaviorId);
             if (myValue == null)
             {
-                myValue = value.Clone(false);
+                myValue = behaviorValue.Clone(false);
                 results?.Add(myValue);
             }
             else
             {
-                myValue.UpdateValue(value);
+                myValue.UpdateValue(behaviorValue);
             }
             CleanUpDuplicatedProperties();
             SetProperty(PropertiesEnum.BehaviorValues, results);
@@ -92,11 +92,11 @@ namespace BrickSchema.Net
             return myValue;
         }
 
-        public T? GetBehaviorValue<T>(string behaviorType, string valueName)
+        public T? GetBehaviorValue<T>(string behaviorType, string lableName)
         {
             var results = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
             if (results == null) results = new();
-            var myValue = results?.FirstOrDefault(x => x.Name == valueName && x.BehaviorType == behaviorType);
+            var myValue = results?.FirstOrDefault(x => x.Name == lableName && x.BehaviorType == behaviorType);
             T? returnValue = default(T);
             if (myValue != null)
             {
@@ -106,11 +106,11 @@ namespace BrickSchema.Net
             return returnValue;
         }
 
-        public (T? Value, U? Weight)  GetBehaviorValue<T, U>(string behaviorId, string valueName)
+        public (T? Value, U? Weight)  GetBehaviorValue<T, U>(string behaviorType, string labelName)
         {
             var results = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
             if (results == null) results = new();
-            var myValue = results?.FirstOrDefault(x => x.Name == valueName && x.BehaviorId == behaviorId);
+            var myValue = results?.FirstOrDefault(x => x.Name == labelName && x.BehaviorType == behaviorType);
             (T?, U?) returnValue = (default(T), default(U));
             if (myValue != null)
             {
@@ -220,6 +220,16 @@ namespace BrickSchema.Net
             return GetProperty<T>(property.ToString());
         }
 
+
+        public T? GetProperty<T>(BehaviorValue behaviorValue)
+        {
+            if (!string.IsNullOrEmpty(behaviorValue.BehaviorType) && !string.IsNullOrEmpty(behaviorValue.Name))
+            {
+                return GetBehaviorValue<T>(behaviorValue.BehaviorType, behaviorValue.Name);
+            }
+            
+            return default(T);
+        }
         public bool IsProperty(string propertyName)
         {
             return Properties.Any(x=>x.Name.Equals(propertyName));

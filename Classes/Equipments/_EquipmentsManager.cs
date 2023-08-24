@@ -124,7 +124,7 @@ namespace BrickSchema.Net
         public SteamDistribution AddEquipmentSteamDistribution(string? id = null) => AddEntity<SteamDistribution>(id);
         public Classes.Equipments.Valve AddEquipmentValve(string? id = null) => AddEntity<Classes.Equipments.Valve>(id);
         public WaterDistribution AddEquipmentWaterDistribution(string? id = null) => AddEntity<WaterDistribution>(id);
-
+        public ThermalStorage AddEquipmentThermalStorage(string? id = null) => AddEntity<ThermalStorage>(id);
         public WaterHeater AddEquipmentWaterHeater(string? id = null) => AddEntity<WaterHeater>(id);
         public WeatherStation AddEquipmentWeatherStation(string? id = null) => AddEntity<WeatherStation>(id);
 
