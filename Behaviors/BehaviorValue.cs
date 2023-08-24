@@ -1,4 +1,5 @@
 ﻿using BrickSchema.Net.EntityProperties;
+using BrickSchema.Net.Shapes;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,10 +14,9 @@ namespace BrickSchema.Net.Behaviors
     {
         
         public string BehaviorId { get; set; } = string.Empty;
-        public string BehaviorName { get; set; } = string.Empty;
         public string BehaviorType { get; set; } = string.Empty;
+        public string BehaviorFunction { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
         public string Value { get; set; } = string.Empty;
         public DateTime Timestamp { get; set; } = DateTime.Now;
@@ -33,32 +33,32 @@ namespace BrickSchema.Net.Behaviors
             BehaviorId = behavior.Id;
             Name =valueName;
             Type = string.Empty;
-            BehaviorName = behavior.Name;
             BehaviorType = behavior?.Type ?? string.Empty;
+            BehaviorFunction = behavior?.GetShapeStringValue<BehaviorFunction>()??string.Empty;
             Value = string.Empty;
             Weight = behavior?.Weight ?? 1.0 ;
         }
 
-        public BehaviorValue(string valueName, string behaviorId, string behaviorName, string behaviorType, double weight = 1.0)
+        public BehaviorValue(string valueName, string behaviorId, string behaviorType, string behaviorFunction, double weight = 1.0)
         {
             BehaviorId = behaviorId;
             Name = valueName;
             Type = string.Empty;
-            BehaviorName = behaviorName;
             BehaviorType = behaviorType;
+            BehaviorFunction = behaviorFunction;
             Value = string.Empty;
             Weight = weight;
 
             Histories = new();
         }
 
-        public BehaviorValue(PropertiesEnum valueName, string behaviorId, string behaviorName, string behaviorType, double weight = 1.0)
+        public BehaviorValue(PropertiesEnum valueName, string behaviorId, string behaviorType, string behaviorFunction, double weight = 1.0)
         {
             BehaviorId = behaviorId;
             Name = valueName.ToString();
             Type = string.Empty;
-            BehaviorName = behaviorName;
             BehaviorType = behaviorType;
+            BehaviorFunction = behaviorFunction;
             Value = string.Empty;
             Weight = weight;
 

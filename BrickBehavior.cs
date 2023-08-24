@@ -156,20 +156,20 @@ namespace BrickSchema.Net
 
         }
 
-        public BrickBehavior(string behaviorFunction, string behaviorName, double weight = 1, ILogger? logger = null)
+        public BrickBehavior(string behaviorFunction, string behaviorDescription, double weight = 1, ILogger? logger = null)
         {
-            Init(behaviorFunction, behaviorName, weight, logger);
+            Init(behaviorFunction, behaviorDescription, weight, logger);
         }
 
-        public BrickBehavior(BehaviorFunction.Types behaviorFunction, string behaviorName, double weight = 1, ILogger? logger = null)
+        public BrickBehavior(BehaviorFunction.Types behaviorFunction, string behaviorDescription, double weight = 1, ILogger? logger = null)
         {
-            Init(behaviorFunction.ToString(), behaviorName, weight, logger);
+            Init(behaviorFunction.ToString(), behaviorDescription, weight, logger);
         }
 
-        private void Init(string behaviorFunction, string behaviorName, double weight = 1, ILogger? logger = null)
+        private void Init(string behaviorFunction, string behaviorDescription, double weight = 1, ILogger? logger = null)
         {
             AddShape<BehaviorFunction>(behaviorFunction);
-            SetProperty(PropertiesEnum.Name, behaviorName);
+            SetProperty(PropertiesEnum.Description, behaviorDescription);
             SetProperty(PropertiesEnum.Running, false);
             SetProperty(PropertiesEnum.Weight, weight);
             Type = this.GetType().Name;
@@ -204,23 +204,22 @@ namespace BrickSchema.Net
         public BehaviorValue SetConformance(double value)
         {
             SetProperty(PropertiesEnum.Conformance, value);
-            BehaviorValue bv = new(PropertiesEnum.Conformance, Id, Name, Type);
+            BehaviorValue bv = new(PropertiesEnum.Conformance, Id, Type, GetShapeStringValue<BehaviorFunction>());
             bv.SetValue(value);
             return bv;
         }
 
-        public BehaviorValue SetBehaviorValue<T>(string valueName, T value, string description = "")
+        public BehaviorValue SetBehaviorValue<T>(string valueName, T value)
         {
             SetProperty(valueName, value);
-            BehaviorValue bv = new(valueName, Id, Name, Type);
+            BehaviorValue bv = new(valueName, Id, Type, GetShapeStringValue<BehaviorFunction>());
             bv.SetValue(value);
-            bv.Description = description;
             return bv;
         }
 
         public BehaviorValue SetBehaviorValue<T>(PropertiesEnum valueName, T value, string description = "")
         {
-            return SetBehaviorValue(valueName.ToString(), value, description);
+            return SetBehaviorValue(valueName.ToString(), value);
         }
 
         #endregion public fucntions

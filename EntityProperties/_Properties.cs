@@ -1,5 +1,6 @@
 ﻿using BrickSchema.Net.Behaviors;
 using BrickSchema.Net.EntityProperties;
+using BrickSchema.Net.Shapes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -74,18 +75,28 @@ namespace BrickSchema.Net
             SetProperty(PropertiesEnum.BehaviorValues, results);
         }
 
-        public BehaviorValue? GetBehaviorValue(string  behaviorId, string valueName)
+        public List<BehaviorValue> GetBehaviorValues(BehaviorFunction.Types behaviorFunction, string labelName)
+        {
+
+            List<BehaviorValue> results = new();
+            var bv = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
+            results = bv?.Where(x=> x.BehaviorFunction == behaviorFunction.ToString() && x.Name == labelName).ToList()??new();
+            return results;
+        }
+
+        public BehaviorValue? GetBehaviorValue(string  behaviorType, string lableName)
         {
             var results = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
             if (results == null) results = new();
-            var myValue = results?.FirstOrDefault(x => x.Name == valueName && x.BehaviorId == behaviorId);
+            var myValue = results?.FirstOrDefault(x => x.Name == lableName && x.BehaviorType == behaviorType);
             return myValue;
         }
-        public T? GetBehaviorValue<T>(string behaviorId, string valueName)
+
+        public T? GetBehaviorValue<T>(string behaviorType, string valueName)
         {
             var results = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
             if (results == null) results = new();
-            var myValue = results?.FirstOrDefault(x => x.Name == valueName && x.BehaviorId == behaviorId);
+            var myValue = results?.FirstOrDefault(x => x.Name == valueName && x.BehaviorType == behaviorType);
             T? returnValue = default(T);
             if (myValue != null)
             {

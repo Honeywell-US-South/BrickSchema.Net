@@ -53,7 +53,7 @@ namespace BrickSchema.Net
             return shape;
         }
 
-        public string GetShapeValue<T>()
+        public string GetShapeStringValue<T>()
         {
             var shape = GetShape<T>();
             return shape.Value;
