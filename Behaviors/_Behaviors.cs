@@ -110,7 +110,7 @@ namespace BrickSchema.Net
 
         public List<BrickBehavior> GetBehaviorsByShapeType(BehaviorFunction.Types type)
         {
-            var behaviors = Behaviors.Where(x=>x.Shapes.Any(y=>y.Type == type.ToString())).ToList();
+            var behaviors = Behaviors.Where(x=>x.Shapes.Any(y=>y.Value == type.ToString())).ToList();
             return behaviors;
         }
         

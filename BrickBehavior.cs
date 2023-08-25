@@ -460,7 +460,7 @@ namespace BrickSchema.Net
                 {
                     SetProperty(PropertiesEnum.LastExecutionStart, DateTime.Now);
 
-                    _isOnTimerTaskRunning = true;
+                    
                     try
                     {
                         List<string> reasons = new();
@@ -516,7 +516,7 @@ namespace BrickSchema.Net
 
 
                     catch { }
-                    _isOnTimerTaskRunning = false;
+                   
 
 
                 }
