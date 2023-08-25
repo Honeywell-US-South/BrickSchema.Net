@@ -611,6 +611,7 @@ namespace BrickSchema.Net
         protected List<string> GetRequiredTags()
         {
             List<string> tags = new List<string>();
+
             foreach (var point in _requiredPoints)
             {
                 tags.Add(point.Key);
@@ -624,7 +625,21 @@ namespace BrickSchema.Net
 
             return null;
         }
-
+        protected List<string> GetRequiredMappedPointTags()
+        {
+            var points = GetRequiredPoints();
+            List<string> tags = new();
+            foreach (var point in points)
+            {
+                List<Tag> foundTags = point.GetTags();
+                foreach (var t in foundTags)
+                {
+                    if (!tags.Contains(t.Name)) tags.Add(t.Name);
+                }
+                
+            }
+            return tags;
+        }
 
         protected List<Point> GetRequiredPoints()
         {
@@ -642,6 +657,21 @@ namespace BrickSchema.Net
             foreach (var point in _optionalPoints)
             {
                 tags.Add(point.Key);
+            }
+            return tags;
+        }
+        protected List<string> GetOptionalMappedPointTags()
+        {
+            var points = GetOptionalPoints();
+            List<string> tags = new();
+            foreach (var point in points)
+            {
+                List<Tag> foundTags = point.GetTags();
+                foreach (var t in foundTags)
+                {
+                    if (!tags.Contains(t.Name)) tags.Add(t.Name);
+                }
+
             }
             return tags;
         }
