@@ -330,6 +330,7 @@ namespace BrickSchema.Net
             if (!_isOnParentPointValueChangedTaskRunning)
             {
                 _isOnParentPointValueChangedTaskRunning = true;
+                SetProperty(PropertiesEnum.LastExecutionStart, DateTime.Now);
                 try
                 {
 
@@ -379,6 +380,7 @@ namespace BrickSchema.Net
                 }
                 catch { }
                 _isOnParentPointValueChangedTaskRunning = false;
+                SetProperty(PropertiesEnum.LastExecutionEnd, DateTime.Now);
             }
         }
 
