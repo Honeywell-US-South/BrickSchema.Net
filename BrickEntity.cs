@@ -72,6 +72,18 @@ namespace BrickSchema.Net
             return clone;
         }
 
+        public virtual void Copy(BrickEntity e)
+        {
+            if (e == null) return;
+            if (e.Id != Id) return;
+            if (e.Type != Type) return;
+            Properties = e.Properties;
+            Relationships = e.Relationships;
+            RegisteredBehaviors = e.RegisteredBehaviors;
+            Shapes = e.Shapes;
+            LastUpdate = e.LastUpdate;
+        }
+
         public BrickEntity? GetEntity(string Id)
         {
             var entity = OtherEntities.FirstOrDefault(x => x.Id == Id);

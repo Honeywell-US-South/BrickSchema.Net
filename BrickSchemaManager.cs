@@ -75,7 +75,7 @@ namespace BrickSchema.Net
                         }
                         else //update
                         {
-                            _e = e;
+                            _e.Copy(e);
                             var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors);
 
                             _e.Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
