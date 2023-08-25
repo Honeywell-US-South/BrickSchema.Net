@@ -42,6 +42,7 @@ namespace BrickSchema.Net
             behavior.Parent = this; //must set this before start
             behavior.Start();
             Behaviors.Add(behavior);
+            LastUpdate = DateTime.Now;
             return behavior;
         }
 
@@ -53,11 +54,13 @@ namespace BrickSchema.Net
                 behavior.Stop();
                 Behaviors.Remove(behavior);
             }
+            LastUpdate = DateTime.Now;
         }
 
         public void RemoveBehavior(BrickBehavior behavior)
         {
             Behaviors.Remove(behavior);
+            LastUpdate = DateTime.Now;
         }
 
         public List<BrickBehavior> GetBehaviors(bool byReference = true)

@@ -27,6 +27,7 @@ namespace BrickSchema.Net
             };
 
             Shapes.Add(shape);
+            LastUpdate = DateTime.Now;
             return shape;
         }
 
@@ -40,6 +41,7 @@ namespace BrickSchema.Net
             };
 
             Shapes.Add(shape);
+            LastUpdate = DateTime.Now;
             return shape;
         }
 

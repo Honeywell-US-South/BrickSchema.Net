@@ -143,7 +143,7 @@ namespace BrickSchema.Net
             string json = "";
             lock (_lockObject) // Locking here
             {
-                var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, Formatting = Newtonsoft.Json.Formatting.Indented };
+                
                 foreach (var _e in _entities)
                 {
                     

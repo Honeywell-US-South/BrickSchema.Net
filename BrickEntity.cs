@@ -14,6 +14,7 @@ namespace BrickSchema.Net
 
         public string Id { get; set; }
         public string? Type { get; set; }
+        public DateTime LastUpdate { get; set; }
         public List<EntityProperty> Properties { get; set; }
         public List<BrickRelationship> Relationships { get; set; }
         
@@ -33,6 +34,7 @@ namespace BrickSchema.Net
             Relationships = e.Relationships;
             Shapes = e.Shapes;
             RegisteredBehaviors = e.RegisteredBehaviors;
+            LastUpdate = e.LastUpdate;
         }
 
         public BrickEntity()
@@ -44,7 +46,7 @@ namespace BrickSchema.Net
             Shapes = new List<BrickShape>();
             RegisteredBehaviors = new Dictionary<string, string>();
             Behaviors = new List<BrickBehavior>();
-
+            LastUpdate = DateTime.Now;
             Type = null;
         }
 
@@ -223,6 +225,14 @@ namespace BrickSchema.Net
             return entities;
         }
 
+        public string ToJson()
+        {
+            var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(Behaviors);
+
+            SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+            CleanUpDuplicatedProperties();
+            return BrickSchemaUtility.EntityToJson(this);
+        }
 
     }
 }

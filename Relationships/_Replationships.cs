@@ -33,6 +33,7 @@ namespace BrickSchema.Net
                 }
             }
             Relationships.Add(relationship);
+            LastUpdate = DateTime.Now;
             return relationship;
         }
 

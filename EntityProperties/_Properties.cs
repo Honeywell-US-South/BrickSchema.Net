@@ -32,7 +32,7 @@ namespace BrickSchema.Net
             }
             CleanUpDuplicatedProperties();
             SetProperty(PropertiesEnum.BehaviorValues, results);
-            
+            LastUpdate = DateTime.Now;
         }
 
         public void SetBehaviorValue(BehaviorValue behaviorValue)
@@ -51,7 +51,7 @@ namespace BrickSchema.Net
             }
             CleanUpDuplicatedProperties();
             SetProperty(PropertiesEnum.BehaviorValues, results);
-            
+            LastUpdate = DateTime.Now;
         }
 
         public void SetBehaviorValue(List<BehaviorValue> values)
@@ -73,6 +73,7 @@ namespace BrickSchema.Net
             }
             CleanUpDuplicatedProperties();
             SetProperty(PropertiesEnum.BehaviorValues, results);
+            LastUpdate = DateTime.Now;
         }
 
         public List<BehaviorValue> GetBehaviorValues(BehaviorFunction.Types behaviorFunction, string labelName)
@@ -183,11 +184,13 @@ namespace BrickSchema.Net
             {
                 property.SetValue(propertyName, propertyValue);
             }
+            LastUpdate = DateTime.Now;
         }
 
         public void SetProperty<T>(PropertiesEnum property, T propertyValue)
         {
             SetProperty(property.ToString(), propertyValue);
+            LastUpdate = DateTime.Now;
         }
         public T? GetProperty<T>(string propertyName)
         {

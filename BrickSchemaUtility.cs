@@ -42,5 +42,16 @@ namespace BrickSchema.Net
             var json = JsonConvert.SerializeObject(entities, settings);
             return json;
         }
+
+        public static string EntityToJson(BrickEntity entity)
+        {
+
+            var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, Formatting = Newtonsoft.Json.Formatting.Indented };
+            //JsonConvert.SerializeObject(entities, settings);
+
+            var json = JsonConvert.SerializeObject(entity, settings);
+            return json;
+        }
+
     }
 }
