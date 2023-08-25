@@ -22,6 +22,7 @@ namespace BrickSchema.Net
         private Dictionary<string, Point?> _requiredPoints = new();
         private Dictionary<string, Point?> _optionalPoints = new();
         private Dictionary<string, DateTime> Errors = new Dictionary<string, DateTime>();
+        private DateTime LastChangeOfValueRun = DateTime.MinValue;
         #endregion private properties
 
         #region Protected properties
@@ -225,9 +226,17 @@ namespace BrickSchema.Net
         #endregion public fucntions
 
         #region CallBack
-        public void OnTimerTick()
+        public async void OnTimerTick()
         {
             GenerateInfo();
+
+            if (_changedOfValueDelay >= 0)
+            {
+                if (LastChangeOfValueRun.AddMinutes(15) < DateTime.Now) {
+                    LastChangeOfValueRun = DateTime.Now;
+                    await ProcessParentPointValueChange(new(), "", true); 
+                }
+            } 
             if (IsTimeToRun())
             {
                 if (!isExecuting && IsRunning && !_executionThread.IsAlive)
@@ -283,6 +292,7 @@ namespace BrickSchema.Net
         // Add a virtual Start method
         protected void RegisterOnTimerTask(int poleRateSeconds)
         {
+            if (poleRateSeconds < 10) poleRateSeconds= 10;
             _pollRateSeconds = poleRateSeconds;
             _changedOfValueDelay = -1;
         }
@@ -294,6 +304,7 @@ namespace BrickSchema.Net
 
         protected void RegisterParentPropertyValueChangedEvent(int delaySeconds = 0)
         {
+            if (delaySeconds < 0) delaySeconds = 0;
             _changedOfValueDelay = delaySeconds;
             _pollRateSeconds -= 1;
         }
@@ -311,9 +322,11 @@ namespace BrickSchema.Net
         }
 
 
-        private async Task ProcessParentPointValueChange(BrickEntity e, string propertyName)
+        private async Task ProcessParentPointValueChange(BrickEntity e, string propertyName, bool periodicRun = false)
         {
-            if (!(e is Point) || !propertyName.Equals(PropertiesEnum.Value)) return;
+            
+            if ((!(e is Point) || !propertyName.Equals(PropertiesEnum.Value)) && !periodicRun) return;
+            
             if (!_isOnParentPointValueChangedTaskRunning)
             {
                 _isOnParentPointValueChangedTaskRunning = true;
