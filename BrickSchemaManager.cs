@@ -38,18 +38,29 @@ namespace BrickSchema.Net
             LoadSchemaFromFile(_brickPath);
         }
 
-        public void LoadSchemaFromJson(string json, bool appendOupdate = false)
+        public void LoadSchemaFromJson(string json, bool appendOrUpdate = false)
         {
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
             var entities = JsonConvert.DeserializeObject<List<BrickEntity>>(json, settings) ?? new();
-            ImportEntities(entities, appendOupdate);
+            ImportEntities(entities, appendOrUpdate);
         }
 
-        private void ImportEntities(List<BrickEntity> entities, bool appendOupdate = false)
+        public void AppendOrUpdateEntityFromJson(string json)
+        {
+            var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
+            var entity = JsonConvert.DeserializeObject<BrickEntity>(json, settings);
+            if (entity != null) {
+                List<BrickEntity> entities = new();
+                entities.Add(entity);
+                ImportEntities(entities, true);
+            }
+        }
+
+        private void ImportEntities(List<BrickEntity> entities, bool appendOrUpdate = false)
         {
             lock (_lockObject) // Locking here 
             {
-                if (appendOupdate)
+                if (appendOrUpdate)
                 {
                     foreach (var e in entities)
                     {
