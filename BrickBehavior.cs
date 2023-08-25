@@ -363,18 +363,31 @@ namespace BrickSchema.Net
                         else
                         {
 
-                            var analyticsReturnCode = OnParentPointValueChangedTask(e as Point, out List<BehaviorValue> values);
-                            if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
+                            
+                            try
                             {
-                                Parent?.SetBehaviorValue(values);
+                                var analyticsReturnCode = OnParentPointValueChangedTask(e as Point, out List<BehaviorValue> values);
+                                if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
+                                {
+                                    Parent?.SetBehaviorValue(values);
+                                }
+                                var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
+                                string header = $"###### {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
+                                Insight = $"{header}{insight}";
+
+                                var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
+
+                                Resolution = $"{header}{resolution}";
                             }
-                            var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
-                            string header = $"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
-                            Insight = $"{header}{insight}";
+                            catch (Exception ex)
+                            {
+                                string header = $"###### {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {BehaviorTaskReturnCodes.HasException.ToString()} \n\r\n\r";
+                                Insight = $"{header}{ex.Message} \n\r {ex.ToString()}";
+                                Resolution = $"{header}Please see Insight for detail.";
+                            }
 
-                            var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
 
-                            Resolution = $"{header}{resolution}";
+
                         }
                     }
                 }
@@ -424,19 +437,30 @@ namespace BrickSchema.Net
                             }
                             else
                             {
-                                var analyticsReturnCode = OnTimerTask(out List<BehaviorValue> values);
-                                if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
+                                try
                                 {
-                                    Parent?.SetBehaviorValue(values);
+                                    var analyticsReturnCode = OnTimerTask(out List<BehaviorValue> values);
+                                    if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
+                                    {
+                                        Parent?.SetBehaviorValue(values);
+                                    }
+                                    var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
+                                    string header = $"###### {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
+                                    Insight = $"{header}{insight}";
+
+                                    var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
+
+                                    Resolution = $"{header}{resolution}";
                                 }
-                                var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
-                                string header = $"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
-                                Insight = $"{header}{insight}";
-
-                                var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
-
-                                Resolution = $"{header}{resolution}";
+                                catch (Exception ex)
+                                {
+                                    string header = $"###### {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {BehaviorTaskReturnCodes.HasException.ToString()} \n\r\n\r";
+                                    Insight = $"{header}{ex.Message} \n\r {ex.ToString()}";
+                                    Resolution = $"{header}Please see Insight for detail.";
+                                }
                             }
+
+                            
                         }
 
 
@@ -499,18 +523,28 @@ namespace BrickSchema.Net
                         else
                         {
                             SetProperty(PropertiesEnum.BehaviorActive, true);
-                            var analyticsReturnCode = ManualTask(out List<BehaviorValue> values);
-                            if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
+
+                            try
                             {
-                                Parent?.SetBehaviorValue(values);
+                                var analyticsReturnCode = ManualTask(out List<BehaviorValue> values);
+                                if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
+                                {
+                                    Parent?.SetBehaviorValue(values);
+                                }
+                                var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
+                                string header = $"###### {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
+                                Insight = $"{header}{insight}";
+
+                                var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
+
+                                Resolution = $"{header}{resolution}";
+                            } catch (Exception ex)
+                            {
+                                string header = $"###### {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {BehaviorTaskReturnCodes.HasException.ToString()} \n\r\n\r";
+                                Insight = $"{header}{ex.Message} \n\r {ex.ToString()}";
+                                Resolution = $"{header}Please see Insight for detail.";
                             }
-                            var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
-                            string header = $"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
-                            Insight = $"{header}{insight}";
-
-                            var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
-
-                            Resolution = $"{header}{resolution}";
+                            
                         }
                     }
 
