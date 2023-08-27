@@ -50,13 +50,16 @@ namespace BrickSchema.Net
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
             var entity = JsonConvert.DeserializeObject<BrickEntity>(json, settings);
             if (entity != null) {
+                
                 List<BrickEntity> entities = new();
                 entities.Add(entity);
                 ImportEntities(entities, true);
             }
         }
 
-        private void ImportEntities(List<BrickEntity> entities, bool appendOrUpdate = false)
+
+
+        public void ImportEntities(List<BrickEntity> entities, bool appendOrUpdate = false)
         {
             lock (_lockObject) // Locking here 
             {

@@ -133,7 +133,16 @@ namespace BrickSchema.Net
             List<Classes.Point> points = new List<Classes.Point>();
             foreach (var entity in entities)
             {
-                points.Add((Classes.Point)entity);
+                try
+                {
+                    points.Add((Classes.Point)entity);
+                    
+                }
+                catch {
+                    
+                   
+
+                }
             }
 
             return points;

@@ -47,5 +47,16 @@ namespace BrickSchema.Net.Helpers
 
             return brickBehaviors;
         }
+
+        public static T GetTypeFromString<T>(string typeName) where T : class
+        {
+            var type = Type.GetType(typeName);
+            if (type == null)
+                return null;
+            var instance = Activator.CreateInstance(type);
+            if (instance is T result)
+                return result;
+            return null;
+        }
     }
 }
