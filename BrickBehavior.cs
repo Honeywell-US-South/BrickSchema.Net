@@ -204,6 +204,8 @@ namespace BrickSchema.Net
 
         public BehaviorValue SetConformance(double value)
         {
+            if (value < 0) value = 0;
+            else if (value > 100) value = 100;
             SetProperty(PropertiesEnum.Conformance, value);
             BehaviorValue bv = new(PropertiesEnum.Conformance, Id, Type, GetShapeStringValue<BehaviorFunction>());
             bv.SetValue(value);
