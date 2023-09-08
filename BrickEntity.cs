@@ -10,11 +10,12 @@ namespace BrickSchema.Net
     public partial class BrickEntity
     {
         [JsonIgnore]
-        internal List<BrickEntity> OtherEntities { get; set; }
+        internal List<BrickEntity> OtherEntities { get; set; } = new List<BrickEntity>();
 
         public string Id { get; set; }
         public string? Type { get; set; }
         public DateTime LastUpdate { get; set; }
+        
         public List<EntityProperty> Properties { get; set; }
         public List<BrickRelationship> Relationships { get; set; }
         

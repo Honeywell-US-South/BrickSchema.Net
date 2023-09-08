@@ -27,6 +27,7 @@ namespace BrickSchema.Net
 
         internal virtual async void HandleOnPropertyValueChanged(string entityId, string propertyName)
         {
+
             if (entityId == Id) { return; }
             OnPropertyValueChanged?.Invoke(entityId, propertyName);
             
