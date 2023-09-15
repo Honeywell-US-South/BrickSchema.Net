@@ -26,7 +26,7 @@ namespace BrickSchema.Net
         {
             var clone = new BrickShape();
             clone.Id = Id;
-            clone.Type = Type;
+            clone.EntityTypeName = EntityTypeName;
             foreach (var p in Properties ?? new())
             {
                 clone.Properties.Add(p.Clone());

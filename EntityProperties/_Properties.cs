@@ -89,7 +89,7 @@ namespace BrickSchema.Net
         {
             var results = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
             if (results == null) results = new();
-            var myValue = results?.FirstOrDefault(x => x.Name == lableName && x.BehaviorType == behaviorType);
+            var myValue = results?.FirstOrDefault(x => x.Name == lableName && x.BehaviorEntityTypeName == behaviorType);
             return myValue;
         }
 
@@ -97,7 +97,7 @@ namespace BrickSchema.Net
         {
             var results = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
             if (results == null) results = new();
-            var myValue = results?.FirstOrDefault(x => x.Name == lableName && x.BehaviorType == behaviorType);
+            var myValue = results?.FirstOrDefault(x => x.Name == lableName && x.BehaviorEntityTypeName == behaviorType);
             T? returnValue = default(T);
             if (myValue != null)
             {
@@ -111,7 +111,7 @@ namespace BrickSchema.Net
         {
             var results = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
             if (results == null) results = new();
-            var myValue = results?.FirstOrDefault(x => x.Name == labelName && x.BehaviorType == behaviorType);
+            var myValue = results?.FirstOrDefault(x => x.Name == labelName && x.BehaviorEntityTypeName == behaviorType);
             (T?, U?) returnValue = (default(T), default(U));
             if (myValue != null)
             {
@@ -226,9 +226,9 @@ namespace BrickSchema.Net
 
         public T? GetProperty<T>(BehaviorValue behaviorValue)
         {
-            if (!string.IsNullOrEmpty(behaviorValue.BehaviorType) && !string.IsNullOrEmpty(behaviorValue.Name))
+            if (!string.IsNullOrEmpty(behaviorValue.BehaviorEntityTypeName) && !string.IsNullOrEmpty(behaviorValue.Name))
             {
-                return GetBehaviorValue<T>(behaviorValue.BehaviorType, behaviorValue.Name);
+                return GetBehaviorValue<T>(behaviorValue.BehaviorEntityTypeName, behaviorValue.Name);
             }
             
             return default(T);

@@ -189,7 +189,7 @@ namespace BrickSchema.Net
                     return false;
                 }
 
-                entityToUpdate.Type = updatedEntity.Type;
+                entityToUpdate.EntityTypeName = updatedEntity.Type;
                 entityToUpdate.Properties = updatedEntity.Properties;
                 entityToUpdate.Relationships = updatedEntity.Relationships;
             }
@@ -203,7 +203,7 @@ namespace BrickSchema.Net
 
         public bool IsTag(string name)
         {
-            var tags = _entities.Where(x => (x.Type?.Equals(typeof(Tag).Name) ?? false)).ToList();
+            var tags = _entities.Where(x => (x.EntityTypeName?.Equals(typeof(Tag).Name) ?? false)).ToList();
             foreach (var tag in tags)
             {
                 var t = tag as Tag;
@@ -225,7 +225,7 @@ namespace BrickSchema.Net
                 entity = new T
                 {
                     Id = id ?? Guid.NewGuid().ToString(),
-                    Type = typeof(T).Name
+                    EntityTypeName = typeof(T).Name
 
                 };
                 entity.SetProperty(EntityProperties.PropertiesEnum.Name, name);
@@ -269,7 +269,7 @@ namespace BrickSchema.Net
                 entity = new T
                 {
                     Id = Guid.NewGuid().ToString(),
-                    Type = typeof(T).Name
+                    EntityTypeName = typeof(T).Name
                 };
 
                 foreach (var _e in _entities)
@@ -372,7 +372,7 @@ namespace BrickSchema.Net
 
         public Tag? GetTag(string name, bool byReference = true)
         {
-            var tags = _entities.Where(x => (x.Type?.Equals(typeof(Tag).Name) ?? false)).ToList();
+            var tags = _entities.Where(x => (x.EntityTypeName?.Equals(typeof(Tag).Name) ?? false)).ToList();
             if (tags == null) return null;
             if (tags.Count == 0) return null;
             foreach (var tag in tags)

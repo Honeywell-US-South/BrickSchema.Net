@@ -13,7 +13,7 @@ namespace BrickSchema.Net
                 results.Add(new()
                 {
                     BehaviorId = Id,
-                    BehaviorType = Type,
+                    BehaviorType = EntityTypeName,
                     BehaviorName = Name,
                     EntityId = Parent.Id,
                     Value = null,

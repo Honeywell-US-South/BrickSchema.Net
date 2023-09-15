@@ -8,7 +8,7 @@ namespace BrickSchema.Net.Classes.Equipments
         public List<BrickEntity> HasSubMeter()
         {
             var entities = OtherEntities
-            .Where(entity => entity.Relationships.Any(relationship => relationship.Type?.Equals(typeof(SubmeterOf).Name) ?? false && relationship.ParentId == this.Id))
+            .Where(entity => entity.Relationships.Any(relationship => relationship.EntityTypeName?.Equals(typeof(SubmeterOf).Name) ?? false && relationship.ParentId == this.Id))
             .ToList();
             return entities;
         }

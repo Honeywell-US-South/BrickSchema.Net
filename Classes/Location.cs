@@ -18,7 +18,7 @@ namespace BrickSchema.Net.Classes
         public List<BrickEntity> GetEntities()
         {
             var entities = OtherEntities
-            .Where(entity => entity.Relationships.Any(relationship => relationship.Type?.Equals(typeof(LocationOf).Name) ?? false && relationship.ParentId == Id))
+            .Where(entity => entity.Relationships.Any(relationship => relationship.EntityTypeName?.Equals(typeof(LocationOf).Name) ?? false && relationship.ParentId == Id))
             .ToList();
             return entities;
         }

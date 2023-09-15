@@ -22,7 +22,7 @@ namespace BrickSchema.Net
             T shape = new T
             {
                 Id = Guid.NewGuid().ToString(),
-                Type = typeof(T).Name,
+                EntityTypeName = typeof(T).Name,
 
             };
 
@@ -36,7 +36,7 @@ namespace BrickSchema.Net
             T shape = new T
             {
                 Id = Guid.NewGuid().ToString(),
-                Type = typeof(T).Name,
+                EntityTypeName = typeof(T).Name,
                 Value = value
             };
 
@@ -51,7 +51,7 @@ namespace BrickSchema.Net
         }
         public BrickShape GetShape<T>()
         {
-            var shape = Shapes.FirstOrDefault(x=>x.Type.Equals(typeof(T).Name));
+            var shape = Shapes.FirstOrDefault(x=>x.EntityTypeName.Equals(typeof(T).Name));
             return shape;
         }
 

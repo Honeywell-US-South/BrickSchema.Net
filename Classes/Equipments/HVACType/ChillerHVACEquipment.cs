@@ -46,7 +46,7 @@ namespace BrickSchema.Net.Classes.Equipments.HVACType
             .ToList();
             foreach (var child in children)
             {
-                if (child.Type?.Equals(typeof(CoolingValve).Name)??false)
+                if (child.EntityTypeName?.Equals(typeof(CoolingValve).Name)??false)
                 {
                     entities.Add(child);
                     var grandChildren = GetCoolingValveEntities(child);
@@ -77,7 +77,7 @@ namespace BrickSchema.Net.Classes.Equipments.HVACType
                 var points = entity.GetPointEntities();
                 foreach (var point in points)
                 {
-                    if (point.Type?.Equals(typeof(CoolingValve).Name) ?? false)
+                    if (point.EntityTypeName?.Equals(typeof(CoolingValve).Name) ?? false)
                     {
                         if (point.Value.HasValue)
                         {

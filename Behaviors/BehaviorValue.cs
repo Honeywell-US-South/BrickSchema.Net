@@ -14,10 +14,10 @@ namespace BrickSchema.Net.Behaviors
     {
         
         public string BehaviorId { get; set; } = string.Empty;
-        public string BehaviorType { get; set; } = string.Empty;
+        public string BehaviorEntityTypeName { get; set; } = string.Empty;
         public string BehaviorFunction { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
+        public string DataTypeName { get; set; } = string.Empty;
         public string Value { get; set; } = string.Empty;
         public DateTime Timestamp { get; set; } = DateTime.Now;
         public double Weight { get; set; } = 1.0;
@@ -32,19 +32,19 @@ namespace BrickSchema.Net.Behaviors
         {
             BehaviorId = behavior.Id;
             Name =valueName;
-            Type = string.Empty;
-            BehaviorType = behavior?.Type ?? string.Empty;
+            DataTypeName = string.Empty;
+            BehaviorEntityTypeName = behavior?.EntityTypeName ?? string.Empty;
             BehaviorFunction = behavior?.GetShapeStringValue<BehaviorFunction>()??string.Empty;
             Value = string.Empty;
             Weight = behavior?.Weight ?? 1.0 ;
         }
 
-        public BehaviorValue(string valueName, string behaviorId, string behaviorType, string behaviorFunction, double weight = 1.0)
+        public BehaviorValue(string valueName, string behaviorId, string behaviorEntityTypeName, string behaviorFunction, double weight = 1.0)
         {
             BehaviorId = behaviorId;
             Name = valueName;
-            Type = string.Empty;
-            BehaviorType = behaviorType;
+            DataTypeName = string.Empty;
+            BehaviorEntityTypeName = behaviorEntityTypeName;
             BehaviorFunction = behaviorFunction;
             Value = string.Empty;
             Weight = weight;
@@ -52,12 +52,12 @@ namespace BrickSchema.Net.Behaviors
             Histories = new();
         }
 
-        public BehaviorValue(PropertiesEnum valueName, string behaviorId, string behaviorType, string behaviorFunction, double weight = 1.0)
+        public BehaviorValue(PropertiesEnum valueName, string behaviorId, string behaviorEntityTypeName, string behaviorFunction, double weight = 1.0)
         {
             BehaviorId = behaviorId;
             Name = valueName.ToString();
-            Type = string.Empty;
-            BehaviorType = behaviorType;
+            DataTypeName = string.Empty;
+            BehaviorEntityTypeName = behaviorEntityTypeName;
             BehaviorFunction = behaviorFunction;
             Value = string.Empty;
             Weight = weight;
@@ -71,8 +71,8 @@ namespace BrickSchema.Net.Behaviors
             {
                 BehaviorId = BehaviorId,
                 Name = Name,
-                Type = Type,
-                BehaviorType = BehaviorType,
+                DataTypeName = DataTypeName,
+                BehaviorEntityTypeName = BehaviorEntityTypeName,
                 Value = Value,
                 Weight = Weight,
                
@@ -93,7 +93,7 @@ namespace BrickSchema.Net.Behaviors
             if (value == null) { Console.WriteLine($"Property Set Value [{this.Name}:null]"); return; }
             try
             {
-                this.Type = Helpers.EntityUntils.GetTypeName<T>();
+                this.DataTypeName = Helpers.EntityUntils.GetTypeName<T>();
                 this.Value = JsonConvert.SerializeObject(value);
                 this.Timestamp= DateTime.Now;
                 BehaviorValue behaviorResult = Clone(false);
@@ -108,7 +108,7 @@ namespace BrickSchema.Net.Behaviors
         {
             if (BehaviorId == value.BehaviorId)
             {
-                Type = value.Type;
+                DataTypeName = value.DataTypeName;
                 Value = value.Value;
                 Timestamp = value.Timestamp;
                 BehaviorValue behaviorResult = Clone(false);
@@ -118,7 +118,7 @@ namespace BrickSchema.Net.Behaviors
         }
         public T? GetValue<T>()
         {
-            if (Type == null) return default(T);
+            if (DataTypeName == null) return default(T);
 
             string tName = Helpers.EntityUntils.GetTypeName<T>();
             //if (!Type.Equals(tName)) throw new InvalidCastException($"Cannot convert {Type} to {tName}.");
@@ -127,13 +127,13 @@ namespace BrickSchema.Net.Behaviors
                 T? deserializedObject = JsonConvert.DeserializeObject<T>(this.Value);
                 return deserializedObject;
             }
-            catch (Exception ex) { Console.WriteLine($"Cannot convert {Type} to {tName}. {ex.Message}"); }
+            catch (Exception ex) { Console.WriteLine($"Cannot convert {DataTypeName} to {tName}. {ex.Message}"); }
             return default(T?);
         }
 
         public (T? Value, U? Weight) GetValue<T, U>()
         {
-            if (Type == null) return (default(T), default(U));
+            if (DataTypeName == null) return (default(T), default(U));
             
             string tName = Helpers.EntityUntils.GetTypeName<T>();
             string uName = Helpers.EntityUntils.GetTypeName<U>();
@@ -153,7 +153,7 @@ namespace BrickSchema.Net.Behaviors
                     return (deserializedObject, default(U));
                 }
             }
-            catch (Exception ex) { Console.WriteLine($"Cannot convert {Type} to {tName}. {ex.Message}"); }
+            catch (Exception ex) { Console.WriteLine($"Cannot convert {DataTypeName} to {tName}. {ex.Message}"); }
             return (default(T?), default(U));
         }
 

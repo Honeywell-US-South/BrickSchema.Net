@@ -19,7 +19,7 @@ namespace BrickSchema.Net
             T relationship = new T
             {
                 Id = Guid.NewGuid().ToString(),
-                Type = typeof(T).Name,
+                EntityTypeName = typeof(T).Name,
                 ParentId = parentId
                
 
