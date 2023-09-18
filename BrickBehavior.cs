@@ -4,6 +4,7 @@ using BrickSchema.Net.EntityProperties;
 using BrickSchema.Net.Shapes;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace BrickSchema.Net
@@ -350,20 +351,12 @@ namespace BrickSchema.Net
                             
                             try
                             {
-                                var analyticsReturnCode = OnParentPointValueChangedTask(e as Point, out List<BehaviorValue> values);
-                                if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
-                                {
-                                    Parent?.SetBehaviorValue(values);
-                                    
-                                }
-                                OnBehaviorExecuted?.Invoke(null, new() { ParentId = Parent?.Id??"0", Values = values, TaskReturnCode = analyticsReturnCode});
-                                UpdateInsightAndResolution(analyticsReturnCode, values);
+                                var returnCode = OnParentPointValueChangedTask(e as Point, out List<BehaviorValue> values);
+                                ProcessTaskCompleted(returnCode, values);
                             }
                             catch (Exception ex)
                             {
-                                string header = $"###### {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {BehaviorTaskReturnCodes.HasException.ToString()} \n\r\n\r";
-                                Insight = $"{header}{ex.Message} \n\r {ex.ToString()}";
-                                Resolution = $"{header}Please see Insight for detail.";
+                                ProcessTaskException(MethodBase.GetCurrentMethod()?.Name ?? "ExecuteBehavior", ex);
                             }
 
 
@@ -396,19 +389,12 @@ namespace BrickSchema.Net
                             {
                                 try
                                 {
-                                    var analyticsReturnCode = OnTimerTask(out List<BehaviorValue> values);
-                                    if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
-                                    {
-                                        Parent?.SetBehaviorValue(values);
-                                    }
-                                    OnBehaviorExecuted?.Invoke(null, new() { ParentId = Parent?.Id ?? "0", Values = values, TaskReturnCode = analyticsReturnCode });
-                                    UpdateInsightAndResolution(analyticsReturnCode, values);
+                                    var returnCode = OnTimerTask(out List<BehaviorValue> values);
+                                    ProcessTaskCompleted(returnCode, values);
                                 }
                                 catch (Exception ex)
                                 {
-                                    string header = $"###### {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {BehaviorTaskReturnCodes.HasException.ToString()} \n\r\n\r";
-                                    Insight = $"{header}{ex.Message} \n\r {ex.ToString()}";
-                                    Resolution = $"{header}Please see Insight for detail.";
+                                    ProcessTaskException(MethodBase.GetCurrentMethod()?.Name ?? "ExecuteBehavior", ex);
                                 }
                             }
 
@@ -447,20 +433,13 @@ namespace BrickSchema.Net
 
                             try
                             {
-                                var analyticsReturnCode = ManualTask(out List<BehaviorValue> values);
-                                if (analyticsReturnCode == BehaviorTaskReturnCodes.Good)
-                                {
-                                    Parent?.SetBehaviorValue(values);
-                                }
-                                OnBehaviorExecuted?.Invoke(null, new() { ParentId = Parent?.Id ?? "0", Values = values, TaskReturnCode = analyticsReturnCode });
-                                UpdateInsightAndResolution(analyticsReturnCode, values);
+                                var returnCode = ManualTask(out List<BehaviorValue> values);
+                                ProcessTaskCompleted(returnCode, values);
 
 
                             } catch (Exception ex)
                             {
-                                string header = $"###### {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {BehaviorTaskReturnCodes.HasException.ToString()} \n\r\n\r";
-                                Insight = $"{header}{ex.Message} \n\r {ex.ToString()}";
-                                Resolution = $"{header}Please see Insight for detail.";
+                                ProcessTaskException(MethodBase.GetCurrentMethod()?.Name??"ExecuteBehavior", ex);
                             }
                             
                         }
@@ -519,6 +498,24 @@ namespace BrickSchema.Net
         {
             string? n = null;
             return PreTaskRunCheck(n);
+        }
+
+        private void ProcessTaskCompleted(BehaviorTaskReturnCodes taskReturnCode, List<BehaviorValue> values)
+        {
+            if (taskReturnCode == BehaviorTaskReturnCodes.Good)
+            {
+                Parent?.SetBehaviorValue(values);
+            }
+            OnBehaviorExecuted?.Invoke(null, new() { ParentId = Parent?.Id ?? "0", Values = values, TaskReturnCode = taskReturnCode });
+            UpdateInsightAndResolution(taskReturnCode, values);
+        }
+
+        private void ProcessTaskException(string methodName, Exception ex)
+        {
+            string header = $"###### {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {BehaviorTaskReturnCodes.HasException.ToString()} \n\r\n\r";
+            Insight = $"{header}{ex.Message} \n\r {ex.ToString()}";
+            Resolution = $"{header}Please see Insight for detail.";
+            _logger?.LogCritical(ex, $"Exception Method [{methodName}] Behavior [{Name}] Parent [{Parent?.GetProperty<string>(PropertiesEnum.Name)}]");
         }
 
         private void UpdateInsightAndResolution(BehaviorTaskReturnCodes analyticsReturnCode, List<BehaviorValue> values)
