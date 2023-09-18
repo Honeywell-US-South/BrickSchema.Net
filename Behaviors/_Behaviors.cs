@@ -16,7 +16,7 @@ namespace BrickSchema.Net
         public BrickBehavior AddBehavior(BrickBehavior behavior)
         {
 
-            var behaviors = GetBehaviors(behavior.EntityTypeName);
+            var behaviors = GetBehaviors(behavior.EntityTypeName??string.Empty);
             if (behaviors.Count >= 1)
             {
                 for (int i = 0; i < behaviors.Count - 1; i++)
@@ -29,14 +29,17 @@ namespace BrickSchema.Net
 
             }
 
+            if (!string.IsNullOrEmpty(behavior.EntityTypeName))
+            {
+                if (RegisteredBehaviors.ContainsKey(behavior.EntityTypeName))
+                {
 
-            if (RegisteredBehaviors.ContainsKey(behavior.EntityTypeName))
-            {
-                behavior.Id = RegisteredBehaviors[behavior.EntityTypeName];
-            }
-            else
-            {
-                RegisteredBehaviors.Add(behavior.EntityTypeName, behavior.Id);
+                    behavior.Id = RegisteredBehaviors[behavior.EntityTypeName];
+                }
+                else
+                {
+                    RegisteredBehaviors.Add(behavior.EntityTypeName, behavior.Id);
+                }
             }
 
             behavior.Parent = this; //must set this before start

@@ -37,7 +37,7 @@ namespace BrickSchema.Net.Helpers
         public static List<BrickBehavior> JsonToBehaviors(string json)
         {
             if (string.IsNullOrEmpty(json)) return new();
-            List<string>? behaviorsJson = JsonConvert.DeserializeObject<List<string>>(json);
+            List<string> behaviorsJson = JsonConvert.DeserializeObject<List<string>>(json)??new();
             List<BrickBehavior> brickBehaviors= new List<BrickBehavior>();
             foreach (var b in behaviorsJson)
             {
@@ -48,7 +48,7 @@ namespace BrickSchema.Net.Helpers
             return brickBehaviors;
         }
 
-        public static T GetTypeFromString<T>(string typeName) where T : class
+        public static T? GetTypeFromString<T>(string typeName) where T : class
         {
             var type = Type.GetType(typeName);
             if (type == null)

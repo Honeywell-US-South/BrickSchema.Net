@@ -49,16 +49,16 @@ namespace BrickSchema.Net
         {
             return Shapes;
         }
-        public BrickShape GetShape<T>()
+        public BrickShape? GetShape<T>()
         {
-            var shape = Shapes.FirstOrDefault(x=>x.EntityTypeName.Equals(typeof(T).Name));
+            var shape = Shapes.FirstOrDefault(x=>x.EntityTypeName?.Equals(typeof(T).Name)??false);
             return shape;
         }
 
         public string GetShapeStringValue<T>()
         {
             var shape = GetShape<T>();
-            return shape.Value;
+            return shape?.Value??string.Empty;
         }
 
        

@@ -8,7 +8,7 @@ namespace BrickSchema.Net.Behaviors
 {
     public class BehaviorExecutedEventArgs : EventArgs
     {
-        public string ParentId { get; set; }
+        public string ParentId { get; set; } = string.Empty;
         public List<BehaviorValue> Values { get; set; } = new();
         public BehaviorTaskReturnCodes TaskReturnCode { get; set; }
         public DateTime Timestamp { get; set; } = DateTime.Now;

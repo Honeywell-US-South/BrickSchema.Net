@@ -156,20 +156,23 @@ namespace BrickSchema.Net
 
         public BrickBehavior()
         {
-
+            OnBehaviorExecuted = delegate { };  // Initialize with an empty delegate
         }
+    
         private BrickBehavior(BrickEntity entity) : base(entity) //this is for cloning only
         {
-
+            OnBehaviorExecuted = delegate { };  // Initialize with an empty delegate
         }
 
         public BrickBehavior(string behaviorFunction, string behaviorName, double weight = 1, ILogger? logger = null)
         {
+            OnBehaviorExecuted = delegate { };  // Initialize with an empty delegate
             Init(behaviorFunction, behaviorName, weight, logger);
         }
 
         public BrickBehavior(BehaviorFunction.Types behaviorFunction, string behaviorName, double weight = 1, ILogger? logger = null)
         {
+            OnBehaviorExecuted = delegate { };  // Initialize with an empty delegate
             Init(behaviorFunction.ToString(), behaviorName, weight, logger);
         }
 
@@ -247,7 +250,7 @@ namespace BrickSchema.Net
             } 
             if (IsTimeToRun())
             {
-                if (!isExecuting && IsRunning && !_executionThread.IsAlive)
+                if (!isExecuting && IsRunning && !(_executionThread?.IsAlive??false))
                 {
 
                     try
@@ -732,12 +735,12 @@ namespace BrickSchema.Net
             foreach (var require in requireds.Distinct())
             {
                 if (!_requiredPoints.ContainsKey(require)) _requiredPoints.Add(require, null);
-                _requiredPoints[require] = Parent.GetPointEntity(require);
+                _requiredPoints[require] = Parent?.GetPointEntity(require);
             }
             foreach (var optional in optionals.Distinct())
             {
                 if (!_optionalPoints.ContainsKey(optional)) _optionalPoints.Add(optional, null);
-                _optionalPoints[optional] = Parent.GetPointEntity(optional);
+                _optionalPoints[optional] = Parent?.GetPointEntity(optional);
             }
         }
 

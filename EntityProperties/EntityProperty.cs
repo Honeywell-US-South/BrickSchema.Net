@@ -6,15 +6,15 @@ namespace BrickSchema.Net.EntityProperties
     public class EntityProperty
     {
         public string Id { get; set; }
-        public string? Type { get; set; }
+        public string DataTypeName { get; set; } = string.Empty;
         public string Name { get; set; }
-        public string Value { get; set; }
+        public string Value { get; set; } = string.Empty;
 
         public EntityProperty Clone()
         {
             var clone = new EntityProperty();
             clone.Id = Id;
-            clone.Type = Type;
+            clone.DataTypeName = DataTypeName;
             clone.Name = Name;
             clone.Value = Value;
             return clone;
@@ -22,16 +22,16 @@ namespace BrickSchema.Net.EntityProperties
         public EntityProperty()
         {
             Id = Guid.NewGuid().ToString();
-            Type = null;
+            DataTypeName = string.Empty;
             Name = string.Empty;
             
         }
 
         [JsonConstructor]
-        public EntityProperty(string id, string type, string name, string value)
+        public EntityProperty(string id, string dataTypeName, string name, string value)
         {
             Id = id;
-            Type = type;
+            DataTypeName = dataTypeName;
             Name = name;
             Value = value;
 
@@ -42,7 +42,7 @@ namespace BrickSchema.Net.EntityProperties
             if (value == null) { Console.WriteLine($"Property Set Value [{name}:null]"); return; }
             try
             {
-                this.Type = GetTypeName<T>();
+                this.DataTypeName = GetTypeName<T>();
                 this.Name = name;
                 this.Value = JsonConvert.SerializeObject(value);
             } catch (Exception ex) { Console.WriteLine($"Property Set Value [{name}:{ex.Message}]"); }
@@ -50,7 +50,7 @@ namespace BrickSchema.Net.EntityProperties
 
         public T? GetValue<T>()
         {
-            if (Type == null) return default(T);
+            if (DataTypeName == null) return default(T);
 
             string tName = GetTypeName<T>();
 
@@ -98,8 +98,8 @@ namespace BrickSchema.Net.EntityProperties
             if (tName.StartsWith("Nullable"))
             {
                 Type nullableType = typeof(T?);
-                Type underlyingType = Nullable.GetUnderlyingType(nullableType);
-                tName = underlyingType.Name;
+                Type underlyingType = Nullable.GetUnderlyingType(nullableType)??nullableType;
+                tName = underlyingType?.Name??string.Empty;
             }
             return tName;
         }

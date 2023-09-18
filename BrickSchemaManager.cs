@@ -71,7 +71,7 @@ namespace BrickSchema.Net
                         if (_e == null) //add new
                         {
                             _e = e;
-                            var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors);
+                            var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors)??string.Empty;
 
                             _e.Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
                             _entities.Add(_e);
@@ -79,7 +79,7 @@ namespace BrickSchema.Net
                         else //update
                         {
                             _e.Copy(e);
-                            var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors);
+                            var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors)??string.Empty;
 
                             _e.Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
                         }
@@ -99,7 +99,7 @@ namespace BrickSchema.Net
                     
                     foreach (var e in entities)
                     {
-                        var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors);
+                        var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors)??string.Empty;
 
                         e.Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
                         foreach (var b in e.Behaviors)
@@ -207,7 +207,7 @@ namespace BrickSchema.Net
             foreach (var tag in tags)
             {
                 var t = tag as Tag;
-                if (t.Name.Equals(name)) return true;
+                if (t?.Name.Equals(name)??false) return true;
             }
             return false;
         }
@@ -300,7 +300,7 @@ namespace BrickSchema.Net
                 }
                 return e;
             }
-            return null;
+
         }
         public List<BrickEntity> GetEntities(bool byReference = true)
         {
@@ -366,7 +366,6 @@ namespace BrickSchema.Net
                     return entities;
                 }
             }
-            return new();
             
         }
 
@@ -378,7 +377,7 @@ namespace BrickSchema.Net
             foreach (var tag in tags)
             {
                 var t = tag as Tag;
-                if (t.Name.Equals(name)) return byReference?t:t.Clone(); 
+                if (t?.Name.Equals(name)??false) return byReference?t:t.Clone(); 
             }
             return null;
         }

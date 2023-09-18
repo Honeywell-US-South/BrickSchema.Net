@@ -143,7 +143,7 @@ namespace BrickSchema.Net
                     
                     for (int j = i + 1; j < Properties.Count; j++)
                     {
-                        if (p.Type == Properties[j].Type && p.Name == Properties[j].Name)
+                        if (p.DataTypeName == Properties[j].DataTypeName && p.Name == Properties[j].Name)
                         {
                             found = true;
                             Properties.RemoveAt(j);

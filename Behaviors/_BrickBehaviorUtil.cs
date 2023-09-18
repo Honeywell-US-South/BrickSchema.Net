@@ -13,9 +13,9 @@ namespace BrickSchema.Net
                 results.Add(new()
                 {
                     BehaviorId = Id,
-                    BehaviorType = EntityTypeName,
+                    BehaviorType = EntityTypeName??string.Empty,
                     BehaviorName = Name,
-                    EntityId = Parent.Id,
+                    EntityId = Parent?.Id??string.Empty,
                     Value = null,
                     Timestamp = DateTime.Now,
                     Text = message,

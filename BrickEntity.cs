@@ -12,8 +12,8 @@ namespace BrickSchema.Net
         [JsonIgnore]
         internal List<BrickEntity> OtherEntities { get; set; } = new List<BrickEntity>();
 
-        public string Id { get; set; }
-        public string? EntityTypeName { get; set; }
+        public string Id { get; set; } = string.Empty;
+        public string EntityTypeName { get; set; } = string.Empty;
         public DateTime LastUpdate { get; set; }
 
         public List<EntityProperty> Properties { get; set; } = new();
@@ -28,6 +28,7 @@ namespace BrickSchema.Net
 
         public BrickEntity(BrickEntity entity)
         {
+            OnPropertyValueChanged = delegate { };
             var e = entity.Clone();
             Id = e.Id;
             EntityTypeName = e.EntityTypeName;
@@ -40,6 +41,7 @@ namespace BrickSchema.Net
 
         public BrickEntity()
         {
+            OnPropertyValueChanged = delegate { };
             OtherEntities = new List<BrickEntity>();
             Id = Guid.NewGuid().ToString();
             Properties = new List<EntityProperty>();
@@ -48,7 +50,7 @@ namespace BrickSchema.Net
             RegisteredBehaviors = new Dictionary<string, string>();
             Behaviors = new List<BrickBehavior>();
             LastUpdate = DateTime.Now;
-            EntityTypeName = null;
+            EntityTypeName = string.Empty;
         }
 
         public virtual BrickEntity Clone()
@@ -203,7 +205,13 @@ namespace BrickSchema.Net
             List<Tag> foundTags = new List<Tag>();
             foreach (var tag in tags)
             {
-                foundTags.Add(tag as Tag);
+                
+                    var t = tag as Tag;
+                if (t != null)
+                {
+                    foundTags.Add(t);
+                }
+                
             }
             return foundTags;
         }
