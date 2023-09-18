@@ -247,6 +247,14 @@ namespace BrickSchema.Net
             return entities;
         }
 
+
+        public List<BrickEntity> GetEquipmentEntities(params string[] entityTypeNames)
+        {
+            var entities = OtherEntities
+                .Where(e => e is Equipment && entityTypeNames.Contains(e.EntityTypeName) && e.Relationships.Any(x => x.ParentId == this.Id)).ToList();
+            return entities;
+        }
+
         public string ToJson()
         {
             var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(Behaviors);
