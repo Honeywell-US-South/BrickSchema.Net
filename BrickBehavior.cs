@@ -467,6 +467,7 @@ namespace BrickSchema.Net
 
                 Insight = text;
                 Resolution = text;
+                return false;
             }
             else if (operatingMode != null)
             {
@@ -478,6 +479,7 @@ namespace BrickSchema.Net
 
                     Insight = text;
                     Resolution = text;
+                    return false;
                 }
             }
             else if (!IsBehaviorRunnable(reasons))
@@ -492,6 +494,7 @@ namespace BrickSchema.Net
                 }
                 Insight = text;
                 Resolution = text;
+                return false;
             }
 
             return true;
