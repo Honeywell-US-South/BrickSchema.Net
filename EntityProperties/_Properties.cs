@@ -156,65 +156,73 @@ namespace BrickSchema.Net
                 hasDuplidated = found;
             }
         }
+
+        private readonly object propertyLock = new object();
         public void SetProperty<T>(string propertyName, T propertyValue)
         {
-            var properties = Properties.Where(x => x.Name.Equals(propertyName)).ToList();
-            EntityProperty? property = null;
-            if (properties.Count > 1)
+            lock (propertyLock)
             {
-                for (int i = 1; i < properties.Count; i++)
-                { //keep first property[0];=
-                    Properties.Remove(properties[i]);
+                var properties = Properties.Where(x => x.Name.Equals(propertyName)).ToList();
+                EntityProperty? property = null;
+                if (properties.Count > 1)
+                {
+                    for (int i = 1; i < properties.Count; i++)
+                    { //keep first property[0];=
+                        Properties.Remove(properties[i]);
 
+                    }
+                    property = Properties.FirstOrDefault(x => x.Name.Equals(propertyName));
                 }
-                property = Properties.FirstOrDefault(x => x.Name.Equals(propertyName));
-            }
-            else
-            {
-                property = properties.FirstOrDefault();
-            }
+                else
+                {
+                    property = properties.FirstOrDefault();
+                }
 
-            if (property == null)
-            {
-                property = new EntityProperty();
-                property.SetValue(propertyName, propertyValue);
-                Properties.Add(property);
+                if (property == null)
+                {
+                    property = new EntityProperty();
+                    property.SetValue(propertyName, propertyValue);
+                    Properties.Add(property);
+                }
+                else
+                {
+                    property.SetValue(propertyName, propertyValue);
+                }
+                LastUpdate = DateTime.Now;
             }
-            else
-            {
-                property.SetValue(propertyName, propertyValue);
-            }
-            LastUpdate = DateTime.Now;
         }
 
         public void SetProperty<T>(PropertiesEnum property, T propertyValue)
         {
-            SetProperty(property.ToString(), propertyValue);
+            
+                SetProperty(property.ToString(), propertyValue);
             LastUpdate = DateTime.Now;
         }
         public T? GetProperty<T>(string propertyName)
         {
-            var properties = Properties.Where(x => x.Name.Equals(propertyName)).ToList();
-            EntityProperty? property = null;
-            if (properties.Count > 1)
+            lock (propertyLock)
             {
-                for (int i = 1; i < properties.Count; i++)
-                { //keep first property[0];=
-                    Properties.Remove(properties[i]);
+                var properties = Properties.Where(x => x.Name.Equals(propertyName)).ToList();
+                EntityProperty? property = null;
+                if (properties.Count > 1)
+                {
+                    for (int i = 1; i < properties.Count; i++)
+                    { //keep first property[0];=
+                        Properties.Remove(properties[i]);
 
+                    }
+                    property = Properties.FirstOrDefault(x => x.Name.Equals(propertyName));
                 }
-                property = Properties.FirstOrDefault(x => x.Name.Equals(propertyName));
-            }
-            else
-            {
-                property = properties.FirstOrDefault();
-            }
+                else
+                {
+                    property = properties.FirstOrDefault();
+                }
 
-            if (property != null)
-            {
-                return property.GetValue<T>();
+                if (property != null)
+                {
+                    return property.GetValue<T>();
+                }
             }
-
             return default(T?);
         }
 
@@ -235,7 +243,12 @@ namespace BrickSchema.Net
         }
         public bool IsProperty(string propertyName)
         {
-            return Properties.Any(x=>x.Name.Equals(propertyName));
+            lock (propertyLock)
+            {
+                bool b = Properties.Any(x => x.Name.Equals(propertyName));
+                return b;
+            }
+
         }
 
         public bool IsProperty(PropertiesEnum property)

@@ -41,6 +41,7 @@ namespace BrickSchema.Net.EntityProperties
 
         //analytics
         Conformance = 200,
+        AverageConformance,
         Deviation,
         Weight,
 

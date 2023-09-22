@@ -1,4 +1,8 @@
-﻿using BrickSchema.Net.Shapes;
+﻿using BrickSchema.Net.Behaviors;
+using BrickSchema.Net.Classes;
+using BrickSchema.Net.EntityProperties;
+using BrickSchema.Net.Relationships;
+using BrickSchema.Net.Shapes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -116,6 +120,60 @@ namespace BrickSchema.Net
             var behaviors = Behaviors.Where(x=>x.Shapes.Any(y=>y.Value == type.ToString())).ToList();
             return behaviors;
         }
-        
+
+        private readonly object lockSetConformanceObj = new object();
+
+        public double GetConformance(bool average = false)
+        {
+            lock (lockSetConformanceObj)
+            {
+                if (average)
+                {
+                    return GetProperty<double>(PropertiesEnum.AverageConformance); 
+                }
+                return GetProperty<double>(PropertiesEnum.Conformance);
+            }
+        }
+
+        public BehaviorValue? SetConformance(double value)
+        {
+            lock (lockSetConformanceObj)  // Lock to ensure thread safety
+            {
+                if (value < 0) value = 0;
+                else if (value > 100) value = 100;
+
+                SetProperty(PropertiesEnum.Conformance, value);
+                var avgconformance = GetProperty<double>(PropertiesEnum.AverageConformance);
+                var avg = (avgconformance + value) / 2;
+                SetProperty(PropertiesEnum.AverageConformance, avg);
+
+                if (this is BrickBehavior bb)
+                {
+                    var behaviors = bb.Parent?.GetBehaviors() ?? new();
+                    bb.Parent?.SetConformance(behaviors.Average(x => x.GetProperty<double>(PropertiesEnum.Conformance)));
+
+                    BehaviorValue bv = new(PropertiesEnum.Conformance, Id, EntityTypeName, GetShapeStringValue<BehaviorFunction>());
+                    bv.SetValue(value);
+                    return bv;
+                }
+                else if (this is Equipment)
+                {
+                    var relationships = Relationships.Where(x => x is LocationOf).ToList();
+                    foreach (var relationship in relationships)
+                    {
+                        if (!string.IsNullOrEmpty(relationship.ParentId))
+                        {
+                            var parent = GetEntity(relationship.ParentId);
+                            if (parent != null)
+                            {
+                                parent.SetConformance(parent.GetChildEntities().Average(x => x.GetProperty<double>(PropertiesEnum.Conformance)));
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
     }
 }

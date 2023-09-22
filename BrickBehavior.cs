@@ -211,15 +211,7 @@ namespace BrickSchema.Net
             return clone;
         }
 
-        public BehaviorValue SetConformance(double value)
-        {
-            if (value < 0) value = 0;
-            else if (value > 100) value = 100;
-            SetProperty(PropertiesEnum.Conformance, value);
-            BehaviorValue bv = new(PropertiesEnum.Conformance, Id, EntityTypeName, GetShapeStringValue<BehaviorFunction>());
-            bv.SetValue(value);
-            return bv;
-        }
+        
 
         public BehaviorValue SetBehaviorValue<T>(string valueName, T value)
         {
@@ -535,7 +527,7 @@ namespace BrickSchema.Net
             Resolution = $"{header}{resolution}";
         }
 
-
+        
         private void GenerateInfo()
         {
             if (!_isInfoRunning && _lastInfoUpdate.AddMinutes(10) <= DateTime.Now)
