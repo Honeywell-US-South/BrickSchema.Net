@@ -139,19 +139,22 @@ namespace BrickSchema.Net
                 try
                 {
                     points.Add((Classes.Point)entity);
-                    
+
                 }
-                catch {
-                    
-                   
+                catch
+                {
+
+
 
                 }
             }
 
             return points;
+
         }
 
-        public List<Classes.Point> GetPointEntities(List<Tag> tags)
+
+        public List<Classes.Point> GetPointEntities(List<string> tags)
         {
             var entities = OtherEntities
             .Where(entity => entity.Relationships.Any(relationship => (relationship.EntityTypeName?.Equals(typeof(PointOf).Name) ?? false) && relationship.ParentId == this.Id))
@@ -160,18 +163,42 @@ namespace BrickSchema.Net
             List<Classes.Point> points = new List<Classes.Point>();
             foreach (var entity in entities)
             {
-                var foundTags = entity.GetTags();
-                foreach (var tag in foundTags)
+                if (entity is Classes.Point p)
                 {
-                    if (tags.Any(x=>x.EntityTypeName.Equals(tag.EntityTypeName)))
+                    var foundTags = p.GetTags().Any(x => tags.Contains(x.EntityTypeName));
+                    if (foundTags)
                     {
-                        points.Add((Classes.Point)entity);
+                        points.Add(p);
                     }
                 }
+                
             }
 
             return points;
         }
+
+
+        //public List<Classes.Point> GetPointEntities(List<Tag> tags)
+        //{
+        //    var entities = OtherEntities
+        //    .Where(entity => entity.Relationships.Any(relationship => (relationship.EntityTypeName?.Equals(typeof(PointOf).Name) ?? false) && relationship.ParentId == this.Id))
+        //    .ToList();
+
+        //    List<Classes.Point> points = new List<Classes.Point>();
+        //    foreach (var entity in entities)
+        //    {
+        //        var foundTags = entity.GetTags();
+        //        foreach (var tag in foundTags)
+        //        {
+        //            if (tags.Any(x=>x.EntityTypeName.Equals(tag.EntityTypeName)))
+        //            {
+        //                points.Add((Classes.Point)entity);
+        //            }
+        //        }
+        //    }
+
+        //    return points;
+        //}
 
         public Classes.Point? GetPointEntity(string tagName)
         {
