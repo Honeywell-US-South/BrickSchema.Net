@@ -165,7 +165,7 @@ namespace BrickSchema.Net
             {
                 if (entity is Classes.Point p)
                 {
-                    var foundTags = p.GetTags().Any(x => tags.Contains(x.EntityTypeName));
+                    var foundTags = p.GetTags().Any(x => tags.Contains(x.Name));
                     if (foundTags)
                     {
                         points.Add(p);
