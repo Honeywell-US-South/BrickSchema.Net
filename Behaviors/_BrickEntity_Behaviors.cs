@@ -5,6 +5,7 @@ using BrickSchema.Net.Relationships;
 using BrickSchema.Net.Shapes;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -137,18 +138,30 @@ namespace BrickSchema.Net
             }
         }
 
-        public Dictionary<DateTime, double> GetConformanceHistory(bool average = false)
+        public List<Tuple<DateTime, double>> GetConformanceHistory(bool average = false)
         {
+            Dictionary<DateTime, double> results = new();
             lock (lockSetConformanceObj)
             {
 
                 if (average)
                 {
 
-                    return GetProperty<Dictionary<DateTime, double>>(PropertiesEnum.AverageConformanceHistory)??new();
+                    results = GetProperty<Dictionary<DateTime, double>>(PropertiesEnum.AverageConformanceHistory) ?? new();
                 }
-                return GetProperty<Dictionary<DateTime, double>>(PropertiesEnum.ConformanceHistory)??new();
+                else
+                {
+                    results = GetProperty<Dictionary<DateTime, double>>(PropertiesEnum.ConformanceHistory) ?? new();
+                }
             }
+            List<Tuple<DateTime, double>> tuples= new List<Tuple<DateTime, double>>();
+            foreach (var r in results)
+            {
+                var tuple = (r.Key, r.Value).ToTuple<DateTime, double>();
+
+                tuples.Add(tuple);
+            }
+            return tuples;
         }
 
         public BehaviorValue? SetConformance(double value)
