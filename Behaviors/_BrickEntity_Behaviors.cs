@@ -127,11 +127,27 @@ namespace BrickSchema.Net
         {
             lock (lockSetConformanceObj)
             {
+
                 if (average)
                 {
+                    
                     return GetProperty<double>(PropertiesEnum.AverageConformance); 
                 }
                 return GetProperty<double>(PropertiesEnum.Conformance);
+            }
+        }
+
+        public Dictionary<DateTime, double> GetConformanceHistory(bool average = false)
+        {
+            lock (lockSetConformanceObj)
+            {
+
+                if (average)
+                {
+
+                    return GetProperty<Dictionary<DateTime, double>>(PropertiesEnum.AverageConformanceHistory)??new();
+                }
+                return GetProperty<Dictionary<DateTime, double>>(PropertiesEnum.ConformanceHistory)??new();
             }
         }
 
@@ -142,10 +158,31 @@ namespace BrickSchema.Net
                 if (value < 0) value = 0;
                 else if (value > 100) value = 100;
 
+               
+                var conformanceHistory = GetProperty<Dictionary<DateTime, double>>(PropertiesEnum.ConformanceHistory);
+                if (conformanceHistory == null)
+                {
+                    conformanceHistory = new();
+                }
+                conformanceHistory.Add(DateTime.UtcNow, value);
+                // Filter items newer than 14 days and create a new dictionary
+                conformanceHistory = conformanceHistory.Where(x => x.Key >= DateTime.UtcNow.AddDays(-14)).ToDictionary(x => x.Key, x => x.Value);
+
                 SetProperty(PropertiesEnum.Conformance, value);
+                SetProperty(PropertiesEnum.ConformanceHistory, conformanceHistory);
                 var avgconformance = GetProperty<double>(PropertiesEnum.AverageConformance);
                 var avg = (avgconformance + value) / 2;
+
+                var avgConformanceHistory = GetProperty<Dictionary<DateTime, double>>(PropertiesEnum.AverageConformanceHistory);
+                if (avgConformanceHistory == null)
+                {
+                    avgConformanceHistory = new();
+                }
+                avgConformanceHistory.Add(DateTime.UtcNow, avg);
+                // Filter items newer than 14 days and create a new dictionary
+                avgConformanceHistory = avgConformanceHistory.Where(x => x.Key >= DateTime.UtcNow.AddDays(-14)).ToDictionary(x => x.Key, x => x.Value);
                 SetProperty(PropertiesEnum.AverageConformance, avg);
+                SetProperty(PropertiesEnum.AverageConformanceHistory, avgConformanceHistory);
 
                 if (this is BrickBehavior bb)
                 {
