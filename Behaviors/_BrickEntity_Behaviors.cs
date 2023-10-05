@@ -199,7 +199,7 @@ namespace BrickSchema.Net
 
                 if (this is BrickBehavior bb)
                 {
-                    var behaviors = bb.Parent?.GetBehaviors() ?? new();
+                    var behaviors = bb.Parent?.GetBehaviors().Where(b => b.IsProperty(PropertiesEnum.Conformance)).ToList() ?? new();
                     bb.Parent?.SetConformance(behaviors.Average(x => x.GetProperty<double>(PropertiesEnum.Conformance)));
 
                     BehaviorValue bv = new(PropertiesEnum.Conformance, Id, EntityTypeName, GetShapeStringValue<BehaviorFunction>());
@@ -216,7 +216,7 @@ namespace BrickSchema.Net
                             var parent = GetEntity(relationship.ParentId);
                             if (parent != null)
                             {
-                                parent.SetConformance(parent.GetChildEntities().Average(x => x.GetProperty<double>(PropertiesEnum.Conformance)));
+                                parent.SetConformance(parent.GetChildEntities().Where(p=>p.IsProperty(PropertiesEnum.Conformance)).Average(x => x.GetProperty<double>(PropertiesEnum.Conformance)));
                             }
                         }
                     }
