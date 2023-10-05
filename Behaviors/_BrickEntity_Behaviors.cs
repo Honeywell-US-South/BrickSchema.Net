@@ -124,17 +124,19 @@ namespace BrickSchema.Net
 
         private readonly object lockSetConformanceObj = new object();
 
-        public double GetConformance(bool average = false)
+        public double? GetConformance(bool average = false)
         {
+            if (!IsProperty(PropertiesEnum.Conformance)) return null;
             lock (lockSetConformanceObj)
             {
 
                 if (average)
                 {
-                    
-                    return GetProperty<double>(PropertiesEnum.AverageConformance); 
+                    return GetProperty<double?>(PropertiesEnum.AverageConformance);
                 }
-                return GetProperty<double>(PropertiesEnum.Conformance);
+
+                return GetProperty<double?>(PropertiesEnum.Conformance);
+
             }
         }
 
