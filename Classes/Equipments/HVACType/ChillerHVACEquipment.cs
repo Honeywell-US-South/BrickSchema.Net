@@ -74,11 +74,13 @@ namespace BrickSchema.Net.Classes.Equipments.HVACType
             var coolingValves = GetCoolingValveEntities();
             foreach (var entity in coolingValves)
             {
-                var points = entity.GetPointEntities();
+                var points = entity.GetChildEntities<PointOf, Point>();
                 foreach (var point in points)
                 {
+
                     if (point.EntityTypeName?.Equals(typeof(CoolingValve).Name) ?? false)
                     {
+
                         if (point.Value.HasValue)
                         {
                             if (point.Value < min) min = point.Value ?? min;
@@ -88,6 +90,7 @@ namespace BrickSchema.Net.Classes.Equipments.HVACType
                             count++;
                         }
                     }
+
                 }
             }
             average = sum / count;

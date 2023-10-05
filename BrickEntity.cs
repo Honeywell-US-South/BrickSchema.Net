@@ -93,72 +93,69 @@ namespace BrickSchema.Net
             return entity;
         }
 
-        public List<BrickEntity> GetChildEntities()
+        public List<BrickEntity> GetParentEntities()
         {
             var entities = OtherEntities
-            .Where(entity => entity.Relationships.Any(relationship => ((relationship.EntityTypeName?.Equals(typeof(LocationOf).Name) ?? false) || (relationship.EntityTypeName?.Equals(typeof(PointOf).Name) ?? false)) && relationship.ParentId == this.Id))
-            .ToList();
-            entities.AddRange(GetFedEntitites().Except(entities));
-            entities.AddRange(GetMeterEntities().Except(entities));
-            entities.AddRange(GetPartEntitites().Except(entities));
-            entities.AddRange(GetPointEntities().Except(entities));
+            .Where(entity => Relationships.Any(x => x.ParentId == entity.Id)).ToList();
             return entities;
         }
 
-        public List<BrickEntity> GetFedEntitites()
+        public List<BrickEntity> GetParentEntities<T>()
         {
+            var rs = Relationships.Where(relationship => relationship.EntityTypeName.Equals(typeof(T).Name));
+
             var entities = OtherEntities
-            .Where(entity => entity.Relationships.Any(relationship => (relationship.EntityTypeName?.Equals(typeof(Fedby).Name) ?? false) && relationship.ParentId == this.Id))
-            .ToList();
+            .Where(entity => rs.Any(x => x.ParentId == entity.Id)).ToList();
             return entities;
         }
 
-        public List<BrickEntity> GetMeterEntities()
+        public List<U> GetParentEntities<T, U>()
         {
-            var entities = OtherEntities
-            .Where(entity => entity.Relationships.Any(relationship => (relationship.EntityTypeName?.Equals(typeof(MeterBy).Name) ?? false) && relationship.ParentId == this.Id))
-            .ToList();
-            return entities;
-        }
-        public List<BrickEntity> GetPartEntitites()
-        {
-            var entities = OtherEntities
-            .Where(entity => entity.Relationships.Any(relationship => (relationship.EntityTypeName?.Equals(typeof(PartOf).Name) ?? false) && relationship.ParentId == this.Id))
-            .ToList();
-            return entities;
-        }
-        public List<Classes.Point> GetPointEntities()
-        {
-            var entities = OtherEntities
-            .Where(entity => entity.Relationships.Any(relationship => (relationship.EntityTypeName?.Equals(typeof(PointOf).Name) ?? false) && relationship.ParentId == this.Id))
-            .ToList();
-
-            List<Classes.Point> points = new List<Classes.Point>();
-            foreach (var entity in entities)
+            var entities = GetParentEntities<T>();
+            List<U> result = new List<U>();
+            foreach(var entity in entities)
             {
-                try
-                {
-                    points.Add((Classes.Point)entity);
-
-                }
-                catch
-                {
-
-
-
-                }
+                if (entity is  U u) result.Add(u);
             }
 
-            return points;
+            return result;
+        }
 
+        public List<BrickEntity> GetChildEntities()
+        {
+
+            var entities = OtherEntities
+                .Where(oe => oe.Relationships.Any(r => r.ParentId == Id)).ToList();
+
+            return entities;
+        }
+
+        public List<BrickEntity> GetChildEntities<T>()
+        {
+
+            var entities = OtherEntities
+                .Where(oe => oe.Relationships.Any(r => r.EntityTypeName.Equals(typeof(T).Name) && r.ParentId == Id)).ToList();
+
+            return entities;
+        }
+
+        public List<U> GetChildEntities<T, U>()
+        {
+            var entities = GetChildEntities<T>().ToList();
+
+            List<U> result = new List<U>();
+            foreach (var entity in entities)
+            {
+                if (entity is  U u) result.Add(u);
+            }
+
+            return result;
         }
 
 
         public List<Classes.Point> GetPointEntities(List<string> tags)
         {
-            var entities = OtherEntities
-            .Where(entity => entity.Relationships.Any(relationship => (relationship.EntityTypeName?.Equals(typeof(PointOf).Name) ?? false) && relationship.ParentId == this.Id))
-            .ToList();
+            var entities = GetChildEntities<PointOf, Classes.Point>();
 
             List<Classes.Point> points = new List<Classes.Point>();
             foreach (var entity in entities)
@@ -176,29 +173,6 @@ namespace BrickSchema.Net
 
             return points;
         }
-
-
-        //public List<Classes.Point> GetPointEntities(List<Tag> tags)
-        //{
-        //    var entities = OtherEntities
-        //    .Where(entity => entity.Relationships.Any(relationship => (relationship.EntityTypeName?.Equals(typeof(PointOf).Name) ?? false) && relationship.ParentId == this.Id))
-        //    .ToList();
-
-        //    List<Classes.Point> points = new List<Classes.Point>();
-        //    foreach (var entity in entities)
-        //    {
-        //        var foundTags = entity.GetTags();
-        //        foreach (var tag in foundTags)
-        //        {
-        //            if (tags.Any(x=>x.EntityTypeName.Equals(tag.EntityTypeName)))
-        //            {
-        //                points.Add((Classes.Point)entity);
-        //            }
-        //        }
-        //    }
-
-        //    return points;
-        //}
 
         public Classes.Point? GetPointEntity(string tagName)
         {
@@ -241,38 +215,6 @@ namespace BrickSchema.Net
                 
             }
             return foundTags;
-        }
-
-        public List<BrickEntity> GetFeedingParent()
-        {
-            var entities = OtherEntities
-            .Where(entity => entity.Relationships.Any(relationship => relationship.EntityTypeName?.Equals(typeof(Fedby).Name) ?? false))
-            .ToList();
-            return entities;
-        }
-
-        public List<BrickEntity> GetMeetingParent()
-        {
-            var entities = OtherEntities
-            .Where(entity => entity.Relationships.Any(relationship => relationship.EntityTypeName?.Equals(typeof(MeterBy).Name) ?? false))
-            .ToList();
-            return entities;
-        }
-
-        public List<BrickEntity> GetPartOfParent()
-        {
-            var entities = OtherEntities
-            .Where(entity => entity.Relationships.Any(relationship => relationship.EntityTypeName?.Equals(typeof(PartOf).Name) ?? false))
-            .ToList();
-            return entities;
-        }
-
-        public List<BrickEntity> GetPointOfParent()
-        {
-            var entities = OtherEntities
-            .Where(entity => entity.Relationships.Any(relationship => relationship.EntityTypeName?.Equals(typeof(PointOf).Name) ?? false))
-            .ToList();
-            return entities;
         }
 
         public List<BrickEntity> GetEquipmentEntities()
