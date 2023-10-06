@@ -1,6 +1,7 @@
 ﻿using BrickSchema.Net.Behaviors;
 using BrickSchema.Net.Classes;
 using BrickSchema.Net.EntityProperties;
+using BrickSchema.Net.Relationships;
 using BrickSchema.Net.Shapes;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -877,7 +878,7 @@ namespace BrickSchema.Net
         public BrickEntity? AskPointOfParent(string type, params dynamic[] args)
         {
             if (Parent == null) { return null; }
-            var pointOfs = Parent.GetPointOfParent();
+            var pointOfs = Parent.GetChildEntities<PointOf, Point>();
             foreach (var point in pointOfs)
             {
                 if (point != null)
