@@ -25,7 +25,7 @@ namespace BrickSchema.Net.EntityProperties
         BehaviorFunction,
         BehaviorEnable,
         BehaviorActive,
-        BehaviorRunable,
+        BehaviorRunnable,
         Running,
         Insight,
         Resolution,
@@ -64,17 +64,17 @@ namespace BrickSchema.Net.EntityProperties
         //Conversion Efficiency
         ConversionEfficiency = 500,
         MeasuredModuleConversionEfficiency,
-        RatedModuleconversionEfficiency,
+        RatedModuleConversionEfficiency,
 
         CoolingCapacity,
 
         //Cordinates
-        Cordinates = 600,
-        LatitudeCordinate,
-        LongitudeCordinate,
-        ElevationCordinate,
+        Coordinates = 600,
+        LatitudeCoordinates,
+        LongitudeCoordinates,
+        ElevationCoordinates,
 
-        CurrentFlowtype = 700,
+        CurrentFlowType = 700,
         RatedCurrentInput,
         RatedMaximumCurrentInput,
         RatedMinimumCurrentInput,
@@ -131,5 +131,9 @@ namespace BrickSchema.Net.EntityProperties
 
         //Thermal
         ThermalEfficiency,
+
+
+        CanHeat,
+        CanCool
     }
 }
