@@ -15,7 +15,13 @@ namespace BrickSchema.Net
     /// </summary>
     public partial class BrickEntity
     {
-
+        public List<BehaviorValue> GetFaultValues()
+        {
+            List<BehaviorValue> results = new();
+            var bv = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
+            results = bv?.Where(x => x.IsFaultValue).ToList() ?? new();
+            return results;
+        }
         public void SetBehaviorValue<T>(BrickBehavior behavior, string valueName, T value)
         {
             var results = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);

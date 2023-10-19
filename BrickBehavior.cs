@@ -501,8 +501,18 @@ namespace BrickSchema.Net
 
         private void ProcessTaskCompleted(BehaviorTaskReturnCodes taskReturnCode, List<BehaviorValue> values)
         {
-            if (taskReturnCode == BehaviorTaskReturnCodes.Good)
+            if (taskReturnCode == BehaviorTaskReturnCodes.Good || taskReturnCode == BehaviorTaskReturnCodes.HasWarning)
             {
+                
+                List<BehaviorValue> faultBV = new List<BehaviorValue>();
+                if (ProcessFault(taskReturnCode, values, out faultBV) == BehaviorTaskReturnCodes.Good || taskReturnCode == BehaviorTaskReturnCodes.HasWarning)
+                {
+                    foreach (var fault in faultBV)
+                    {
+                        fault.IsFaultValue = true;
+                        faultBV.Add(fault);
+                    }
+                }
                 Parent?.SetBehaviorValue(values);
             }
             OnBehaviorExecuted?.Invoke(null, new() { ParentId = Parent?.Id ?? "0", Values = values, TaskReturnCode = taskReturnCode });
@@ -837,6 +847,13 @@ namespace BrickSchema.Net
             return BehaviorTaskReturnCodes.NotImplemented;
         }
 
+        protected virtual BehaviorTaskReturnCodes ProcessFault(BehaviorTaskReturnCodes analyticsReturnCode, List<BehaviorValue> behaviorValues, out List<BehaviorValue> faultValues)
+        {
+
+            faultValues = new();
+            
+            return BehaviorTaskReturnCodes.NotImplemented;
+        }
         protected virtual void Load() { }
 
         protected virtual void Unload() { }
