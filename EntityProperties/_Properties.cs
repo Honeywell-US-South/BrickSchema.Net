@@ -15,11 +15,18 @@ namespace BrickSchema.Net
     /// </summary>
     public partial class BrickEntity
     {
-        public List<BehaviorValue> GetFaultValues()
+        public List<BehaviorValue> GetBehaviorFaultValues()
         {
             List<BehaviorValue> results = new();
             var bv = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
-            results = bv?.Where(x => x.IsFaultValue).ToList() ?? new();
+            results = bv?.Where(x => x.FaultType == BehaviorFaultTypes.Fault).ToList() ?? new();
+            return results;
+        }
+        public List<BehaviorValue> GetBehaviorAlarmValues()
+        {
+            List<BehaviorValue> results = new();
+            var bv = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
+            results = bv?.Where(x => x.FaultType == BehaviorFaultTypes.Alarm).ToList() ?? new();
             return results;
         }
         public void SetBehaviorValue<T>(BrickBehavior behavior, string valueName, T value)

@@ -504,13 +504,47 @@ namespace BrickSchema.Net
             if (taskReturnCode == BehaviorTaskReturnCodes.Good || taskReturnCode == BehaviorTaskReturnCodes.HasWarning)
             {
                 
-                List<BehaviorValue> faultBV = new List<BehaviorValue>();
-                if (ProcessFault(taskReturnCode, values, out faultBV) == BehaviorTaskReturnCodes.Good || taskReturnCode == BehaviorTaskReturnCodes.HasWarning)
+                List<BehaviorValue> theadholdBV = new List<BehaviorValue>();
+                var thReturnCode = FaultWorkflow1_Threadhold(taskReturnCode, values, out theadholdBV);
+                if (thReturnCode == BehaviorTaskReturnCodes.Good || thReturnCode == BehaviorTaskReturnCodes.HasWarning)
                 {
-                    foreach (var fault in faultBV)
+                    foreach (var fault in theadholdBV)
                     {
-                        fault.IsFaultValue = true;
-                        faultBV.Add(fault);
+                        fault.FaultType = BehaviorFaultTypes.Fault;
+                        values.Add(fault);
+                    }
+                    List<BehaviorValue> selftestBV = new List<BehaviorValue>();
+                    var stReturnCode = FaultWorkflow2_SelfTest(thReturnCode, values, out selftestBV);
+                    if (stReturnCode == BehaviorTaskReturnCodes.Good || stReturnCode == BehaviorTaskReturnCodes.HasWarning)
+                    {
+                        foreach (var fault in selftestBV)
+                        {
+                            fault.FaultType = BehaviorFaultTypes.Fault;
+                            values.Add(fault);
+                        }
+
+                        List<BehaviorValue> faultBV = new List<BehaviorValue>();
+                        var fReturnCode = FaultWorkflow3_GenerateFault(stReturnCode, values, out faultBV);
+                        if (fReturnCode == BehaviorTaskReturnCodes.Good || fReturnCode == BehaviorTaskReturnCodes.HasWarning)
+                        {
+                            foreach (var fault in faultBV)
+                            {
+                                fault.FaultType = BehaviorFaultTypes.Fault;
+                                values.Add(fault);
+                            }
+                        }
+
+
+                        List<BehaviorValue> alarmBV = new List<BehaviorValue>();
+                        var aReturnCode = FaultWorkflow3A_GenerateAlarm(stReturnCode, values, out faultBV);
+                        if (aReturnCode == BehaviorTaskReturnCodes.Good || aReturnCode == BehaviorTaskReturnCodes.HasWarning)
+                        {
+                            foreach (var fault in alarmBV)
+                            {
+                                fault.FaultType = BehaviorFaultTypes.Alarm;
+                                values.Add(fault);
+                            }
+                        }
                     }
                 }
                 Parent?.SetBehaviorValue(values);
@@ -847,11 +881,27 @@ namespace BrickSchema.Net
             return BehaviorTaskReturnCodes.NotImplemented;
         }
 
-        protected virtual BehaviorTaskReturnCodes ProcessFault(BehaviorTaskReturnCodes analyticsReturnCode, List<BehaviorValue> behaviorValues, out List<BehaviorValue> faultValues)
+        protected virtual BehaviorTaskReturnCodes FaultWorkflow1_Threadhold(BehaviorTaskReturnCodes analyticsReturnCode, List<BehaviorValue> analyticsBehaviorValues, out List<BehaviorValue> faultValues)
         {
+            faultValues = new List<BehaviorValue>();
+            return BehaviorTaskReturnCodes.NotImplemented;
+        }
 
+        protected virtual BehaviorTaskReturnCodes FaultWorkflow2_SelfTest(BehaviorTaskReturnCodes threadholdReturnCode, List<BehaviorValue> analyticsBehaviorValues, out List<BehaviorValue> faultValues)
+        {
             faultValues = new();
-            
+            return BehaviorTaskReturnCodes.NotImplemented;
+        }
+
+        protected virtual BehaviorTaskReturnCodes FaultWorkflow3_GenerateFault(BehaviorTaskReturnCodes selfTestReturnCode, List<BehaviorValue> analyticsBehaviorValues, out List<BehaviorValue> faultValues)
+        {
+            faultValues = new();
+            return BehaviorTaskReturnCodes.NotImplemented;
+        }
+
+        protected virtual BehaviorTaskReturnCodes FaultWorkflow3A_GenerateAlarm(BehaviorTaskReturnCodes selfTestReturnCode, List<BehaviorValue> analyticsBehaviorValues, out List<BehaviorValue> alarmValues)
+        {
+            alarmValues = new();
             return BehaviorTaskReturnCodes.NotImplemented;
         }
         protected virtual void Load() { }

@@ -21,7 +21,7 @@ namespace BrickSchema.Net.Behaviors
         public string Value { get; set; } = string.Empty;
         public DateTime Timestamp { get; set; } = DateTime.Now;
         public double Weight { get; set; } = 1.0;
-        public bool IsFaultValue { get; set; } = false;
+        public BehaviorFaultTypes FaultType { get; set; } = BehaviorFaultTypes.None;
 
         public List<BehaviorValue> Histories { get; set; } = new();
 
