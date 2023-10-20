@@ -37,7 +37,7 @@ namespace BrickSchema.Net
         protected bool isExecuting = false;
         protected ILogger? _logger;
         protected CancellationTokenSource? CancelToken;
-
+        protected List<FaultAnalysis> SelfCheckFunctions { get; set; } = new();
         #endregion protected properties
 
         #region Public properties
@@ -886,6 +886,18 @@ namespace BrickSchema.Net
         protected virtual BehaviorTaskReturnCodes FaultWorkflow2_SelfTest(BehaviorTaskReturnCodes threadholdReturnCode, List<BehaviorValue> analyticsBehaviorValues, out List<BehaviorValue> faultAnalysisValues)
         {
             faultAnalysisValues = new();
+            if (SelfCheckFunctions.Count > 0)
+            {
+                
+                foreach (var a in SelfCheckFunctions)
+                {
+                    var result = a.RunActivity(this.Parent);
+                    var b = new BehaviorValue(a.ActivityName, this);
+                    b.SetValue(result);
+                    faultAnalysisValues.Add(b);
+                }
+                return BehaviorTaskReturnCodes.Good;
+            }
             return BehaviorTaskReturnCodes.NotImplemented;
         }
 
