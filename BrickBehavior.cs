@@ -37,10 +37,13 @@ namespace BrickSchema.Net
         protected bool isExecuting = false;
         protected ILogger? _logger;
         protected CancellationTokenSource? CancelToken;
+        [JsonIgnore]
         protected List<FaultAnalysis> SelfCheckFunctions { get; set; } = new();
         #endregion protected properties
 
         #region Public properties
+
+
         [JsonIgnore]
         public bool IsRunning
         {
