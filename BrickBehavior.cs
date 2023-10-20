@@ -504,22 +504,18 @@ namespace BrickSchema.Net
             if (taskReturnCode == BehaviorTaskReturnCodes.Good || taskReturnCode == BehaviorTaskReturnCodes.HasWarning)
             {
                 
-                List<BehaviorValue> theadholdBV = new List<BehaviorValue>();
-                var thReturnCode = FaultWorkflow1_Threshold(taskReturnCode, values, out theadholdBV);
+
+                var thReturnCode = FaultWorkflow1_Threshold(taskReturnCode, values);
                 if (thReturnCode == BehaviorTaskReturnCodes.Good || thReturnCode == BehaviorTaskReturnCodes.HasWarning)
                 {
-                    foreach (var fault in theadholdBV)
-                    {
-                        fault.FaultType = BehaviorFaultTypes.Fault;
-                        values.Add(fault);
-                    }
+                    
                     List<BehaviorValue> selftestBV = new List<BehaviorValue>();
                     var stReturnCode = FaultWorkflow2_SelfTest(thReturnCode, values, out selftestBV);
                     if (stReturnCode == BehaviorTaskReturnCodes.Good || stReturnCode == BehaviorTaskReturnCodes.HasWarning)
                     {
                         foreach (var fault in selftestBV)
                         {
-                            fault.FaultType = BehaviorFaultTypes.Fault;
+                            fault.FaultType = BehaviorFaultTypes.FaultAnalysis;
                             values.Add(fault);
                         }
 
@@ -881,15 +877,15 @@ namespace BrickSchema.Net
             return BehaviorTaskReturnCodes.NotImplemented;
         }
 
-        protected virtual BehaviorTaskReturnCodes FaultWorkflow1_Threshold(BehaviorTaskReturnCodes analyticsReturnCode, List<BehaviorValue> analyticsBehaviorValues, out List<BehaviorValue> faultValues)
+        protected virtual BehaviorTaskReturnCodes FaultWorkflow1_Threshold(BehaviorTaskReturnCodes analyticsReturnCode, List<BehaviorValue> analyticsBehaviorValues)
         {
-            faultValues = new List<BehaviorValue>();
+          
             return BehaviorTaskReturnCodes.NotImplemented;
         }
 
-        protected virtual BehaviorTaskReturnCodes FaultWorkflow2_SelfTest(BehaviorTaskReturnCodes threadholdReturnCode, List<BehaviorValue> analyticsBehaviorValues, out List<BehaviorValue> faultValues)
+        protected virtual BehaviorTaskReturnCodes FaultWorkflow2_SelfTest(BehaviorTaskReturnCodes threadholdReturnCode, List<BehaviorValue> analyticsBehaviorValues, out List<BehaviorValue> faultAnalysisValues)
         {
-            faultValues = new();
+            faultAnalysisValues = new();
             return BehaviorTaskReturnCodes.NotImplemented;
         }
 

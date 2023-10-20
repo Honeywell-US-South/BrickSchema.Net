@@ -9,6 +9,7 @@ namespace BrickSchema.Net.Behaviors
     public enum BehaviorFaultTypes
     {
         None,
+        FaultAnalysis,
         Fault,
         Alarm
     }
