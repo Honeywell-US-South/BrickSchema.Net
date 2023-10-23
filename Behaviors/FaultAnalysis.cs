@@ -11,7 +11,7 @@ namespace BrickSchema.Net.Behaviors
     {
         public FaultAnalysisActivityTypes Activity { get; set; } = FaultAnalysisActivityTypes.Unknown;
         public string ActivityName { get; set; } = string.Empty;
-        public List<string> PointTags { get; set; } = new List<string>();
+        public List<string> Tags { get; set; } = new List<string>();
         public string ActivityDescription { get; set; } = string.Empty;
         public string ResolutionOnFail { get; set; } = string.Empty;
         public virtual FaultAnalysisActivityCode RunActivity(BrickEntity entity)
@@ -26,7 +26,7 @@ namespace BrickSchema.Net.Behaviors
             ActivityName = activityName;
             ActivityDescription = activityDescription;
             ResolutionOnFail = resolutionOnFail;
-            PointTags = pointTags ?? new();
+            Tags = pointTags ?? new();
         }
 
     }
