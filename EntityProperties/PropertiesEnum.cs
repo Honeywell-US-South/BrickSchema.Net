@@ -47,6 +47,7 @@ namespace BrickSchema.Net.EntityProperties
         Deviation,
         Weight,
 
+        AlertValue,
         
 
         Aggregate = 300,

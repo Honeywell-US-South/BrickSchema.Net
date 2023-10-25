@@ -1,4 +1,5 @@
-﻿using BrickSchema.Net.Behaviors;
+﻿using BrickSchema.Net.Alerts;
+using BrickSchema.Net.Behaviors;
 using BrickSchema.Net.EntityProperties;
 using BrickSchema.Net.Shapes;
 using System;
@@ -15,6 +16,37 @@ namespace BrickSchema.Net
     /// </summary>
     public partial class BrickEntity
     {
+        public AlertValue GetAlert()
+        {
+            var alert = GetProperty<AlertValue>(PropertiesEnum.AlertValue);
+            if (alert == null)
+            {
+                alert = SetAlert(new());
+
+            }
+            return alert;
+        }
+
+        public AlertStatuses GetAlertStatus()
+        {
+            var alert = GetAlert();
+            return alert.Status;
+        }
+
+        public AlertValue SetAlert(AlertValue alert)
+        {
+            var a = GetAlert();
+            if (a == null)
+            {
+                a = alert;
+                SetProperty(PropertiesEnum.AlertValue, a);
+            } else
+            {
+                a.Set(alert);
+            }
+            return a;
+        }
+
         public List<BehaviorValue> GetBehaviorFaultValues()
         {
             List<BehaviorValue> results = new();
@@ -22,6 +54,7 @@ namespace BrickSchema.Net
             results = bv?.Where(x => x.FaultType == BehaviorFaultTypes.Fault).ToList() ?? new();
             return results;
         }
+
         public List<BehaviorValue> GetBehaviorAlarmValues()
         {
             List<BehaviorValue> results = new();
@@ -29,6 +62,7 @@ namespace BrickSchema.Net
             results = bv?.Where(x => x.FaultType == BehaviorFaultTypes.Alarm).ToList() ?? new();
             return results;
         }
+
         public void SetBehaviorValue<T>(BrickBehavior behavior, string valueName, T value)
         {
             var results = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
@@ -106,11 +140,11 @@ namespace BrickSchema.Net
             return myValue;
         }
 
-        public T? GetBehaviorValue<T>(string behaviorType, string lableName)
+        public T? GetBehaviorValue<T>(string behaviorEntityTypeName, string lableName)
         {
             var results = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
             if (results == null) results = new();
-            var myValue = results?.FirstOrDefault(x => x.Name == lableName && x.BehaviorEntityTypeName == behaviorType);
+            var myValue = results?.FirstOrDefault(x => x.Name == lableName && x.BehaviorEntityTypeName == behaviorEntityTypeName);
             T? returnValue = default(T);
             if (myValue != null)
             {
