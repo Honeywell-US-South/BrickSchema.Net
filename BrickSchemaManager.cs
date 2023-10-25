@@ -139,15 +139,22 @@ namespace BrickSchema.Net
         {
             lock (_lockObject) // Locking here
             {
-                if (!string.IsNullOrEmpty(_brickPath)) { SaveSchema(_brickPath ?? string.Empty); }
-                else throw new NullReferenceException("Brick file path is null or empty.");
+                SaveSchema(_brickPath ?? string.Empty); 
+                
             }
         }
 
         public void SaveSchema(string jsonLdFilePath)
         {
+            if (string.IsNullOrEmpty(jsonLdFilePath)) return;
             lock (_lockObject) // Locking here
             {
+                var dir = Path.GetDirectoryName(jsonLdFilePath);
+                if (!string.IsNullOrEmpty(dir))
+                {
+                    if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                }
+                
                 BrickSchemaUtility.WriteBrickSchemaToFile(_entities, jsonLdFilePath);
             }
         }
