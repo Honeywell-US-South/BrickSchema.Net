@@ -21,7 +21,8 @@ namespace BrickSchema.Net
             var alert = GetProperty<AlertValue>(PropertiesEnum.AlertValue);
             if (alert == null)
             {
-                alert = SetAlert(new());
+                alert = new();
+                SetProperty(PropertiesEnum.AlertValue, alert);
 
             }
             return alert;
