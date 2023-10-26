@@ -10,9 +10,8 @@ namespace BrickSchema.Net.Alerts
     {
         None,
         Active,
-        Acknowledged,
         AckActive,
-        WorkAssgined,
+        WorkAssigned,
         ReturnToNormal,
         RtnWorkAssigned,
         Resolved,
