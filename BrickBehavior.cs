@@ -538,21 +538,22 @@ namespace BrickSchema.Net
                         }
 
 
-                        List<BehaviorValue> alarmBV = new List<BehaviorValue>();
-                        var aReturnCode = FaultWorkflow3A_GenerateAlarm(stReturnCode, values, out faultBV);
-                        if (aReturnCode == BehaviorTaskReturnCodes.Good || aReturnCode == BehaviorTaskReturnCodes.HasWarning)
-                        {
-                            foreach (var fault in alarmBV)
-                            {
-                                fault.FaultType = BehaviorFaultTypes.Alarm;
-                                values.Add(fault);
-                            }
-                        }
+                        //List<BehaviorValue> alarmBV = new List<BehaviorValue>();
+                        //var aReturnCode = FaultWorkflow3A_GenerateAlarm(stReturnCode, values, out faultBV);
+                        //if (aReturnCode == BehaviorTaskReturnCodes.Good || aReturnCode == BehaviorTaskReturnCodes.HasWarning)
+                        //{
+                        //    foreach (var fault in alarmBV)
+                        //    {
+                        //        fault.FaultType = BehaviorFaultTypes.Alarm;
+                        //        values.Add(fault);
+                        //    }
+                        //}
                     }
                 }
                 Parent?.SetBehaviorValue(values);
             }
             OnBehaviorExecuted?.Invoke(null, new() { ParentId = Parent?.Id ?? "0", Values = values, TaskReturnCode = taskReturnCode });
+            
             UpdateInsightAndResolution(taskReturnCode, values);
         }
 
@@ -566,13 +567,14 @@ namespace BrickSchema.Net
 
         private void UpdateInsightAndResolution(BehaviorTaskReturnCodes analyticsReturnCode, List<BehaviorValue> values)
         {
+            
             var insightReturnCode = GenerateInsight(analyticsReturnCode, values, out string insight);
-            string header = $"###### {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
-            Insight = $"{header}{insight}";
+            //string header = $"###### {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {analyticsReturnCode.ToString()} \n\r\n\r";
+            Insight = insight;
 
             var resolutionReturnCode = GenerateResolution(analyticsReturnCode, values, out string resolution);
 
-            Resolution = $"{header}{resolution}";
+            Resolution = resolution;
         }
 
         
@@ -915,11 +917,11 @@ namespace BrickSchema.Net
             return BehaviorTaskReturnCodes.NotImplemented;
         }
 
-        protected virtual BehaviorTaskReturnCodes FaultWorkflow3A_GenerateAlarm(BehaviorTaskReturnCodes selfTestReturnCode, List<BehaviorValue> analyticsBehaviorValues, out List<BehaviorValue> alarmValues)
-        {
-            alarmValues = new();
-            return BehaviorTaskReturnCodes.NotImplemented;
-        }
+        //protected virtual BehaviorTaskReturnCodes FaultWorkflow3A_GenerateAlarm(BehaviorTaskReturnCodes selfTestReturnCode, List<BehaviorValue> analyticsBehaviorValues, out List<BehaviorValue> alarmValues)
+        //{
+        //    alarmValues = new();
+        //    return BehaviorTaskReturnCodes.NotImplemented;
+        //}
         protected virtual void Load() { }
 
         protected virtual void Unload() { }

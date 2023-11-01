@@ -40,11 +40,12 @@ namespace BrickSchema.Net
             if (a == null)
             {
                 a = alert;
-                SetProperty(PropertiesEnum.AlertValue, a);
+                
             } else
             {
                 a.Set(alert);
             }
+            SetProperty(PropertiesEnum.AlertValue, a);
             return a;
         }
 
