@@ -15,14 +15,21 @@ namespace BrickSchema.Net
         public static List<BrickEntity> ImportBrickSchema(string jsonLdFilePath)
         {
 
-
+            List<BrickEntity> b = new();
             string json = string.Empty;
             if (File.Exists(jsonLdFilePath))
             {
                 json = File.ReadAllText(jsonLdFilePath);
-            } 
-            var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
-            return JsonConvert.DeserializeObject<List<BrickEntity>>(json, settings)??new();
+            }
+            if (!string.IsNullOrEmpty(json))
+            {
+                try
+                {
+                    var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
+                    b = JsonConvert.DeserializeObject<List<BrickEntity>>(json, settings) ?? new();
+                } catch (Exception ex) { Console.WriteLine(ex.ToString()); }
+            }
+            return b;
         }
 
         public static void WriteBrickSchemaToFile(List<BrickEntity> entities, string jsonLdFilePath)

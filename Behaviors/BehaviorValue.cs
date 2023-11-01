@@ -70,12 +70,13 @@ namespace BrickSchema.Net.Behaviors
         {
             BehaviorValue clone = new()
             {
-                BehaviorId = BehaviorId,
-                Name = Name,
-                DataTypeName = DataTypeName,
-                BehaviorEntityTypeName = BehaviorEntityTypeName,
-                Value = Value,
-                Weight = Weight,
+                BehaviorId = this.BehaviorId,
+                Name = this.Name,
+                DataTypeName = this.DataTypeName,
+                BehaviorEntityTypeName = this.BehaviorEntityTypeName,
+                Value = this.Value,
+                Weight = this.Weight,
+                FaultType = this.FaultType,
                
             };
             clone.Histories = new();
@@ -109,12 +110,17 @@ namespace BrickSchema.Net.Behaviors
         {
             if (BehaviorId == value.BehaviorId)
             {
-                DataTypeName = value.DataTypeName;
-                Value = value.Value;
-                Timestamp = value.Timestamp;
+                //save current value
                 BehaviorValue behaviorResult = Clone(false);
                 behaviorResult.Histories = new();
                 Histories.Add(behaviorResult);
+
+                //update new value
+                DataTypeName = value.DataTypeName;
+                Value = value.Value;
+                Timestamp = value.Timestamp;
+                FaultType = value.FaultType;
+
             }
         }
         public T? GetValue<T>()

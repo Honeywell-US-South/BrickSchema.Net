@@ -222,6 +222,10 @@ namespace BrickSchema.Net
             SetProperty(valueName, value);
             BehaviorValue bv = new(valueName, Id, EntityTypeName, GetShapeStringValue<BehaviorFunction>());
             bv.SetValue(value);
+            if (valueName.Equals("Faulted") && bv.FaultType == BehaviorFaultTypes.None)
+            {
+                bv.FaultType = BehaviorFaultTypes.Fault;
+            }
             return bv;
         }
 
@@ -653,7 +657,8 @@ namespace BrickSchema.Net
         {
             if (_requiredPoints.ContainsKey(Tag)) return _requiredPoints[Tag];
             if (_optionalPoints.ContainsKey(Tag)) return _optionalPoints[Tag];
-            return null;
+            return Parent?.GetPointEntity(Tag);
+
         }
 
         protected List<string> GetRequiredTags()

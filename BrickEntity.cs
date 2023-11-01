@@ -1,5 +1,6 @@
 ﻿using BrickSchema.Net.Classes;
 using BrickSchema.Net.EntityProperties;
+using BrickSchema.Net.Enums;
 using BrickSchema.Net.Relationships;
 using BrickSchema.Net.Shapes;
 using Newtonsoft.Json;
@@ -121,20 +122,41 @@ namespace BrickSchema.Net
             return result;
         }
 
-        public List<BrickEntity> GetChildEntities()
+        public List<BrickEntity> GetChildEntities(string entityTypeName = "", OperationTypes comparisonOperation = OperationTypes.Equals, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase)
         {
-
-            var entities = OtherEntities
-                .Where(oe => oe.Relationships.Any(r => r.ParentId == Id)).ToList();
-
+            List<BrickEntity> entities = new();
+            
+         
+                entities = OtherEntities
+                    .Where(oe => oe.Relationships.Any(r => r.ParentId == Id)).ToList();
+           
+                switch (comparisonOperation)
+                {
+                    case OperationTypes.Equals:
+                        entities = entities
+                            .Where(oe => oe.EntityTypeName.Equals(entityTypeName, comparisonType)).ToList();
+                        break;
+                    case OperationTypes.Contains:
+                        entities = entities
+                            .Where(oe => oe.EntityTypeName.Equals(entityTypeName, comparisonType)).ToList();
+                    break;
+                    case OperationTypes.EndsWith:
+                        entities = entities
+                            .Where(oe => oe.EntityTypeName.Equals(entityTypeName, comparisonType)).ToList();
+                    break;
+                    case OperationTypes.StartsWith:
+                        entities = entities
+                            .Where(oe => oe.EntityTypeName.Equals(entityTypeName, comparisonType)).ToList();
+                    break;
+                }
+            
             return entities;
         }
 
         public List<BrickEntity> GetChildEntities<T>()
         {
-
             var entities = OtherEntities
-                .Where(oe => oe.Relationships.Any(r => r.EntityTypeName.Equals(typeof(T).Name) && r.ParentId == Id)).ToList();
+                            .Where(oe => oe.Relationships.Any(r => r.EntityTypeName.Equals(typeof(T).Name) && r.ParentId == Id)).ToList();
 
             return entities;
         }
