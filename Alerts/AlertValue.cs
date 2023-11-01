@@ -11,6 +11,7 @@ namespace BrickSchema.Net.Alerts
     public class AlertValue
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string Headline { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
         public double Severity { get; set; } //Impact of the issue itself.
         public double Priority { get; set; } //Urgency for handling the issue.
