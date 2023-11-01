@@ -36,16 +36,24 @@ namespace BrickSchema.Net
 
         public AlertValue SetAlert(AlertValue alert)
         {
+            alert.SourceEntityId = Id;
+            alert.SourceEntityName = GetProperty<string>("Name")??string.Empty;
+            alert.SourceEntityType = EntityTypeName;
+
             var a = GetAlert();
+            bool hasChanged = false;
             if (a == null)
             {
                 a = alert;
-                
+                hasChanged = true;
             } else
             {
-                a.Set(alert);
+                hasChanged = a.Set(alert);
             }
-            SetProperty(PropertiesEnum.AlertValue, a);
+            if (hasChanged)
+            {
+                SetProperty(PropertiesEnum.AlertValue, a);
+            }
             return a;
         }
 

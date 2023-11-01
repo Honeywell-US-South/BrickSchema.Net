@@ -17,7 +17,12 @@ namespace BrickSchema.Net.Alerts
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
         public AlertStatuses Status { get; set; } = AlertStatuses.None;
         
-        public string Source { get; set; } = string.Empty;
+        public string SourceEntityId { get; set; } = string.Empty;
+        public string SourceEntityName { get; set; } = string.Empty;
+        public string SourceEntityType { get; set; } = string.Empty;
+
+        public List<string> FaultBehaviorIds { get; set; } = new();
+
         public string Category { get; set; } = string.Empty;
         public string AssignedTo { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
@@ -27,9 +32,9 @@ namespace BrickSchema.Net.Alerts
         public List<AlertValue> History { get; set; } = new();
 
         
-        public void Set(AlertValue alert)
+        public bool Set(AlertValue alert)
         {
-
+            bool hasChanged = false;
             var clone = Clone(includeActivities: true);
             if (Id == alert.Id)
             {
@@ -42,6 +47,7 @@ namespace BrickSchema.Net.Alerts
                         Description = alert.Message
                     });
                     Message = alert.Message;
+                    hasChanged = true;
                 }
                 if (Severity != alert.Severity)
                 {
@@ -51,6 +57,7 @@ namespace BrickSchema.Net.Alerts
                         Description = alert.Severity.ToString("P2")
                     });
                     Severity = alert.Severity;
+                    hasChanged = true;
                 }
                 if (Priority != alert.Priority)
                 {
@@ -60,6 +67,7 @@ namespace BrickSchema.Net.Alerts
                         Description = alert.Priority.ToString("P2")
                     });
                     Priority = alert.Priority;
+                    hasChanged = true;
                 }
                 if (Status != alert.Status)
                 {
@@ -69,24 +77,21 @@ namespace BrickSchema.Net.Alerts
                         Description = alert.Status.ToString()
                     });
                     Status = alert.Status;
+                    hasChanged = true;
                 }
-                if (Source != alert.Source)
+                if (SourceEntityId != alert.SourceEntityId)
                 {
-                    Activities.Add(new()
-                    {
-                        Activity = "Source changed.",
-                        Description = alert.Source
-                    });
-                    Source = alert.Source;
+                    
+                    SourceEntityId = alert.SourceEntityId;
+                    SourceEntityName = alert.SourceEntityName;
+                    SourceEntityType = alert.SourceEntityType;
+                    hasChanged = true;
                 }
                 if (Category != alert.Category)
                 {
-                    Activities.Add(new()
-                    {
-                        Activity = "Category changed.",
-                        Description = alert.Category
-                    });
+                   
                     Category = alert.Category;
+                    hasChanged = true;
                 }
                 if (AssignedTo != alert.AssignedTo)
                 {
@@ -96,17 +101,21 @@ namespace BrickSchema.Net.Alerts
                         Description = alert.AssignedTo
                     });
                     AssignedTo =alert.AssignedTo;
+                    hasChanged = true;
 
                 }
                 if (Type != alert.Type)
                 {
-                    Activities.Add(new()
-                    {
-                        Activity = "Type changed.",
-                        Description = alert.Type
-                    });
+                   
                     Type = alert.Type;
+                    hasChanged = true;
                 }
+                if (!FaultBehaviorIds.Equals(alert.FaultBehaviorIds))
+                {
+                    FaultBehaviorIds = alert.FaultBehaviorIds;
+                    hasChanged = true;
+                }
+                Activities.AddRange(alert.Activities);
             } else
             { //new
                 History.Add(clone);
@@ -116,14 +125,15 @@ namespace BrickSchema.Net.Alerts
                 Priority = alert.Priority;
                 Timestamp = alert.Timestamp;
                 Status = alert.Status;
-                Source = alert.Source;
+                SourceEntityId = alert.SourceEntityId;
                 Category = alert.Category;
                 AssignedTo = alert.AssignedTo;
                 Type = alert.Type;
                 Activities = Helpers.ObjectUtils.Clone(alert.Activities)??new();
                 Activities.Add(new() { Activity = "New", Description = $"Id: {Id} Status: {Status.ToString()}" });
+                hasChanged = true;
             }
-            
+            return hasChanged;
         }
 
         public AlertValue Clone(bool includeActivities = false, bool includeHistory = false)
@@ -135,7 +145,7 @@ namespace BrickSchema.Net.Alerts
             clone.Priority = Priority;
             clone.Timestamp = Timestamp;
             clone.Status = Status;
-            clone.Source = Source;
+            clone.SourceEntityId = SourceEntityId;
             clone.Category = Category;
             clone.AssignedTo = AssignedTo;
             clone.Type = Type;
