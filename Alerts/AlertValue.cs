@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using BrickSchema.Net.Classes.Points;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,43 @@ namespace BrickSchema.Net.Alerts
         public double Priority { get; set; } //Urgency for handling the issue.
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
         public AlertStatuses Status { get; set; } = AlertStatuses.None;
-        
+        public string DisplayStatus { 
+            get
+            {
+                string text = string.Empty;
+                switch (Status)
+                {
+                    case AlertStatuses.None:
+                        text = "None";
+						break;
+                    case AlertStatuses.Active:
+                        text = "Active";
+                        break;
+                    case AlertStatuses.AckActive:
+                        text = "Acknowledged";
+						break;
+                    case AlertStatuses.WorkAssigned:
+        				text = "Work Assigned";
+                        break;
+                    case AlertStatuses.ReturnToNormal:
+                        text = "Return To Normal";
+                        break;
+                    case AlertStatuses.RtnWorkAssigned:
+                        text = "Return To Normal, Work Assigned";
+						break;
+                    case AlertStatuses.Resolved:
+						text = "Resolved";
+						break;
+                    case AlertStatuses.Cleared:
+                        text = "No Fault Detected";
+                        break;
+                    default:
+                        text = "Unknown";
+                        break;
+                }
+                return text;
+            }
+        }
         public string SourceEntityId { get; set; } = string.Empty;
         public string SourceEntityName { get; set; } = string.Empty;
         public string SourceEntityType { get; set; } = string.Empty;
