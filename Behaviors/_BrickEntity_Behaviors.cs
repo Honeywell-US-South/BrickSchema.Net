@@ -116,6 +116,13 @@ namespace BrickSchema.Net
             return null;
         }
 
+        public BrickBehavior? GetBehaviorById(string behaviorId)
+        {
+            var behavior = Behaviors.FirstOrDefault(x=>x.Id == behaviorId);
+           
+            return behavior;
+        }
+
         public List<BrickBehavior> GetBehaviorsByShapeType(BehaviorFunction.Types type)
         {
             var behaviors = Behaviors.Where(x=>x.Shapes.Any(y=>y.Value == type.ToString())).ToList();
