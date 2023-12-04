@@ -400,8 +400,8 @@ namespace BrickSchema.Net
                 {
                     var behaviors = entity.GetBehaviors(false);
           
-                    var e = byReference ? entity : entity.Clone();
-                    var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(e.Behaviors);
+                    var e = byReference ? entity : new(entity);
+                    var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(entity.Behaviors);
 
                     e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
                     e.CleanUpDuplicatedProperties();

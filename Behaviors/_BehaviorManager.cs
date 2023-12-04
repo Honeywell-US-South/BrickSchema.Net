@@ -35,7 +35,7 @@ namespace BrickSchema.Net
 
         public List<BrickBehavior> GetEquipmentBehaviors(string equipmentId, bool byReference = true)
         {
-            var equipments = GetEquipments(new() { equipmentId });
+            var equipments = GetEquipments(new() { equipmentId }, byReference);
 
             List<BrickBehavior> brickBehaviors = new();
             foreach (var entity in equipments)

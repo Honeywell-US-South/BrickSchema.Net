@@ -73,31 +73,36 @@ namespace BrickSchema.Net
 
         public List<BrickBehavior> GetBehaviors(bool byReference = true)
         {
+            List<BrickBehavior> behaviors = new();
+            if (Behaviors.Count == 0)
+            {
+                behaviors = Helpers.EntityUntils.JsonToBehaviors(GetProperty<string>(PropertiesEnum.Behaviors) ?? string.Empty);
+                
+            } else
+            {
+                behaviors = Behaviors;
+            }
             if (byReference)
             {
                 
-                return Behaviors;
+                return behaviors;
             }
-
-            List<BrickBehavior> brickBehaviors = new();
-            foreach(var b in Behaviors??new())
-            {
-                brickBehaviors.Add(b.Clone());
-            }
-            return brickBehaviors;
+           
+            return new(behaviors);
+    
         }
 
         public List<BrickBehavior> GetBehaviors(string type, bool byReference = true)
         {
             var behaviors = Behaviors.Where(x => x.EntityTypeName == type).ToList();
             if (byReference) return behaviors;
-
-            List <BrickBehavior> brickBehaviors = new();
-            foreach (var behavior in Behaviors)
-            {
-                brickBehaviors.Add(behavior.Clone());
-            }
-            return brickBehaviors;
+            return new(behaviors);
+            //List <BrickBehavior> brickBehaviors = new();
+            //foreach (var behavior in Behaviors)
+            //{
+            //    brickBehaviors.Add(behavior.Clone());
+            //}
+            //return brickBehaviors;
         }
 
         public BrickBehavior? GetBehavior(string type)
