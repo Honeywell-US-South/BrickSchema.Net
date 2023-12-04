@@ -129,7 +129,10 @@ namespace BrickSchema.Net
          
                 entities = OtherEntities
                     .Where(oe => oe.Relationships.Any(r => r.ParentId == Id)).ToList();
-           
+
+            if (string.IsNullOrEmpty(entityTypeName))
+                return entities;
+            else
                 switch (comparisonOperation)
                 {
                     case OperationTypes.Equals:
