@@ -74,7 +74,25 @@ namespace BrickSchema.Net.EntityProperties
                     {
                         return (T)(object)DeserializeToBool(Value);
                     }
-                } catch { }
+                    // Check if the target type is an integer type
+                    else if (typeof(T) == typeof(int) || typeof(T) == typeof(long) || typeof(T) == typeof(short))
+                    {
+                        // First try converting to a double
+                        var intermediateValue = Convert.ToDouble(this.Value);
+                        return (T)Convert.ChangeType(intermediateValue, typeof(T));
+                    }
+                    else
+                    {
+                        // For other types, use Convert.ChangeType directly
+                        var convertedValue = Convert.ChangeType(this.Value, typeof(T));
+                        return (T)convertedValue;
+                    }
+                }
+                catch (Exception innerEx)
+                {
+                    // Log or handle the inner exception if needed
+                    Console.WriteLine($"Error converting the value for type {tName}: {innerEx.Message}");
+                }
                 // Logging or handle the exception as needed
                 Console.WriteLine($"Error deserializing the value for type {tName}: {ex.Message}");
             }
