@@ -3,6 +3,7 @@ using BrickSchema.Net.Classes;
 using BrickSchema.Net.EntityProperties;
 using BrickSchema.Net.Relationships;
 using BrickSchema.Net.Shapes;
+using BrickSchema.Net.StaticNames;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -76,7 +77,7 @@ namespace BrickSchema.Net
             List<BrickBehavior> behaviors = new();
             if (Behaviors.Count == 0)
             {
-                behaviors = Helpers.EntityUntils.JsonToBehaviors(GetProperty<string>(PropertiesEnum.Behaviors) ?? string.Empty);
+                behaviors = Helpers.EntityUntils.JsonToBehaviors(GetProperty<string>(PropertyName.Behaviors) ?? string.Empty);
                 
             } else
             {
@@ -97,12 +98,7 @@ namespace BrickSchema.Net
             var behaviors = Behaviors.Where(x => x.EntityTypeName == type).ToList();
             if (byReference) return behaviors;
             return new(behaviors);
-            //List <BrickBehavior> brickBehaviors = new();
-            //foreach (var behavior in Behaviors)
-            //{
-            //    brickBehaviors.Add(behavior.Clone());
-            //}
-            //return brickBehaviors;
+
         }
 
         public BrickBehavior? GetBehavior(string type)
@@ -144,10 +140,10 @@ namespace BrickSchema.Net
 
                 if (average)
                 {
-                    return GetProperty<double?>(PropertiesEnum.AverageConformance);
+                    return GetProperty<double?>(PropertyName.AverageConformance);
                 }
 
-                return GetProperty<double?>(PropertiesEnum.Conformance);
+                return GetProperty<double?>(PropertyName.Conformance);
 
             }
         }
@@ -157,15 +153,13 @@ namespace BrickSchema.Net
             Dictionary<DateTime, double> results = new();
             lock (lockSetConformanceObj)
             {
-
                 if (average)
                 {
-
-                    results = GetProperty<Dictionary<DateTime, double>>(PropertiesEnum.AverageConformanceHistory) ?? new();
+                    results = GetProperty<Dictionary<DateTime, double>>(PropertyName.AverageConformanceHistory) ?? new();
                 }
                 else
                 {
-                    results = GetProperty<Dictionary<DateTime, double>>(PropertiesEnum.ConformanceHistory) ?? new();
+                    results = GetProperty<Dictionary<DateTime, double>>(PropertyName.ConformanceHistory) ?? new();
                 }
             }
             List<Tuple<DateTime, double>> tuples= new List<Tuple<DateTime, double>>();
@@ -175,7 +169,7 @@ namespace BrickSchema.Net
 
                 tuples.Add(tuple);
             }
-            return tuples;
+            return new(tuples);
         }
 
         public BehaviorValue? SetConformance(double value)
@@ -186,7 +180,7 @@ namespace BrickSchema.Net
                 else if (value > 100) value = 100;
 
                
-                var conformanceHistory = GetProperty<Dictionary<DateTime, double>>(PropertiesEnum.ConformanceHistory);
+                var conformanceHistory = GetProperty<Dictionary<DateTime, double>>(PropertyName.ConformanceHistory);
                 if (conformanceHistory == null)
                 {
                     conformanceHistory = new();
@@ -213,10 +207,10 @@ namespace BrickSchema.Net
 
                 if (this is BrickBehavior bb)
                 {
-                    var behaviors = bb.Parent?.GetBehaviors().Where(b => b.IsProperty(PropertiesEnum.Conformance)).ToList() ?? new();
-                    bb.Parent?.SetConformance(behaviors.Average(x => x.GetProperty<double>(PropertiesEnum.Conformance)));
+                    var behaviors = bb.Parent?.GetBehaviors().Where(b => b.IsProperty(PropertyName.Conformance)).ToList() ?? new();
+                    bb.Parent?.SetConformance(behaviors.Average(x => x.GetProperty<double>(PropertyName.Conformance)));
 
-                    BehaviorValue bv = new(PropertiesEnum.Conformance, Id, EntityTypeName, GetShapeStringValue<BehaviorFunction>());
+                    BehaviorValue bv = new(PropertyName.Conformance, Id, EntityTypeName, GetShapeStringValue<BehaviorFunction>());
                     bv.SetValue(value);
                     return bv;
                 }
@@ -230,7 +224,7 @@ namespace BrickSchema.Net
                             var parent = GetEntity(relationship.ParentId);
                             if (parent != null)
                             {
-                                parent.SetConformance(parent.GetChildEntities().Where(p=>p.IsProperty(PropertiesEnum.Conformance)).Average(x => x.GetProperty<double>(PropertiesEnum.Conformance)));
+                                parent.SetConformance(parent.GetChildEntities().Where(p=>p.IsProperty(PropertyName.Conformance)).Average(x => x.GetProperty<double>(PropertiesEnum.Conformance)));
                             }
                         }
                     }

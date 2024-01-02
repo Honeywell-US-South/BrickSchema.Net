@@ -13,6 +13,7 @@ using BrickSchema.Net.Classes.Equipments.HVACType.TerminalUnits;
 using BrickSchema.Net.Classes.Locations;
 using BrickSchema.Net.Classes.Measureable;
 using BrickSchema.Net.Classes.Points;
+using BrickSchema.Net.StaticNames;
 using Newtonsoft.Json;
 
 namespace BrickSchema.Net
@@ -78,8 +79,8 @@ namespace BrickSchema.Net
                         }
                         else //update
                         {
-                            _e.Copy(e);
-                            var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors)??string.Empty;
+                            _e = new(e);
+                            var json = e.GetProperty<string>(PropertyName.Behaviors)??string.Empty;
 
                             _e.Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
                         }
@@ -154,7 +155,6 @@ namespace BrickSchema.Net
                 {
                     if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 }
-                
                 BrickSchemaUtility.WriteBrickSchemaToFile(_entities, jsonLdFilePath);
             }
         }
@@ -168,7 +168,6 @@ namespace BrickSchema.Net
                 foreach (var _e in _entities)
                 {
                     
-                    //JsonConvert.SerializeObject(entities, settings);
                     var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(_e.Behaviors);
                     
                     _e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
@@ -319,7 +318,7 @@ namespace BrickSchema.Net
                 foreach (var entity in _entities)
                 {
                     var behaviors = entity.GetBehaviors(false);
-                    var e = byReference ? entity : entity.Clone();
+                    var e = byReference ? entity : new(entity);
                     var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(e.Behaviors);
 
                     e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
@@ -360,7 +359,7 @@ namespace BrickSchema.Net
                         {
                             var behaviors = entity.GetBehaviors(false);
 
-                            var e = byReference ? entity : entity.Clone();
+                            var e = byReference ? entity : new(entity);
                             var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(e.Behaviors);
 
                             e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);

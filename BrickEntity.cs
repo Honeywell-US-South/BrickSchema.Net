@@ -30,7 +30,7 @@ namespace BrickSchema.Net
         public BrickEntity(BrickEntity entity)
         {
             OnPropertyValueChanged = delegate { };
-            var e = entity.Clone();
+            var e = entity.Clone(); 
             Id = e.Id;
             EntityTypeName = e.EntityTypeName;
             Properties = e.Properties;
@@ -59,33 +59,14 @@ namespace BrickSchema.Net
             var clone = new BrickEntity();
             clone.Id = Id;
             clone.EntityTypeName = EntityTypeName;
-            foreach (var p in Properties ?? new())
-            {
-                clone.Properties.Add(p.Clone());
-            }
-            foreach (var r in Relationships ?? new())
-            {
-                clone.Relationships.Add(r.Clone());
-            }
+            clone.Properties = new(Properties);
+            clone.Relationships = new(Relationships);
+            
             clone.RegisteredBehaviors = new(RegisteredBehaviors);
             //do not clone behaviors
-            foreach (var s in Shapes??new())
-            {
-                clone.Shapes.Add(s.Clone());
-            }
+            clone.Shapes = new(Shapes);
+            
             return clone;
-        }
-
-        public virtual void Copy(BrickEntity e)
-        {
-            if (e == null) return;
-            if (e.Id != Id) return;
-            if (e.EntityTypeName != EntityTypeName) return;
-            Properties = e.Properties;
-            Relationships = e.Relationships;
-            RegisteredBehaviors = e.RegisteredBehaviors;
-            Shapes = e.Shapes;
-            LastUpdate = e.LastUpdate;
         }
 
         public BrickEntity? GetEntity(string Id)

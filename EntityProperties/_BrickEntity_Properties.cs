@@ -251,8 +251,8 @@ namespace BrickSchema.Net
 
         public void SetProperty<T>(PropertiesEnum property, T propertyValue)
         {
-            
-                SetProperty(property.ToString(), propertyValue);
+
+            SetProperty(property.ToString(), propertyValue);
             LastUpdate = DateTime.Now;
         }
         public T? GetProperty<T>(string propertyName)

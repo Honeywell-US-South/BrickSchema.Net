@@ -36,16 +36,20 @@ namespace BrickSchema.Net
         {
 
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
-            JsonConvert.SerializeObject(entities, settings);
-            File.WriteAllText(jsonLdFilePath, JsonConvert.SerializeObject(entities, settings));
+            var jsonEntities = JsonConvert.SerializeObject(entities, settings);
+            WriteBrickSchemaToFile(jsonEntities, jsonLdFilePath);
+        }
+
+        public static void WriteBrickSchemaToFile(string jsonEntities, string jsonLdFilePath)
+        {
+
+            File.WriteAllText(jsonLdFilePath, jsonEntities);
         }
 
         public static string ExportBrickSchemaToJson(List<BrickEntity> entities)
         {
             
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, Formatting = Newtonsoft.Json.Formatting.Indented };
-            //JsonConvert.SerializeObject(entities, settings);
-           
             var json = JsonConvert.SerializeObject(entities, settings);
             return json;
         }
@@ -55,7 +59,7 @@ namespace BrickSchema.Net
 
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, Formatting = Newtonsoft.Json.Formatting.Indented };
             //JsonConvert.SerializeObject(entities, settings);
-
+            
             var json = JsonConvert.SerializeObject(entity, settings);
             return json;
         }
