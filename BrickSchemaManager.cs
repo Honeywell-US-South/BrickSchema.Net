@@ -79,7 +79,11 @@ namespace BrickSchema.Net
                         }
                         else //update
                         {
-                            _e = new(e);
+                            if (e?.GetProperty<string>(PropertyName.Name)?.Equals("SIM_FCU_1")??false)
+                            {
+                                bool debug = true;
+                            }
+                            _e.Clone(e);
                             var json = e.GetProperty<string>(PropertyName.Behaviors)??string.Empty;
 
                             _e.Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
@@ -90,6 +94,7 @@ namespace BrickSchema.Net
                         }
 
                     }
+
                     foreach (var _e in _entities)
                     {
                         _e.OtherEntities = _entities;

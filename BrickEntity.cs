@@ -3,6 +3,7 @@ using BrickSchema.Net.EntityProperties;
 using BrickSchema.Net.Enums;
 using BrickSchema.Net.Relationships;
 using BrickSchema.Net.Shapes;
+using BrickSchema.Net.StaticNames;
 using Newtonsoft.Json;
 using System.Drawing;
 
@@ -68,6 +69,28 @@ namespace BrickSchema.Net
             
             return clone;
         }
+
+        public virtual void Clone(BrickEntity e)
+        {
+            var clone = new BrickEntity(e);
+            if (clone.Id == Id && clone.EntityTypeName == EntityTypeName)
+            {
+                Properties = clone.Properties;
+                Relationships = clone.Relationships;
+                RegisteredBehaviors = clone.RegisteredBehaviors;
+                Shapes = clone.Shapes;
+                var json = e.GetProperty<string>(PropertyName.Behaviors) ?? string.Empty;
+
+                Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
+
+                foreach (var _b in Behaviors)
+                {
+                    _b.Parent = this;
+                }
+            }
+        }
+
+
 
         public BrickEntity? GetEntity(string Id)
         {
