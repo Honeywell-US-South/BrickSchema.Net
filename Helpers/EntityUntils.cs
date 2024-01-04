@@ -24,15 +24,20 @@ namespace BrickSchema.Net.Helpers
 
         public static string BehaviorsToJson(List<BrickBehavior> behaviors)
         {
-            var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto};
+            var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto };
+
+            // Create a complete copy of the list
+            var behaviorsCopy = new List<BrickBehavior>(behaviors);
+
             List<string> behaviorsJson = new();
-            foreach (var b in behaviors)
+            foreach (var b in behaviorsCopy)
             {
-                var bjson = JsonConvert.SerializeObject(b as BrickBehavior, settings);
+                var bjson = JsonConvert.SerializeObject(b, settings);
                 behaviorsJson.Add(bjson);
             }
             return JsonConvert.SerializeObject(behaviorsJson, settings);
         }
+
 
         public static List<BrickBehavior> JsonToBehaviors(string json)
         {

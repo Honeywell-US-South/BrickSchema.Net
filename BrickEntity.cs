@@ -205,26 +205,27 @@ namespace BrickSchema.Net
 
         public Classes.Point? GetPointEntity(string tagName)
         {
+            BrickSchema.Net.Classes.Point? point = null;
             var entities = OtherEntities
             .Where(entity => entity.Relationships.Any(relationship => (relationship.EntityTypeName?.Equals(typeof(PointOf).Name) ?? false) && relationship.ParentId == this.Id))
             .ToList();
-
-            foreach (var entity in entities)
+            var matchedEntities = entities.Where(x => x.GetTags().Where(t => t.Name.Equals(tagName)).ToList().Count > 0).ToList();
+            DateTime timestamp = DateTime.MinValue;
+            foreach (var entity in matchedEntities)
             {
-                var foundTags = entity.GetTags();
-                foreach (var tag in foundTags)
+                if (entity is Classes.Point)
                 {
-                    if (tag.Name.Equals(tagName))
+                    var p = entity as Classes.Point;
+                    if (p?.Timestamp >= timestamp)
                     {
-                        if (entity is Classes.Point)
-                        {
-                            return entity as Classes.Point;
-                        }
+                        point = p;
+                        timestamp = p.Timestamp;
                     }
                 }
+                    
             }
 
-            return null;
+            return point;
         }
 
         public List<Tag> GetTags()

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace BrickSchema.Net
 {
@@ -193,6 +194,7 @@ namespace BrickSchema.Net
             _executionThread = new Thread(ExecuteTimerTask);
             CancelToken = new();
         }
+        
 
         #region Logger
         public void SetLogger(ILogger? logger)
@@ -299,13 +301,21 @@ namespace BrickSchema.Net
             await ProcessParentPointValueChange(e, propertyName);
         }
 
+        protected void RegisterManualTask(List<string> requiredTags, List<string> optionalTags)
+        {
+            UpdatePointLists(requiredTags, optionalTags);
+            _changedOfValueDelay = -1;
+            _pollRateSeconds -= 1;
+        }
 
         // Add a virtual Start method
-        protected void RegisterOnTimerTask(int poleRateSeconds)
+        protected void RegisterOnTimerTask(int poleRateSeconds, List<string> requiredTags, List<string> optionalTags)
         {
+            UpdatePointLists(requiredTags, optionalTags);
             if (poleRateSeconds < 10) poleRateSeconds= 10;
             _pollRateSeconds = poleRateSeconds;
             _changedOfValueDelay = -1;
+
         }
 
         protected void UnRegisterTime()
@@ -313,8 +323,9 @@ namespace BrickSchema.Net
             _pollRateSeconds = -1;
         }
 
-        protected void RegisterParentPropertyValueChangedEvent(int delaySeconds = 0)
+        protected void RegisterParentPropertyValueChangedEvent(List<string> requiredTags, List<string> optionalTags, int delaySeconds = 0)
         {
+            UpdatePointLists(requiredTags, optionalTags);
             if (delaySeconds < 0) delaySeconds = 0;
             _changedOfValueDelay = delaySeconds;
             _pollRateSeconds -= 1;
@@ -457,16 +468,20 @@ namespace BrickSchema.Net
 
         private bool PreTaskRunCheck<T>(T? operatingMode = default(T?))
         {
-            List<string> reasons = new();
+            if (Parent.GetProperty<string>(PropertyName.Name).Equals("SIM_FCU_1") && Name.Equals("FCU Behavior"))
+            {
+                bool debug = true;
+            }
+            Dictionary<string, List<string>> reasons = IsBehaviorRunnable();
             if (!IsBehaviorEnabled())
             {
 
-                string text = $"###### {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                string text = $"***{DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()}*** \n\r\n\r";
                 text += "\n- This behavior is disabled.";
                 text += "\n- Please enable behavior if needed to run.";
 
                 Insight = text;
-                Resolution = text;
+                Resolution = "No action required";
                 return false;
             }
             else if (operatingMode != null)
@@ -474,26 +489,34 @@ namespace BrickSchema.Net
                 if (!IsBehaviorActive(operatingMode))
                 {
                     SetProperty(PropertiesEnum.BehaviorActive, false);
-                    string text = $"###### {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
-                    text += $"\n- This behavior is NOT active based on Operating Mode [{operatingMode?.ToString()}].";
+                    string text = $"***{DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()}*** \n\r\n\r";
+                    text += $"\n- This behavior is NOT applicable to current Operating Mode [***{operatingMode?.ToString()}***].";
 
                     Insight = text;
-                    Resolution = text;
+                    Resolution = "No action required";
                     return false;
                 }
             }
-            else if (!IsBehaviorRunnable(reasons))
+            else if (reasons.Count > 0)
             {
                 SetProperty(PropertiesEnum.BehaviorActive, true);
-                string text = $"###### {DateTime.Now.ToLongDateString()} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()} \n\r\n\r";
+                string text = $"***{DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()}*** \n\r\n\r";
                 text += "\n- This behavior doesn't meet required conditions to run.";
                 text += "\n- Please review technical info for more information.";
+                
                 foreach (var r in reasons)
                 {
-                    text += $"\n- {r}";
+                    
+                    text += $"\n- {r.Key}";
+                    int count = 1;
+                    foreach (var s in r.Value)
+                    {
+                        text += $"\n     {count}. {s}";
+                    }
+                    
                 }
                 Insight = text;
-                Resolution = text;
+                Resolution = "This behavior doesn't meet required conditions to run. Please map required point tags.";
                 return false;
             }
 
@@ -537,17 +560,6 @@ namespace BrickSchema.Net
                             }
                         }
 
-
-                        //List<BehaviorValue> alarmBV = new List<BehaviorValue>();
-                        //var aReturnCode = FaultWorkflow3A_GenerateAlarm(stReturnCode, values, out faultBV);
-                        //if (aReturnCode == BehaviorTaskReturnCodes.Good || aReturnCode == BehaviorTaskReturnCodes.HasWarning)
-                        //{
-                        //    foreach (var fault in alarmBV)
-                        //    {
-                        //        fault.FaultType = BehaviorFaultTypes.Alarm;
-                        //        values.Add(fault);
-                        //    }
-                        //}
                     }
                 }
                 Parent?.SetBehaviorValue(values);
@@ -559,7 +571,7 @@ namespace BrickSchema.Net
 
         private void ProcessTaskException(string methodName, Exception ex)
         {
-            string header = $"###### {DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()} Analytics Task:  {BehaviorTaskReturnCodes.HasException.ToString()} \n\r\n\r";
+            string header = $"*** {DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")} {DateTime.Now.ToShortTimeString()} Analytics Task:  {BehaviorTaskReturnCodes.HasException.ToString()}*** \n\r\n\r";
             Insight = $"{header}{ex.Message} \n\r {ex.ToString()}";
             Resolution = $"{header}Please see Insight for detail.";
             _logger?.LogCritical(ex, $"Exception Method [{methodName}] Behavior [{Name}] Parent [{Parent?.GetProperty<string>(PropertiesEnum.Name)}]");
@@ -589,9 +601,8 @@ namespace BrickSchema.Net
                     Description = description;
 
 
-                    returnCode = TechnicalInfo(out List<string> requiredTags, out List<string> optionalTags, out string runCondition);
+                    returnCode = TechnicalInfo(out string runCondition);
 
-                    UpdatePointLists(requiredTags, optionalTags);
 
                     string info = $"## {Name} Technical Information";
                     info += $"Behavior ID: {Id}\r\n";
@@ -605,13 +616,13 @@ namespace BrickSchema.Net
                         info += $"Execution Cycle: On Point Value Changed. Delay {_changedOfValueDelay} seconds\r\n";
                     }
                     info += $"Required Point Tags: \r\n";
-                    foreach (var tag in requiredTags.Distinct())
+                    foreach (var tag in _requiredPoints.Distinct())
                     {
                         info += $"-{tag}\r\n";
                     }
 
                     info += $"Optional Point Tag: \r\n";
-                    foreach (var tag in optionalTags.Distinct())
+                    foreach (var tag in _optionalPoints.Distinct())
                     {
                         info += $"-{tag}\r\n";
                     }
@@ -665,12 +676,9 @@ namespace BrickSchema.Net
 
         protected List<string> GetRequiredTags()
         {
-            List<string> tags = new List<string>();
+            
+            List<string> tags = GetProperty<List<string>>(PropertyName.RequiredTags)??new();
 
-            foreach (var point in _requiredPoints)
-            {
-                tags.Add(point.Key);
-            }
             return tags;
         }
 
@@ -699,20 +707,26 @@ namespace BrickSchema.Net
         protected List<Point> GetRequiredPoints()
         {
             List<Point> points = new List<Point>();
-            foreach (var point in _requiredPoints)
+            foreach (var point in _requiredPoints.ToArray())
             {
                 if (point.Value != null) points.Add(point.Value);
+                else
+                {
+                    var p = Parent?.GetPointEntity(point.Key);
+                    if (p != null)
+                    {
+                        points.Add(p);
+                        _requiredPoints[point.Key] = p;
+                    }
+                }
             }
             return points;
         }
 
         protected List<string> GetOptionalTags()
         {
-            List<string> tags = new List<string>();
-            foreach (var point in _optionalPoints)
-            {
-                tags.Add(point.Key);
-            }
+            List<string> tags = GetProperty<List<string>>(PropertyName.OptionalTags) ?? new();
+
             return tags;
         }
         protected List<string> GetOptionalMappedPointTags()
@@ -741,22 +755,34 @@ namespace BrickSchema.Net
         protected List<Point> GetOptionalPoints()
         {
             List<Point> points = new List<Point>();
-            foreach (var point in _optionalPoints)
+            var optionalTags = GetProperty<List<string>>(PropertyName.OptionalTags);
+            foreach (var tag in optionalTags ?? new())
             {
-                if (point.Value != null) points.Add(point.Value);
+
+                var p = Parent?.GetPointEntity(tag);
+                if (p != null)
+                {
+                    points.Add(p);
+
+                }
+
             }
             return points;
         }
 
-        private void UpdatePointLists(List<string> requireds, List<string> optionals)
+        private void UpdatePointLists(List<string> requiredTags, List<string> optionalTags)
         {
+           
+            SetProperty(PropertyName.RequiredTags, requiredTags);
+            SetProperty(PropertyName.OptionalTags, optionalTags);
+
             bool gate = true;
             while (gate)
             {
                 gate = false;
                 foreach (var r in _requiredPoints)
                 {
-                    if (!requireds.Contains(r.Key))
+                    if (!requiredTags.Contains(r.Key))
                     {
                         _requiredPoints.Remove(r.Key);
                         gate = true;
@@ -770,7 +796,7 @@ namespace BrickSchema.Net
                 gate = false;
                 foreach (var o in _optionalPoints)
                 {
-                    if (!optionals.Contains(o.Key))
+                    if (!optionalTags.Contains(o.Key))
                     {
                         _optionalPoints.Remove(o.Key);
                         gate = true;
@@ -778,12 +804,12 @@ namespace BrickSchema.Net
                     }
                 }
             }
-            foreach (var require in requireds.Distinct())
+            foreach (var require in requiredTags.Distinct())
             {
                 if (!_requiredPoints.ContainsKey(require)) _requiredPoints.Add(require, null);
                 _requiredPoints[require] = Parent?.GetPointEntity(require);
             }
-            foreach (var optional in optionals.Distinct())
+            foreach (var optional in optionalTags.Distinct())
             {
                 if (!_optionalPoints.ContainsKey(optional)) _optionalPoints.Add(optional, null);
                 _optionalPoints[optional] = Parent?.GetPointEntity(optional);
@@ -802,23 +828,94 @@ namespace BrickSchema.Net
             return false;
         }
 
-        protected virtual bool IsBehaviorRunnable(List<string>? reasons = null)
+        protected virtual Dictionary<string, List<string>> IsBehaviorRunnable()
         {
-            bool runnable = true;
-            foreach (var p in _requiredPoints)
+            var reasons = IsRequiredTagsMapped();
+            return reasons;
+        }
+
+        protected Dictionary<string, List<string>> IsRequiredTagsMapped(params (string Name, List<string> Tags)[]tags)
+        {
+            Dictionary<string, List<string>> reasons = new();
+            if (Parent == null)
             {
-                if (p.Value == null)
+                reasons.Add("Unknown parent.", new());
+                return reasons;
+            }
+            var MapRequired = GetRequiredMappedPointTags();
+            var MapOptional = GetOptionalMappedPointTags();
+
+            var Required = GetRequiredTags();
+
+            var MissingRequired = Required.Except(MapRequired);
+
+            if (MissingRequired.Count() > 0)
+            {
+                reasons.Add($"Missing required point tags:", MissingRequired.ToList());
+            }
+
+            foreach (var tagList in tags)
+            {
+                var hasTags = tagList.Tags.Any(x => MapOptional.Contains(x) || MapRequired.Contains(x));
+                if (!hasTags)
                 {
-                    runnable = false;
-                    reasons?.Add($"Required point tag [{p.Key}] is not mapped.");
+                    reasons.Add($"Required one of the following {tagList.Name} tags:", tagList.Tags);
                 }
             }
-            if (runnable)
-            {
-                reasons?.Add("All required point tags have been mapped.");
-            }
-            return runnable;
+
+            return reasons;
         }
+
+        protected Dictionary<string, List<string>> IsRunTagsActive(params string[] tags)
+        {
+            Dictionary<string, List<string>> reasons = new();
+            if (Parent == null)
+            {
+                reasons.Add("Unknown parent.", new());
+                return reasons;
+            }
+            Point? Enable = GetSpecifiedPoint(tags.ToList());
+            string response = Enable != null ? "exists" : "does not exist";
+            if (Enable != null)
+            {
+                response = response + $" and it's point name is '{Enable.GetProperty<string>(PropertiesEnum.Name)}'";
+            }
+            _logger?.LogInformation($"{Parent.GetProperty<string>(PropertiesEnum.Name)} Run Status point {response}");
+            _logger?.LogInformation($"{Parent.GetProperty<string>(PropertiesEnum.Name)} Run Status point value is {(Enable?.Value > 0)}");
+
+            if ((Enable?.Value.HasValue ?? false))
+            {
+                if (Enable?.Value == 0)
+                {
+                    reasons.Add("Equipment is not operating to run process analytic", new());
+                }
+
+            }
+            else
+            {
+                reasons.Add("Unable to determine operating state to process analytic", new());
+            }
+
+            return reasons;
+        }
+
+        protected Point? GetSpecifiedPoint(List<string> tags)
+        {
+
+            if (tags == null)
+                return null;
+
+            foreach (var tag in tags)
+            {
+                var Point = Parent?.GetPointEntity(tag);
+                if (Point != null)
+                {
+                    return Point;
+                }
+            }
+            return null;
+        }
+
         protected virtual BehaviorTaskReturnCodes ManualTask(out List<BehaviorValue> behaviorValues)
         {
             behaviorValues = new();
@@ -834,10 +931,8 @@ namespace BrickSchema.Net
             behaviorValues = new();
             return BehaviorTaskReturnCodes.NotImplemented;
         }
-        protected virtual BehaviorTaskReturnCodes TechnicalInfo(out List<string> requiredTags, out List<string> optionalTags, out string runCondition)
+        protected virtual BehaviorTaskReturnCodes TechnicalInfo(out string runCondition)
         {
-            requiredTags = new();
-            optionalTags = new();
             runCondition = "Not Implimented";
             return BehaviorTaskReturnCodes.NotImplemented;
         }
@@ -848,37 +943,39 @@ namespace BrickSchema.Net
         }
         protected virtual BehaviorTaskReturnCodes GenerateInsight(BehaviorTaskReturnCodes analyticsReturnCode, List<BehaviorValue> behaviorValues, out string insight)
         {
-            string text = $"";
-            if (behaviorValues.Count < 1)
+            var insightBuilder = new StringBuilder();
+            insightBuilder.AppendLine($"***{DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")} Execution Result {analyticsReturnCode.ToString()}*** \n\r\n\r");
+            switch (analyticsReturnCode)
             {
-                text += "\n###### Analytics result is empty.";
+                case BehaviorTaskReturnCodes.Good:
+                    insightBuilder.AppendLine("Analysis Complete.");
+                    break;
+                case BehaviorTaskReturnCodes.HasException:
+                    insightBuilder.AppendLine("An exception occurred during analysis.");
+                    break;
+                case BehaviorTaskReturnCodes.Skip:
+                    insightBuilder.AppendLine("Analysis was skipped due to run status or other conditions.");
+                    break;
+                default:
+                    insightBuilder.AppendLine("Analysis completed with unexpected return code.");
+                    break;
+            }
+
+            if (behaviorValues != null && behaviorValues.Any())
+            {
+                // Example of processing behaviorValues to generate insights
+
+                insightBuilder.AppendLine("Data available but insight is not implemented.");
+
+                // Add more insights as required based on the behaviorValues
             }
             else
             {
-                text += "\n###### Analytics Results";
-
-                foreach (var bv in behaviorValues)
-                {
-                    text += $"\n\r**Value Label: {bv.Name}**";
-                    if (double.TryParse(bv.Value, out double value))
-                    {
-                        text += $"\n- Value: {value.ToString("F2")}";
-                    }
-                    else
-                    {
-                        text += $"\n- Value: {bv.Value}";
-                    }
-                    text += $"\n- Timestamp: {bv.Timestamp}";
-                    text += $"\n- Weight: {bv.Weight}";
-                    text += $"\n- History size: {bv.Histories.Count}";
-                    text += "\n\r***";
-                }
+                insightBuilder.AppendLine("No data available to generate insights.");
             }
 
-
-            insight = text;
-
-            return BehaviorTaskReturnCodes.NotImplemented;
+            insight = insightBuilder.ToString();
+            return analyticsReturnCode;
         }
 
         protected virtual BehaviorTaskReturnCodes GenerateResolution(BehaviorTaskReturnCodes analyticsReturnCode, List<BehaviorValue> behaviorValues, out string resolution)
