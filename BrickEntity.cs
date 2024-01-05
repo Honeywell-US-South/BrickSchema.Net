@@ -79,7 +79,7 @@ namespace BrickSchema.Net
                 Relationships = clone.Relationships;
                 RegisteredBehaviors = clone.RegisteredBehaviors;
                 Shapes = clone.Shapes;
-                var json = e.GetProperty<string>(PropertyName.Behaviors) ?? string.Empty;
+                var json = e.GetProperty<string>(EntityProperties.PropertyName.Behaviors) ?? string.Empty;
 
                 Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
 
