@@ -9,7 +9,7 @@ namespace BrickSchema.Net.EntityProperties
     public enum PropertiesEnum
     {
 
-        //Genral
+        //General
         Name = 0,
         Description = 1,
         BrickClass,
@@ -21,6 +21,9 @@ namespace BrickSchema.Net.EntityProperties
         //behavior
         Behaviors,
         PollRate,
+        Mode,
+        ModeFriendly,
+        EquipmentTypeFriendly,
 
         BehaviorFunction,
         BehaviorEnable,
