@@ -37,7 +37,7 @@ namespace BrickSchema.Net
         public AlertValue SetAlert(AlertValue alert)
         {
             alert.SourceEntityId = Id;
-            alert.SourceEntityName = GetProperty<string>("Name")??string.Empty;
+            alert.SourceEntityName = GetProperty<string>("Name") ?? string.Empty;
             alert.SourceEntityType = EntityTypeName;
 
             var a = GetAlert();
@@ -46,7 +46,8 @@ namespace BrickSchema.Net
             {
                 a = alert;
                 hasChanged = true;
-            } else
+            }
+            else
             {
                 hasChanged = a.Set(alert);
             }
@@ -77,13 +78,14 @@ namespace BrickSchema.Net
         {
             var results = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
             if (results == null) results = new();
-            var myValue = results?.FirstOrDefault(x=>x.Name== valueName && x.BehaviorId == behavior.Id);
+            var myValue = results?.FirstOrDefault(x => x.Name == valueName && x.BehaviorId == behavior.Id);
             if (myValue == null)
             {
                 myValue = new(valueName, behavior);
                 myValue.SetValue(value);
                 results?.Add(myValue);
-            }  else
+            }
+            else
             {
                 myValue.SetValue(value);
             }
@@ -133,16 +135,104 @@ namespace BrickSchema.Net
             LastUpdate = DateTime.Now;
         }
 
+        public List<BehaviorValue> ArchiveBehaiorValue(int olderThanDays = 30)
+        {
+            var archivedData = new List<BehaviorValue>();
+            var values = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
+            if (values == null) return new();
+            foreach (var value in values)
+            {
+                var tobeArchive = new List<BehaviorValue>();
+                List<BehaviorValue> archivedHistory = new List<BehaviorValue>();
+                foreach (var history in value.Histories)
+                {
+                    if (history.Timestamp.AddDays(olderThanDays) < DateTime.Now)
+                    {
+                        tobeArchive.Add(history);
+                    }
+                }
+                if (tobeArchive.Count > 0)
+                {
+                    archivedData.AddRange(tobeArchive);
+                    foreach (var history in tobeArchive)
+                    {
+                        value.Histories.Remove(history);
+                    }
+                }
+            }
+            SetProperty(PropertiesEnum.BehaviorValues, values);
+            LastUpdate = DateTime.Now;
+            return archivedData;
+        }
+
+        public Dictionary<DateTime, double> ArchiveConformanceHistory(int olderThanDays = 30)
+        {
+            var archiveHistory = new Dictionary<DateTime, double>();
+            var histories = GetProperty<Dictionary<DateTime, double>>(StaticNames.PropertyName.ConformanceHistory) ?? new();
+            if (histories == null) return new();
+
+            var tobeArchive = new Dictionary<DateTime, double>();
+
+            foreach (var history in histories)
+            {
+                if (history.Key.AddDays(olderThanDays) < DateTime.Now)
+                {
+                    tobeArchive.Add(history.Key, history.Value);
+                }
+            }
+            if (tobeArchive.Count > 0)
+            {
+                foreach (var history in tobeArchive)
+                {
+                    histories.Remove(history.Key);
+                }
+            }
+
+            SetProperty(StaticNames.PropertyName.ConformanceHistory, histories);
+            LastUpdate = DateTime.Now;
+            return tobeArchive;
+
+        }
+
+        public Dictionary<DateTime, double> ArchiveAvgConformanceHistory(int olderThanDays = 30)
+        {
+            var archiveHistory = new Dictionary<DateTime, double>();
+            var histories = GetProperty<Dictionary<DateTime, double>>(StaticNames.PropertyName.AverageConformanceHistory) ?? new();
+            if (histories == null) return new();
+
+            var tobeArchive = new Dictionary<DateTime, double>();
+
+            foreach (var history in histories)
+            {
+                if (history.Key.AddDays(olderThanDays) < DateTime.Now)
+                {
+                    tobeArchive.Add(history.Key, history.Value);
+                }
+            }
+            if (tobeArchive.Count > 0)
+            {
+                foreach (var history in tobeArchive)
+                {
+                    histories.Remove(history.Key);
+                }
+            }
+
+            SetProperty(StaticNames.PropertyName.AverageConformanceHistory, histories);
+            LastUpdate = DateTime.Now;
+            return tobeArchive;
+
+
+        }
         public List<BehaviorValue> GetBehaviorValues(BehaviorFunction.Types behaviorFunction, string labelName)
         {
 
             List<BehaviorValue> results = new();
             var bv = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
-            results = bv?.Where(x=> x.BehaviorFunction == behaviorFunction.ToString() && x.Name == labelName).ToList()??new();
+            results = bv?.Where(x => x.BehaviorFunction == behaviorFunction.ToString() && x.Name == labelName).ToList() ?? new();
             return results;
         }
 
-        public BehaviorValue? GetBehaviorValue(string  behaviorType, string lableName)
+        public BehaviorValue? GetBehaviorValue(string behaviorType, string lableName)
         {
             var results = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
             if (results == null) results = new();
@@ -164,7 +254,7 @@ namespace BrickSchema.Net
             return returnValue;
         }
 
-        public (T? Value, U? Weight)  GetBehaviorValue<T, U>(string behaviorType, string labelName)
+        public (T? Value, U? Weight) GetBehaviorValue<T, U>(string behaviorType, string labelName)
         {
             var results = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
             if (results == null) results = new();
@@ -182,7 +272,7 @@ namespace BrickSchema.Net
         {
             var results = GetProperty<List<BehaviorValue>>(PropertiesEnum.BehaviorValues);
             if (results == null) results = new();
-            var myValues = results?.Where(x => x.BehaviorId == behaviorId).ToList()??new();
+            var myValues = results?.Where(x => x.BehaviorId == behaviorId).ToList() ?? new();
             return myValues;
         }
 
@@ -197,7 +287,7 @@ namespace BrickSchema.Net
                 {
                     found = false;
                     var p = Properties[i];
-                    
+
                     for (int j = i + 1; j < Properties.Count; j++)
                     {
                         if (p.DataTypeName == Properties[j].DataTypeName && p.Name == Properties[j].Name)
@@ -295,7 +385,7 @@ namespace BrickSchema.Net
             {
                 return GetBehaviorValue<T>(behaviorValue.BehaviorEntityTypeName, behaviorValue.Name);
             }
-            
+
             return default(T);
         }
         public bool IsProperty(string propertyName)

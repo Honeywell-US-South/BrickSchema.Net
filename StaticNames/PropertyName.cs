@@ -13,7 +13,7 @@ namespace BrickSchema.Net.StaticNames
         public const string Type = "Type";
 
         public const string Behaviors = "Behaviors";
-
+        public const string BehaviorValues = "BehaviorValues";
         public const string Conformance = "Conformance";
         public const string AverageConformanceHistory = "AverageConformanceHistory";
         public const string AverageConformance = "AverageConformance";

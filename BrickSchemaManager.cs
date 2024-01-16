@@ -164,6 +164,59 @@ namespace BrickSchema.Net
             }
         }
 
+        public void ArchiveEntityProperties(string entityId, int olderThanDays = 30)
+        {
+            lock (_lockObject) // Locking here
+            {
+                BrickEntity? entity = _entities.FirstOrDefault(e => e.Id == entityId);
+                if (entity != null)
+                {
+                    var archivedData = entity.ArchiveBehaiorValue(olderThanDays);
+                    if (archivedData.Count > 0)
+                    {
+                        var dir = Path.GetDirectoryName(_brickPath);
+                        if (string.IsNullOrEmpty(dir)) return;
+                        var archiveFolder = Path.Combine(dir,"archive", entity.Id, StaticNames.PropertyName.BehaviorValues);
+                        if (!Directory.Exists(archiveFolder)) Directory.CreateDirectory(archiveFolder);
+                        var archiveFile = Path.Combine(archiveFolder, $"{DateTime.Now.ToString("yyyy-MM-dd")}.json");
+                        var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Formatting.Indented };
+                        var jsonEntities = JsonConvert.SerializeObject(archivedData, settings);
+                        BrickSchemaUtility.AppendBrickSchemaToFile(jsonEntities, archiveFile);
+
+                    }
+
+                    var archivedConformanceData = entity.ArchiveConformanceHistory(olderThanDays);
+                    if (archivedConformanceData.Count > 0)
+                    {
+                        var dir = Path.GetDirectoryName(_brickPath);
+                        if (string.IsNullOrEmpty(dir)) return;
+                        var archiveFolder = Path.Combine(dir, "archive", entity.Id, StaticNames.PropertyName.ConformanceHistory);
+                        if (!Directory.Exists(archiveFolder)) Directory.CreateDirectory(archiveFolder);
+                        var archiveFile = Path.Combine(archiveFolder, $"{DateTime.Now.ToString("yyyy-MM-dd")}.json");
+                        var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Formatting.Indented };
+                        var jsonEntities = JsonConvert.SerializeObject(archivedConformanceData, settings);
+                        BrickSchemaUtility.AppendBrickSchemaToFile(jsonEntities, archiveFile);
+
+                    }
+
+                    var archivedAvgConformanceData = entity.ArchiveAvgConformanceHistory(olderThanDays);
+                    if (archivedAvgConformanceData.Count > 0)
+                    {
+                        var dir = Path.GetDirectoryName(_brickPath);
+                        if (string.IsNullOrEmpty(dir)) return;
+                        var archiveFolder = Path.Combine(dir, "archive", entity.Id, StaticNames.PropertyName.AverageConformanceHistory);
+                        if (!Directory.Exists(archiveFolder)) Directory.CreateDirectory(archiveFolder);
+                        var archiveFile = Path.Combine(archiveFolder, $"{DateTime.Now.ToString("yyyy-MM-dd")}.json");
+                        var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Formatting.Indented };
+                        var jsonEntities = JsonConvert.SerializeObject(archivedAvgConformanceData, settings);
+                        BrickSchemaUtility.AppendBrickSchemaToFile(jsonEntities, archiveFile);
+
+                    }
+                }
+
+            }
+        }
+
         public string ToJson()
         {
             string json = "";

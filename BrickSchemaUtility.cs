@@ -46,6 +46,17 @@ namespace BrickSchema.Net
             File.WriteAllText(jsonLdFilePath, jsonEntities);
         }
 
+        public static void AppendBrickSchemaToFile(string jsonEntities, string jsonLdFilePath)
+        {
+            if (!File.Exists(jsonLdFilePath))
+            {
+                File.WriteAllText(jsonLdFilePath, jsonEntities);
+            } else
+            {
+                File.AppendAllText(jsonLdFilePath, "\n" + jsonEntities);
+            }
+        }
+
         public static string ExportBrickSchemaToJson(List<BrickEntity> entities)
         {
             
