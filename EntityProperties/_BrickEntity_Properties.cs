@@ -160,8 +160,11 @@ namespace BrickSchema.Net
                     }
                 }
             }
-            SetProperty(PropertiesEnum.BehaviorValues, values);
-            LastUpdate = DateTime.Now;
+            if (archivedData.Count > 0)
+            {
+                SetProperty(PropertiesEnum.BehaviorValues, values);
+                LastUpdate = DateTime.Now;
+            }
             return archivedData;
         }
 
@@ -186,10 +189,11 @@ namespace BrickSchema.Net
                 {
                     histories.Remove(history.Key);
                 }
+                SetProperty(StaticNames.PropertyName.ConformanceHistory, histories);
+                LastUpdate = DateTime.Now;
             }
 
-            SetProperty(StaticNames.PropertyName.ConformanceHistory, histories);
-            LastUpdate = DateTime.Now;
+            
             return tobeArchive;
 
         }
@@ -215,10 +219,11 @@ namespace BrickSchema.Net
                 {
                     histories.Remove(history.Key);
                 }
+                SetProperty(StaticNames.PropertyName.AverageConformanceHistory, histories);
+                LastUpdate = DateTime.Now;
             }
 
-            SetProperty(StaticNames.PropertyName.AverageConformanceHistory, histories);
-            LastUpdate = DateTime.Now;
+            
             return tobeArchive;
 
 

@@ -50,8 +50,9 @@ namespace BrickSchema.Net
         {
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
             var entity = JsonConvert.DeserializeObject<BrickEntity>(json, settings);
-            if (entity != null) {
-                
+            if (entity != null)
+            {
+
                 List<BrickEntity> entities = new();
                 entities.Add(entity);
                 ImportEntities(entities, true);
@@ -72,19 +73,19 @@ namespace BrickSchema.Net
                         if (_e == null) //add new
                         {
                             _e = e;
-                            var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors)??string.Empty;
+                            var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors) ?? string.Empty;
 
                             _e.Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
                             _entities.Add(_e);
                         }
                         else //update
                         {
-                            if (e?.GetProperty<string>(PropertyName.Name)?.Equals("SIM_FCU_1")??false)
+                            if (e?.GetProperty<string>(PropertyName.Name)?.Equals("SIM_FCU_1") ?? false)
                             {
                                 bool debug = true;
                             }
                             _e.Clone(e);
-                            var json = e.GetProperty<string>(PropertyName.Behaviors)??string.Empty;
+                            var json = e.GetProperty<string>(PropertyName.Behaviors) ?? string.Empty;
 
                             _e.Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
                         }
@@ -102,10 +103,10 @@ namespace BrickSchema.Net
                 }
                 else
                 {
-                    
+
                     foreach (var e in entities)
                     {
-                        var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors)??string.Empty;
+                        var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors) ?? string.Empty;
 
                         e.Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
                         foreach (var b in e.Behaviors)
@@ -119,7 +120,7 @@ namespace BrickSchema.Net
                     }
                     _entities = entities;
                 }
-                
+
             }
         }
 
@@ -145,8 +146,8 @@ namespace BrickSchema.Net
         {
             lock (_lockObject) // Locking here
             {
-                SaveSchema(_brickPath ?? string.Empty); 
-                
+                SaveSchema(_brickPath ?? string.Empty);
+
             }
         }
 
@@ -171,14 +172,18 @@ namespace BrickSchema.Net
                 BrickEntity? entity = _entities.FirstOrDefault(e => e.Id == entityId);
                 if (entity != null)
                 {
+                    var dir = Path.GetDirectoryName(_brickPath);
+                    if (string.IsNullOrEmpty(dir)) return;
+                    var archiveFolder = Path.Combine(dir, "Archive");
+                    if (!Directory.Exists(archiveFolder)) Directory.CreateDirectory(archiveFolder);
+                    if (!Directory.Exists(archiveFolder)) return;
+
                     var archivedData = entity.ArchiveBehaiorValue(olderThanDays);
                     if (archivedData.Count > 0)
                     {
-                        var dir = Path.GetDirectoryName(_brickPath);
-                        if (string.IsNullOrEmpty(dir)) return;
-                        var archiveFolder = Path.Combine(dir,"archive", entity.Id, StaticNames.PropertyName.BehaviorValues);
-                        if (!Directory.Exists(archiveFolder)) Directory.CreateDirectory(archiveFolder);
-                        var archiveFile = Path.Combine(archiveFolder, $"{DateTime.Now.ToString("yyyy-MM-dd")}.json");
+                        var archiveEquipmentFolder = Path.Combine(archiveFolder, entity.Id, StaticNames.PropertyName.BehaviorValues);
+                        if (!Directory.Exists(archiveEquipmentFolder)) Directory.CreateDirectory(archiveEquipmentFolder);
+                        var archiveFile = Path.Combine(archiveEquipmentFolder, $"{DateTime.Now.ToString("yyyy-MM-dd")}.json");
                         var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Formatting.Indented };
                         var jsonEntities = JsonConvert.SerializeObject(archivedData, settings);
                         BrickSchemaUtility.AppendBrickSchemaToFile(jsonEntities, archiveFile);
@@ -188,29 +193,28 @@ namespace BrickSchema.Net
                     var archivedConformanceData = entity.ArchiveConformanceHistory(olderThanDays);
                     if (archivedConformanceData.Count > 0)
                     {
-                        var dir = Path.GetDirectoryName(_brickPath);
-                        if (string.IsNullOrEmpty(dir)) return;
-                        var archiveFolder = Path.Combine(dir, "archive", entity.Id, StaticNames.PropertyName.ConformanceHistory);
-                        if (!Directory.Exists(archiveFolder)) Directory.CreateDirectory(archiveFolder);
-                        var archiveFile = Path.Combine(archiveFolder, $"{DateTime.Now.ToString("yyyy-MM-dd")}.json");
+                        var archiveEquipmentFolder = Path.Combine(archiveFolder, entity.Id, StaticNames.PropertyName.ConformanceHistory);
+                        if (!Directory.Exists(archiveEquipmentFolder)) Directory.CreateDirectory(archiveEquipmentFolder);
+                        var archiveFile = Path.Combine(archiveEquipmentFolder, $"{DateTime.Now.ToString("yyyy-MM-dd")}.json");
                         var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Formatting.Indented };
                         var jsonEntities = JsonConvert.SerializeObject(archivedConformanceData, settings);
                         BrickSchemaUtility.AppendBrickSchemaToFile(jsonEntities, archiveFile);
 
                     }
 
-                    var archivedAvgConformanceData = entity.ArchiveAvgConformanceHistory(olderThanDays);
-                    if (archivedAvgConformanceData.Count > 0)
+                    if (Directory.Exists(archiveFolder))
                     {
-                        var dir = Path.GetDirectoryName(_brickPath);
-                        if (string.IsNullOrEmpty(dir)) return;
-                        var archiveFolder = Path.Combine(dir, "archive", entity.Id, StaticNames.PropertyName.AverageConformanceHistory);
-                        if (!Directory.Exists(archiveFolder)) Directory.CreateDirectory(archiveFolder);
-                        var archiveFile = Path.Combine(archiveFolder, $"{DateTime.Now.ToString("yyyy-MM-dd")}.json");
-                        var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Formatting.Indented };
-                        var jsonEntities = JsonConvert.SerializeObject(archivedAvgConformanceData, settings);
-                        BrickSchemaUtility.AppendBrickSchemaToFile(jsonEntities, archiveFile);
+                        var archivedAvgConformanceData = entity.ArchiveAvgConformanceHistory(olderThanDays);
+                        if (archivedAvgConformanceData.Count > 0)
+                        {
+                            var archiveEquipmentFolder = Path.Combine(archiveFolder, entity.Id, StaticNames.PropertyName.AverageConformanceHistory);
+                            if (!Directory.Exists(archiveEquipmentFolder)) Directory.CreateDirectory(archiveEquipmentFolder);
+                            var archiveFile = Path.Combine(archiveEquipmentFolder, $"{DateTime.Now.ToString("yyyy-MM-dd")}.json");
+                            var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Formatting.Indented };
+                            var jsonEntities = JsonConvert.SerializeObject(archivedAvgConformanceData, settings);
+                            BrickSchemaUtility.AppendBrickSchemaToFile(jsonEntities, archiveFile);
 
+                        }
                     }
                 }
 
@@ -222,12 +226,12 @@ namespace BrickSchema.Net
             string json = "";
             lock (_lockObject) // Locking here
             {
-                
+
                 foreach (var _e in _entities)
                 {
-                    
+
                     var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(_e.Behaviors);
-                    
+
                     _e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
                     _e.CleanUpDuplicatedProperties();
 
@@ -262,7 +266,7 @@ namespace BrickSchema.Net
 
         public bool IsEntity(string id)
         {
-            return _entities.Any(x=>x.Id.Equals(id));
+            return _entities.Any(x => x.Id.Equals(id));
         }
 
         public bool IsTag(string name)
@@ -271,7 +275,7 @@ namespace BrickSchema.Net
             foreach (var tag in tags)
             {
                 var t = tag as Tag;
-                if (t?.Name.Equals(name)??false) return true;
+                if (t?.Name.Equals(name) ?? false) return true;
             }
             return false;
         }
@@ -320,7 +324,7 @@ namespace BrickSchema.Net
                     entity = AddEntity<T>(id, "");
                 }
             }
-        
+
             return entity;
         }
 
@@ -368,7 +372,7 @@ namespace BrickSchema.Net
         }
         public List<BrickEntity> GetEntities(bool byReference = true)
         {
-            
+
 
             List<BrickEntity> entities = new();
             lock (_lockObject) // Locking here
@@ -430,7 +434,7 @@ namespace BrickSchema.Net
                     return entities;
                 }
             }
-            
+
         }
 
         public Tag? GetTag(string name, bool byReference = true)
@@ -441,7 +445,7 @@ namespace BrickSchema.Net
             foreach (var tag in tags)
             {
                 var t = tag as Tag;
-                if (t?.Name.Equals(name)??false) return byReference?t:t.Clone(); 
+                if (t?.Name.Equals(name) ?? false) return byReference ? t : t.Clone();
             }
             return null;
         }
@@ -450,13 +454,13 @@ namespace BrickSchema.Net
         {
             List<BrickEntity> entities = new List<BrickEntity>();
             var matchedEntities = _entities.Where(x => equipmentIds.Contains(x.Id)).ToList();
-            
+
             foreach (var entity in matchedEntities)
             {
                 if (entity is Equipment)
                 {
                     var behaviors = entity.GetBehaviors(false);
-          
+
                     var e = byReference ? entity : new(entity);
                     var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(entity.Behaviors);
 
