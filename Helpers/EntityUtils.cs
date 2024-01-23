@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BrickSchema.Net.Helpers
 {
-    public static class EntityUntils
+    public static class EntityUtils
     {
         public static string GetTypeName<T>()
         {

@@ -81,7 +81,7 @@ namespace BrickSchema.Net
                 Shapes = clone.Shapes;
                 var json = e.GetProperty<string>(EntityProperties.PropertyName.Behaviors) ?? string.Empty;
 
-                Behaviors = Helpers.EntityUntils.JsonToBehaviors(json);
+                Behaviors = Helpers.EntityUtils.JsonToBehaviors(json);
 
                 foreach (var _b in Behaviors)
                 {
@@ -264,7 +264,7 @@ namespace BrickSchema.Net
 
         public string ToJson()
         {
-            var behaviorsJson = Helpers.EntityUntils.BehaviorsToJson(Behaviors);
+            var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(Behaviors);
 
             SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
             CleanUpDuplicatedProperties();

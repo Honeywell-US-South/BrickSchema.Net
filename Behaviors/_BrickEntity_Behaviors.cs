@@ -4,6 +4,7 @@ using BrickSchema.Net.EntityProperties;
 using BrickSchema.Net.Relationships;
 using BrickSchema.Net.Shapes;
 using BrickSchema.Net.StaticNames;
+using EmberAnalyticsService.GraphBehaviors.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -77,7 +78,7 @@ namespace BrickSchema.Net
             List<BrickBehavior> behaviors = new();
             if (Behaviors.Count == 0)
             {
-                behaviors = Helpers.EntityUntils.JsonToBehaviors(GetProperty<string>(StaticNames.PropertyName.Behaviors) ?? string.Empty);
+                behaviors = Helpers.EntityUtils.JsonToBehaviors(GetProperty<string>(StaticNames.PropertyName.Behaviors) ?? string.Empty);
                 
             } else
             {
@@ -176,15 +177,10 @@ namespace BrickSchema.Net
         {
             lock (lockSetConformanceObj)  // Lock to ensure thread safety
             {
-                if (value < 0) value = 0;
-                else if (value > 100) value = 100;
-
+                value = Math.Clamp(value, 0, 100);
                
-                var conformanceHistory = GetProperty<Dictionary<DateTime, double>>(StaticNames.PropertyName.ConformanceHistory);
-                if (conformanceHistory == null)
-                {
-                    conformanceHistory = new();
-                }
+                var conformanceHistory = GetProperty<Dictionary<DateTime, double>>(StaticNames.PropertyName.ConformanceHistory) ?? new();
+  
                 conformanceHistory.Add(DateTime.UtcNow, value);
                 // Filter items newer than 14 days and create a new dictionary
                 conformanceHistory = conformanceHistory.Where(x => x.Key >= DateTime.UtcNow.AddDays(-14)).ToDictionary(x => x.Key, x => x.Value);
@@ -194,11 +190,7 @@ namespace BrickSchema.Net
                 var avgconformance = GetProperty<double>(PropertiesEnum.AverageConformance);
                 var avg = (avgconformance + value) / 2;
 
-                var avgConformanceHistory = GetProperty<Dictionary<DateTime, double>>(PropertiesEnum.AverageConformanceHistory);
-                if (avgConformanceHistory == null)
-                {
-                    avgConformanceHistory = new();
-                }
+                var avgConformanceHistory = GetProperty<Dictionary<DateTime, double>>(PropertiesEnum.AverageConformanceHistory) ?? new();
                 avgConformanceHistory.Add(DateTime.UtcNow, avg);
                 // Filter items newer than 14 days and create a new dictionary
                 avgConformanceHistory = avgConformanceHistory.Where(x => x.Key >= DateTime.UtcNow.AddDays(-14)).ToDictionary(x => x.Key, x => x.Value);
@@ -207,8 +199,17 @@ namespace BrickSchema.Net
 
                 if (this is BrickBehavior bb)
                 {
-                    var behaviors = bb.Parent?.GetBehaviors().Where(b => b.IsProperty(StaticNames.PropertyName.Conformance)).ToList() ?? new();
-                    bb.Parent?.SetConformance(behaviors.Average(x => x.GetProperty<double>(StaticNames.PropertyName.Conformance)));
+                    IEnumerable<BrickBehavior>? behaviors = (bb.Parent?.GetBehaviors().Where(b => b.IsProperty(StaticNames.PropertyName.Conformance)).ToList() ?? new()).Where(x => x.GetProperty<bool>(PropertiesEnum.BehaviorRunnable) && x.GetProperty<bool>(PropertiesEnum.BehaviorActive));
+                    if (behaviors.Any())
+                    {
+                        var weightedAverage = behaviors.WeightedConformanceAverage();
+                        if(weightedAverage.HasValue)
+                        {
+                            bb.Parent?.SetConformance(weightedAverage.Value);
+                        }
+
+                    }
+
 
                     BehaviorValue bv = new(StaticNames.PropertyName.Conformance, Id, EntityTypeName, GetShapeStringValue<BehaviorFunction>());
                     bv.SetValue(value);

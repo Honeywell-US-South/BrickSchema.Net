@@ -95,7 +95,7 @@ namespace BrickSchema.Net.Behaviors
             if (value == null) { Console.WriteLine($"Property Set Value [{this.Name}:null]"); return; }
             try
             {
-                this.DataTypeName = Helpers.EntityUntils.GetTypeName<T>();
+                this.DataTypeName = Helpers.EntityUtils.GetTypeName<T>();
                 this.Value = JsonConvert.SerializeObject(value);
                 this.Timestamp= DateTime.Now;
                 BehaviorValue behaviorResult = Clone(false);
@@ -127,7 +127,7 @@ namespace BrickSchema.Net.Behaviors
         {
             if (DataTypeName == null) return default(T);
 
-            string tName = Helpers.EntityUntils.GetTypeName<T>();
+            string tName = Helpers.EntityUtils.GetTypeName<T>();
             //if (!Type.Equals(tName)) throw new InvalidCastException($"Cannot convert {Type} to {tName}.");
             try
             {
@@ -142,8 +142,8 @@ namespace BrickSchema.Net.Behaviors
         {
             if (DataTypeName == null) return (default(T), default(U));
             
-            string tName = Helpers.EntityUntils.GetTypeName<T>();
-            string uName = Helpers.EntityUntils.GetTypeName<U>();
+            string tName = Helpers.EntityUtils.GetTypeName<T>();
+            string uName = Helpers.EntityUtils.GetTypeName<U>();
              
            
             //if (!Type.Equals(tName)) throw new InvalidCastException($"Cannot convert {Type} to {tName}.");

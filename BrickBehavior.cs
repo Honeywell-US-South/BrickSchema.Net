@@ -468,12 +468,17 @@ namespace BrickSchema.Net
 
         private bool PreTaskRunCheck<T>(T? operatingMode = default(T?))
         {
+            // Enable - allow to run
+            // Runnable - can it run
+            // Active - should it run
+
             if (Parent.GetProperty<string>(PropertyName.Name).Equals("SIM_FCU_1") && Name.Equals("FCU Behavior"))
             {
                 bool debug = true;
             }
-            Dictionary<string, List<string>> reasons = IsBehaviorRunnable();
-            if (!IsBehaviorEnabled())
+
+
+            if (!IsBehaviorEnabled()) // Allow it to run
             {
 
                 string text = $"***{DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()}*** \n\r\n\r";
@@ -484,9 +489,44 @@ namespace BrickSchema.Net
                 Resolution = "No action required";
                 return false;
             }
+
+
+            Dictionary<string, List<string>> reasons = IsBehaviorRunnable(); // Can it run?
+            SetProperty(PropertiesEnum.BehaviorRunnable, !reasons.Any());
+            if (reasons.Any())
+            {
+                SetProperty(PropertiesEnum.BehaviorActive, true);
+                string text = $"***{DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()}*** \n\r\n\r";
+                text += "\n- This behavior doesn't meet required conditions to run.";
+                text += "\n- Please review technical info for more information.";
+
+                foreach (var r in reasons)
+                {
+
+                    text += $"\n- {r.Key}";
+                    int count = 1;
+                    foreach (var s in r.Value)
+                    {
+                        text += $"\n     {count}. {s}";
+                    }
+
+                }
+                Insight = text;
+                Resolution = "This behavior doesn't meet required conditions to run. Please map required point tags.";
+                return false;
+            }
+
+
+
+            if (operatingMode == null) // Should it run?
+            {
+                SetProperty(PropertiesEnum.BehaviorActive, true);
+            }
             else if (operatingMode != null)
             {
-                if (!IsBehaviorActive(operatingMode))
+                bool IsActive = IsBehaviorActive(operatingMode);
+                SetProperty(PropertiesEnum.Mode, operatingMode);
+                if (!IsActive)
                 {
                     SetProperty(PropertiesEnum.BehaviorActive, false);
                     string text = $"***{DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()}*** \n\r\n\r";
@@ -496,29 +536,9 @@ namespace BrickSchema.Net
                     Resolution = "No action required";
                     return false;
                 }
-            }
-            else if (reasons.Count > 0)
-            {
-                SetProperty(PropertiesEnum.BehaviorActive, true);
-                string text = $"***{DateTime.Now.ToString("MM/dd/yyyy hh:mm tt")} Execution Result {BehaviorTaskReturnCodes.Skip.ToString()}*** \n\r\n\r";
-                text += "\n- This behavior doesn't meet required conditions to run.";
-                text += "\n- Please review technical info for more information.";
                 
-                foreach (var r in reasons)
-                {
-                    
-                    text += $"\n- {r.Key}";
-                    int count = 1;
-                    foreach (var s in r.Value)
-                    {
-                        text += $"\n     {count}. {s}";
-                    }
-                    
-                }
-                Insight = text;
-                Resolution = "This behavior doesn't meet required conditions to run. Please map required point tags.";
-                return false;
             }
+             
 
             return true;
         }
