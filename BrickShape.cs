@@ -34,8 +34,11 @@ namespace BrickSchema.Net
             }
             foreach (var r in Relationships ?? new())
             {
-                BrickRelationship br = r.Clone() as BrickRelationship;
-                clone.Relationships.Add(br);
+                BrickRelationship? br = r.Clone() as BrickRelationship;
+                if (br != null)
+                {
+                    clone.Relationships.Add(br);
+                }
             }
             clone.RegisteredBehaviors = new(RegisteredBehaviors);
             //do not clone behaviors
