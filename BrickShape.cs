@@ -9,6 +9,7 @@ namespace BrickSchema.Net
 {
     public class BrickShape : BrickEntity
     {
+        
         [JsonIgnore]
         public string Value
         {

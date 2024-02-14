@@ -75,5 +75,125 @@ namespace BrickSchema.Net
             return json;
         }
 
+        
+
+        public static Dictionary<string, Tuple<double, double, double>> SpreadEntitiesInStarConfiguration(List<BrickEntity> entities, double centerX, double centerY, double initialRadius, params Type[] relationshipTypes)
+        {
+            Dictionary<string, Tuple<double, double, double>> coordinates = new();
+
+            var parentEntities = FindRootEntities(entities, relationshipTypes);
+            double parentRadius = CalculateOptimumRadius(50, 10, parentEntities.Count);
+            SpreadNodesInStarConfiguration(parentEntities, centerX, centerY, parentRadius, 0, coordinates); // Parent layer z-coordinate set to 0
+
+            foreach (var parent in parentEntities)
+            {
+                var childEntitiesWithZ = FindChildEntities(parent, entities, relationshipTypes);
+                foreach (var (childEntity, zCoordinate) in childEntitiesWithZ)
+                {
+                    // Use zCoordinate as layer
+                    var childEntities = childEntitiesWithZ.Select(ce => ce.Item1).ToList(); // Extract just the entities for spreading
+                    double childRadius = CalculateOptimumRadius(30, 5, childEntities.Count);
+                    var (newCenterX, newCenterY) = CalculateNewCenter(parent, coordinates);
+                    SpreadNodesInStarConfiguration(childEntities, newCenterX, newCenterY, childRadius, zCoordinate, coordinates);
+                }
+            }
+
+            return coordinates;
+        }
+
+
+
+        private static void SpreadNodesInStarConfiguration(List<BrickEntity> entities, double centerX, double centerY, double radius, int zCoordinate, Dictionary<string, Tuple<double, double, double>> coordinates)
+        {
+            int totalNodes = entities.Count;
+            double angleIncrement = 360.0 / totalNodes;
+
+            for (int i = 0; i < totalNodes; i++)
+            {
+                double angleInRadians = (Math.PI / 180) * (angleIncrement * i);
+                var x = centerX + radius * Math.Cos(angleInRadians);
+                var y = centerY + radius * Math.Sin(angleInRadians);
+                coordinates[entities[i].Id] = Tuple.Create(x, y, (double)zCoordinate);
+            }
+        }
+
+
+
+        private static (double, double) CalculateNewCenter(BrickEntity parent, Dictionary<string, Tuple<double, double, double>> coordinates)
+        {
+            if (coordinates.TryGetValue(parent.Id, out var parentCoords))
+            {
+                // This example returns the parent's position. Adjust as needed.
+                return (parentCoords.Item1, parentCoords.Item2);
+            }
+            return (0, 0); // Fallback if parent's coordinates not found
+        }
+
+        public static List<BrickEntity> FindRootEntities(IEnumerable<BrickEntity> entities, params Type[] relationshipTypes)
+        {
+            // Convert the relationshipTypes parameter to a HashSet for efficient type lookup
+            var relationshipTypeNamesSet = new HashSet<string>(relationshipTypes.Select(t => t.Name));
+
+            var childEntityIds = new HashSet<string>();
+            foreach (var entity in entities)
+            {
+                foreach (var relationship in entity.Relationships)
+                {
+                    // Compare EntityTypeName of the relationship to the desired types
+                    if (relationshipTypeNamesSet.Contains(relationship.EntityTypeName))
+                    {
+                        childEntityIds.Add(relationship.Id);
+                    }
+                }
+            }
+
+            // Entities are considered root if they are not found in childEntityIds
+            var result = entities.Where(entity => !childEntityIds.Contains(entity.Id)).ToList();
+
+            return result;
+        }
+
+        
+
+        private static List<(BrickEntity, int)> FindChildEntities(BrickEntity parent, List<BrickEntity> entities, params Type[] relationshipTypes)
+        {
+            var relationshipTypeNamesSet = new Dictionary<string, int>();
+            for (int i = 0; i < relationshipTypes.Length; i++)
+            {
+                relationshipTypeNamesSet[relationshipTypes[i].Name] = i;
+            }
+
+            var childEntities = new List<(BrickEntity, int)>();
+
+            foreach (var entity in entities)
+            {
+                foreach (var relationship in entity.Relationships)
+                {
+                    if (relationshipTypeNamesSet.TryGetValue(relationship.EntityTypeName, out int zCoordinate) && relationship.ParentId == parent.Id)
+                    {
+                        childEntities.Add((entity, zCoordinate));
+                        break;
+                    }
+                }
+            }
+
+            return childEntities;
+        }
+
+
+        public static double CalculateOptimumRadius(int nodeDiameter, int desiredSpacing, int numberOfNodes)
+        {
+            // Calculate the space required for one node plus the desired spacing
+            int spacePerNode = nodeDiameter + desiredSpacing;
+
+            // Calculate the total circumference needed to place all nodes side by side without overlapping
+            double totalCircumference = spacePerNode * numberOfNodes;
+
+            // Calculate and return the optimum radius
+            double optimumRadius = totalCircumference / (2 * Math.PI);
+            return optimumRadius;
+        }
+
+
     }
 }

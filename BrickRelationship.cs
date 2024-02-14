@@ -4,20 +4,20 @@
     {
         public string? ParentId { get; set; } = string.Empty;
 
-        public BrickRelationship() { }
-
-        public BrickRelationship(BrickEntity brickEntity):base(brickEntity)
+        public BrickRelationship()
         {
-
-
+            // Automatically set the EntityTypeName to the name of the derived class
+            EntityTypeName = GetType().Name;
         }
 
-        public override BrickRelationship Clone()
+        public override BrickEntity Clone()
         {
-            var clone = new BrickRelationship(base.Clone());
+            var clone = (BrickRelationship)this.MemberwiseClone(); // Assuming Clone is implemented correctly in BrickEntity
             clone.ParentId = ParentId;
+            // Ensure the cloned object has the correct EntityTypeName
+            clone.EntityTypeName = GetType().Name;
             return clone;
         }
-    }
 
+    }
 }
