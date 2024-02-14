@@ -77,12 +77,12 @@ namespace BrickSchema.Net
 
         
 
-        public static Dictionary<string, Tuple<double, double, double>> SpreadEntitiesInStarConfiguration(List<BrickEntity> entities, double centerX, double centerY, double initialRadius, params Type[] relationshipTypes)
+        public static Dictionary<string, Tuple<double, double, double>> SpreadEntitiesInStarConfiguration(List<BrickEntity> entities, double centerX, double centerY, int desiredSpacing, params Type[] relationshipTypes)
         {
             Dictionary<string, Tuple<double, double, double>> coordinates = new();
 
             var parentEntities = FindRootEntities(entities, relationshipTypes);
-            double parentRadius = CalculateOptimumRadius(50, 10, parentEntities.Count);
+            double parentRadius = CalculateOptimumRadius(50, desiredSpacing, parentEntities.Count);
             SpreadNodesInStarConfiguration(parentEntities, centerX, centerY, parentRadius, 0, coordinates); // Parent layer z-coordinate set to 0
 
             foreach (var parent in parentEntities)
@@ -123,7 +123,7 @@ namespace BrickSchema.Net
         {
             if (coordinates.TryGetValue(parent.Id, out var parentCoords))
             {
-                // This example returns the parent's position. Adjust as needed.
+                
                 return (parentCoords.Item1, parentCoords.Item2);
             }
             return (0, 0); // Fallback if parent's coordinates not found
@@ -131,7 +131,7 @@ namespace BrickSchema.Net
 
         public static List<BrickEntity> FindRootEntities(IEnumerable<BrickEntity> entities, params Type[] relationshipTypes)
         {
-            // Convert the relationshipTypes parameter to a HashSet for efficient type lookup
+            
             var relationshipTypeNamesSet = new HashSet<string>(relationshipTypes.Select(t => t.Name));
 
             var childEntityIds = new HashSet<string>();
@@ -139,7 +139,7 @@ namespace BrickSchema.Net
             {
                 foreach (var relationship in entity.Relationships)
                 {
-                    // Compare EntityTypeName of the relationship to the desired types
+                   
                     if (relationshipTypeNamesSet.Contains(relationship.EntityTypeName))
                     {
                         childEntityIds.Add(relationship.Id);
@@ -147,7 +147,7 @@ namespace BrickSchema.Net
                 }
             }
 
-            // Entities are considered root if they are not found in childEntityIds
+           
             var result = entities.Where(entity => !childEntityIds.Contains(entity.Id)).ToList();
 
             return result;
