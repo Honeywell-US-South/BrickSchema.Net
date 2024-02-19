@@ -66,15 +66,73 @@ namespace BrickSchema.Net
         [JsonIgnore]
         public string Insight
         {
-            get { return GetProperty<string>(PropertiesEnum.Insight) ?? string.Empty; }
-            protected set { SetProperty(PropertiesEnum.Insight, value); }
+            get {
+                var val = GetProperty<string>(PropertiesEnum.Insight);
+                if (val == null)
+                {
+                    var dic = Parent?.GetProperty<Dictionary<string, string>>(PropertiesEnum.Insight);
+                    if (dic != null)
+                    {
+                        if (dic.ContainsKey(this.Id)) val = dic[this.Id];
+                    }
+                }
+
+                return  val ?? string.Empty; 
+            }
+            protected set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    SetProperty(PropertiesEnum.Insight, value);
+
+                    var dic = Parent?.GetProperty<Dictionary<string, string>>(PropertiesEnum.Insight);
+                    if (dic == null)
+                    {
+                        dic = new();
+                        
+                    }
+                    if (dic.ContainsKey(this.Id)) dic[this.Id] = value;
+                    else dic.Add(this.Id, value);
+                    Parent?.SetProperty(PropertiesEnum.Insight.ToString(), dic);
+                }
+            }
         }
 
         [JsonIgnore]
         public string Resolution
         {
-            get { return GetProperty<string>(PropertiesEnum.Resolution) ?? string.Empty; }
-            protected set { SetProperty(PropertiesEnum.Resolution, value); }
+            get
+            {
+                var val = GetProperty<string>(PropertiesEnum.Resolution);
+                if (val == null)
+                {
+                    var dic = Parent?.GetProperty<Dictionary<string, string>>(PropertiesEnum.Resolution);
+                    if (dic != null)
+                    {
+                        if (dic.ContainsKey(this.Id)) val = dic[this.Id];
+                    }
+                }
+
+                return val ?? string.Empty;
+            }
+
+        
+            protected set { 
+                
+                if (!string.IsNullOrEmpty(value))
+                {
+                    SetProperty(PropertiesEnum.Resolution, value);
+
+                    var dic = Parent?.GetProperty<Dictionary<string, string>>(PropertiesEnum.Resolution);
+                    if (dic == null)
+                    {
+                        dic = new();
+                    }
+                    if (dic.ContainsKey(this.Id)) dic[this.Id] = value;
+                    else dic.Add(this.Id, value);
+                    Parent?.SetProperty(PropertiesEnum.Resolution.ToString(), dic);
+                }
+            }
         }
 
         [JsonIgnore]
