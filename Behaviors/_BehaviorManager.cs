@@ -9,6 +9,7 @@ namespace BrickSchema.Net
 {
     public partial class BrickSchemaManager
     {
+        
         public List<BrickBehavior> GetBehaviors(List<string> behaviorIds, bool byReference = true)
         {
             List<BrickBehavior> brickBehaviors = new List<BrickBehavior>();
