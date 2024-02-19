@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using BrickSchema.Net.Alerts;
+using BrickSchema.Net.Behaviors;
 using BrickSchema.Net.Classes;
 using BrickSchema.Net.Classes.Collection;
 using BrickSchema.Net.Classes.Collection.Loop;
@@ -13,7 +16,9 @@ using BrickSchema.Net.Classes.Equipments.HVACType.TerminalUnits;
 using BrickSchema.Net.Classes.Locations;
 using BrickSchema.Net.Classes.Measureable;
 using BrickSchema.Net.Classes.Points;
+using BrickSchema.Net.DB;
 using BrickSchema.Net.StaticNames;
+using IoTDBdotNET;
 using Newtonsoft.Json;
 
 namespace BrickSchema.Net
@@ -25,7 +30,7 @@ namespace BrickSchema.Net
 
         // Object used as lock for thread-safety
         private readonly object _lockObject = new object();
-
+        IoTDatabase _database;
 
         public BrickSchemaManager()
         {
@@ -36,7 +41,11 @@ namespace BrickSchema.Net
         {
             _entities = new List<BrickEntity>();
             _brickPath = brickFilePath;
+            if (string.IsNullOrEmpty(_brickPath)) throw new ArgumentNullException("Empty path");
+            var dbPath = Path.Combine(Path.GetDirectoryName(_brickPath)??"", "IoTDB");
+            _database = new IoTDatabase("EmberAnalytics", dbPath, true);
             LoadSchemaFromFile(_brickPath);
+            SaveSchema();
         }
 
         public void LoadSchemaFromJson(string json, bool appendOrUpdate = false)
@@ -73,21 +82,27 @@ namespace BrickSchema.Net
                         if (_e == null) //add new
                         {
                             _e = e;
-                            var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors) ?? string.Empty;
+                            var blist = e.GetProperty<List<string>>(EntityProperties.PropertiesEnum.Behaviors) ?? new();
 
-                            _e.Behaviors = Helpers.EntityUtils.JsonToBehaviors(json);
+                            _e.Behaviors = entities
+                                .Where(x => blist.Contains(x.Id) && x is BrickBehavior) // Find all entities that match the criteria.
+                                .Select(y => y as BrickBehavior??new()) // Safely cast them to BrickBehavior.
+                                .ToList(); // Convert the result to a list.
                             _entities.Add(_e);
                         }
                         else //update
                         {
-                            if (e?.GetProperty<string>(PropertyName.Name)?.Equals("SIM_FCU_1") ?? false)
+                            if (e?.GetProperty<string>(EntityProperties.PropertyName.Name)?.Equals("SIM_FCU_1") ?? false)
                             {
                                 bool debug = true;
                             }
                             _e.Clone(e);
-                            var json = e.GetProperty<string>(PropertyName.Behaviors) ?? string.Empty;
+                            var blist = e.GetProperty<List<string>>(EntityProperties.PropertiesEnum.Behaviors) ?? new();
 
-                            _e.Behaviors = Helpers.EntityUtils.JsonToBehaviors(json);
+                            _e.Behaviors = entities
+                                .Where(x => blist.Contains(x.Id) && x is BrickBehavior) // Find all entities that match the criteria.
+                                .Select(y => y as BrickBehavior ?? new()) // Safely cast them to BrickBehavior.
+                                .ToList(); // Convert the result to a list.
                         }
                         foreach (var _b in _e.Behaviors)
                         {
@@ -106,9 +121,12 @@ namespace BrickSchema.Net
 
                     foreach (var e in entities)
                     {
-                        var json = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors) ?? string.Empty;
+                        var blist = e.GetProperty<List<string>>(EntityProperties.PropertiesEnum.Behaviors) ?? new();
 
-                        e.Behaviors = Helpers.EntityUtils.JsonToBehaviors(json);
+                        e.Behaviors = entities
+                                .Where(x => blist.Contains(x.Id) && x is BrickBehavior) // Find all entities that match the criteria.
+                                .Select(y => y as BrickBehavior ?? new()) // Safely cast them to BrickBehavior.
+                                .ToList(); // Convert the result to a list.
                         foreach (var b in e.Behaviors)
                         {
                             b.Parent = e;
@@ -130,10 +148,67 @@ namespace BrickSchema.Net
             {
                 _entities = BrickSchemaUtility.ImportBrickSchema(jsonLdFilePath);
                 // Update the OtherEntities property of all entities
+                //var properties = _database.Tables<PropertyTable>("Properties");
                 foreach (var existingEntity in _entities)
                 {
                     foreach (var _e in _entities)
                     {
+                        foreach (var property in _e.Properties)
+                        {
+                            
+                            if (property.Name.Equals(PropertyName.ConformanceHistory) || property.Name.Equals(PropertyName.AverageConformanceHistory))
+                            {
+                                var histories = property.GetValue<Dictionary<DateTime, double>>();
+                                List<DateTime> deleteList = new();
+                                foreach (var history in histories??new())
+                                {
+                                    if (history.Key.ToLocalTime().AddDays(-1) < DateTime.Now) //archive if older than 1 day.
+                                    {
+                                        deleteList.Add(history.Key);
+                                        _database.TimeSeries.Insert(property.Id, history.Value, timestamp: history.Key);
+                                    }
+                                }
+                                if (histories?.Count > 0)
+                                {
+                                    foreach (var d in deleteList)
+                                    {
+                                        histories.Remove(d);
+                                    }
+                                }
+                                property.SetValue(property.Name, histories);
+                            }
+                            else if (property.Name.Equals(PropertyName.BehaviorValues))
+                            {
+                                var bvalues = property.GetValue<List<BehaviorValue>>();
+                                foreach (var bv in bvalues??new())
+                                {
+                                    List<BehaviorValue> keepList = new();
+                                    foreach (var h in bv.Histories)
+                                    {
+                                        if (h.Timestamp.ToLocalTime().AddDays(-1) < DateTime.Now) //archive if older than 1 day.
+                                        {
+                                            _database.TimeSeries.Insert(bv.BehaviorId, h.GetValue<double>(), h.Timestamp);
+                                        } else
+                                        {
+                                            keepList.Add(h);
+                                        }
+                                        
+                                    }
+                                    bv.Histories.Clear();
+                                    bv.Histories.AddRange(keepList);
+                                }
+                                property.SetValue(PropertyName.BehaviorValues, bvalues);
+                            }
+                            else if (property.Name.Equals("AlertValue"))
+                            {
+                                property.Value = "";
+                            }
+                            else if (property.Name.Equals(PropertyName.Behaviors))
+                            {
+                                property.Value = "";
+                            }
+                        }
+
                         _e.CleanUpDuplicatedProperties();
                         existingEntity.OtherEntities.Add(_e);
                     }
@@ -230,9 +305,16 @@ namespace BrickSchema.Net
                 foreach (var _e in _entities)
                 {
 
-                    var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(_e.Behaviors);
+                    //var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(_e.Behaviors);
 
-                    _e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+                    //_e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+                    List<string> bList = new();
+                    foreach (var b in _e.Behaviors)
+                    {
+                        bList.Add(b.Id);
+                    }
+                    _e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, bList);
+
                     _e.CleanUpDuplicatedProperties();
 
                 }
