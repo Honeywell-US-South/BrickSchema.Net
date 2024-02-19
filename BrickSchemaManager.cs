@@ -186,7 +186,7 @@ namespace BrickSchema.Net
                                 List<DateTime> deleteList = new();
                                 foreach (var history in histories??new())
                                 {
-                                    if (history.Key.ToLocalTime().AddDays(-7) < DateTime.Now) //archive if older than 1 day.
+                                    if (history.Key.ToLocalTime().AddDays(7) < DateTime.Now) //archive if older than 1 day.
                                     {
                                         deleteList.Add(history.Key);
                                         _database.TimeSeries.Insert(property.Id, history.Value, timestamp: history.Key);
@@ -209,7 +209,7 @@ namespace BrickSchema.Net
                                     List<BehaviorValue> keepList = new();
                                     foreach (var h in bv.Histories)
                                     {
-                                        if (h.Timestamp.ToLocalTime().AddDays(-7) < DateTime.Now) //archive if older than 1 day.
+                                        if (h.Timestamp.ToLocalTime().AddDays(7) < DateTime.Now) //archive if older than 1 day.
                                         {
                                             if (h.DataTypeName.Equals("Boolean"))
                                             {
