@@ -25,7 +25,10 @@ namespace BrickSchema.Net.Helpers
         public static string BehaviorsToJson(List<BrickBehavior> behaviors)
         {
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto };
-
+            if (behaviors.Count > 0)
+            {
+                int i = 0;
+            }
             // Create a complete copy of the list
             var behaviorsCopy = new List<BrickBehavior>(behaviors);
 
