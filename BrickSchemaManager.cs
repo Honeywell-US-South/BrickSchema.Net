@@ -187,7 +187,14 @@ namespace BrickSchema.Net
                                     {
                                         if (h.Timestamp.ToLocalTime().AddDays(-7) < DateTime.Now) //archive if older than 1 day.
                                         {
-                                            _database.TimeSeries.Insert(bv.BehaviorId, h.GetValue<double>(), h.Timestamp);
+                                            if (h.DataTypeName.Equals("Boolean"))
+                                            {
+                                                _database.TimeSeries.Insert(bv.BehaviorId, (h.GetValue<Boolean>()?1:0), h.Timestamp);
+                                            }
+                                            else
+                                            {
+                                                _database.TimeSeries.Insert(bv.BehaviorId, h.GetValue<double>(), h.Timestamp);
+                                            }
                                         } else
                                         {
                                             keepList.Add(h);
