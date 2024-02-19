@@ -25,6 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\IoTDB.NET\IoTDB.NET.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="bricks.jpg">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
