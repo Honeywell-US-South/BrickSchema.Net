@@ -17,6 +17,7 @@ using BrickSchema.Net.Classes.Locations;
 using BrickSchema.Net.Classes.Measureable;
 using BrickSchema.Net.Classes.Points;
 using BrickSchema.Net.DB;
+using BrickSchema.Net.Helpers;
 using BrickSchema.Net.StaticNames;
 using IoTDBdotNET;
 using Newtonsoft.Json;
@@ -82,12 +83,20 @@ namespace BrickSchema.Net
                         if (_e == null) //add new
                         {
                             _e = e;
-                            var blist = e.GetProperty<List<string>>(EntityProperties.PropertiesEnum.Behaviors) ?? new();
-
-                            _e.Behaviors = entities
-                                .Where(x => blist.Contains(x.Id) && x is BrickBehavior) // Find all entities that match the criteria.
-                                .Select(y => y as BrickBehavior??new()) // Safely cast them to BrickBehavior.
-                                .ToList(); // Convert the result to a list.
+                            var blist = e.GetProperty<List<string>>(EntityProperties.PropertiesEnum.Behaviors);
+                            
+                            if (blist == null)
+                            {
+                                var bslist = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors) ?? "";
+                                _e.Behaviors = EntityUtils.JsonToBehaviors(bslist);
+                            }
+                            else
+                            {
+                                _e.Behaviors = entities
+                                    .Where(x => blist.Contains(x.Id) && x is BrickBehavior) // Find all entities that match the criteria.
+                                    .Select(y => y as BrickBehavior ?? new()) // Safely cast them to BrickBehavior.
+                                    .ToList(); // Convert the result to a list.
+                            }
                             _entities.Add(_e);
                         }
                         else //update
@@ -97,12 +106,19 @@ namespace BrickSchema.Net
                                 bool debug = true;
                             }
                             _e.Clone(e);
-                            var blist = e.GetProperty<List<string>>(EntityProperties.PropertiesEnum.Behaviors) ?? new();
-
-                            _e.Behaviors = entities
-                                .Where(x => blist.Contains(x.Id) && x is BrickBehavior) // Find all entities that match the criteria.
-                                .Select(y => y as BrickBehavior ?? new()) // Safely cast them to BrickBehavior.
-                                .ToList(); // Convert the result to a list.
+                            var blist = e.GetProperty<List<string>>(EntityProperties.PropertiesEnum.Behaviors);
+                            if (blist == null)
+                            {
+                                var bslist = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors) ?? "";
+                                _e.Behaviors = EntityUtils.JsonToBehaviors(bslist);
+                            }
+                            else
+                            {
+                                _e.Behaviors = entities
+                                    .Where(x => blist.Contains(x.Id) && x is BrickBehavior) // Find all entities that match the criteria.
+                                    .Select(y => y as BrickBehavior ?? new()) // Safely cast them to BrickBehavior.
+                                    .ToList(); // Convert the result to a list.
+                            }
                         }
                         foreach (var _b in _e.Behaviors)
                         {
@@ -121,12 +137,20 @@ namespace BrickSchema.Net
 
                     foreach (var e in entities)
                     {
-                        var blist = e.GetProperty<List<string>>(EntityProperties.PropertiesEnum.Behaviors) ?? new();
+                        var blist = e.GetProperty<List<string>>(EntityProperties.PropertiesEnum.Behaviors);
 
-                        e.Behaviors = entities
+                        if (blist == null)
+                        {
+                            var bslist = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors) ?? "";
+                            e.Behaviors = EntityUtils.JsonToBehaviors(bslist);
+                        }
+                        else
+                        {
+                            e.Behaviors = entities
                                 .Where(x => blist.Contains(x.Id) && x is BrickBehavior) // Find all entities that match the criteria.
                                 .Select(y => y as BrickBehavior ?? new()) // Safely cast them to BrickBehavior.
                                 .ToList(); // Convert the result to a list.
+                        }
                         foreach (var b in e.Behaviors)
                         {
                             b.Parent = e;
