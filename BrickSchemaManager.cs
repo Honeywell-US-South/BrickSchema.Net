@@ -182,6 +182,17 @@ namespace BrickSchema.Net
                     catch { }
                 }
                 _entities = BrickSchemaUtility.ImportBrickSchema(jsonLdFilePath);
+                foreach (var e in _entities)
+                {
+                    foreach (var _e in _entities)
+                    {
+                        if (e.Id != _e.Id)
+                        {
+                            e.OtherEntities.Clear();
+                            e.OtherEntities.Add(_e);
+                        }
+                    }
+                }
             }
             
         }
@@ -190,85 +201,103 @@ namespace BrickSchema.Net
         {
             lock (_lockObject)
             {
-                foreach (var existingEntity in _entities)
+                Parallel.For(0, _entities.Count, i =>
                 {
-                    foreach (var _e in _entities)
+                    try
                     {
-                        foreach (var property in _e.Properties)
-                        {
+                        var existingEntity = _entities[i];
+                        Console.WriteLine($"Processing entity {i} of {_entities.Count}");
+                        
+                            foreach (var property in existingEntity.Properties)
+                            {
 
-                            if (property.Name.Equals(PropertyName.ConformanceHistory) || property.Name.Equals(PropertyName.AverageConformanceHistory))
-                            {
-                                var histories = property.GetValue<Dictionary<DateTime, double>>();
-                                List<DateTime> deleteList = new();
-                                foreach (var history in histories ?? new())
+                                if (property.Name.Equals(PropertyName.ConformanceHistory) || property.Name.Equals(PropertyName.AverageConformanceHistory))
                                 {
-                                    if (history.Key.ToLocalTime().AddDays(7) < DateTime.Now) //archive if older than 1 day.
+
+                                    var histories = property.GetValue<Dictionary<DateTime, double>>();
+                                    if (histories != null && histories.Count > 0)
                                     {
-                                        deleteList.Add(history.Key);
-                                        _database.TimeSeries.Insert(property.Id, history.Value, timestamp: history.Key);
-                                    }
-                                }
-                                if (histories?.Count > 0)
-                                {
-                                    foreach (var d in deleteList)
-                                    {
-                                        histories.Remove(d);
-                                    }
-                                }
-                                property.SetValue(property.Name, histories);
-                            }
-                            else if (property.Name.Equals(PropertyName.BehaviorValues))
-                            {
-                                var bvalues = property.GetValue<List<BehaviorValue>>();
-                                if (bvalues != null)
-                                {
-                                    foreach (var bv in bvalues)
-                                    {
-                                        List<BehaviorValue> keepList = new();
-                                        foreach (var h in bv.Histories)
+
+                                        var archiveList = histories.Where(x => x.Key.ToLocalTime().AddDays(7) < DateTime.Now).ToList();
+
+                                        foreach (var history in archiveList ?? new())
                                         {
-                                            if (h.Timestamp.ToLocalTime().AddDays(7) < DateTime.Now) //archive if older than 1 day.
+                                            if (history.Key.ToLocalTime().AddDays(7) < DateTime.Now) //archive if older than 1 day.
                                             {
-                                                if (h.DataTypeName.Equals("Boolean"))
-                                                {
-                                                    _database.TimeSeries.Insert(bv.BehaviorId, (h.GetValue<Boolean>() ? 1 : 0), h.Timestamp);
-                                                }
-                                                else
-                                                {
-                                                    _database.TimeSeries.Insert(bv.BehaviorId, h.GetValue<double>(), h.Timestamp);
-                                                }
-                                            }
-                                            else
-                                            {
-                                                keepList.Add(h);
-                                            }
 
+                                                try
+                                                {
+                                                    _database.TimeSeries.Insert(property.Id, history.Value, timestamp: history.Key);
+                                                }
+                                                catch (Exception ex) { Console.WriteLine(ex.ToString()); }
+                                            }
                                         }
-                                        bv.Histories.Clear();
-                                        bv.Histories.AddRange(keepList);
+
+                                        var keepList = histories.Where(x => x.Key.ToLocalTime().AddDays(7) >= DateTime.Now);
+                                        histories.Clear();
+                                        histories = keepList.ToDictionary(x => x.Key, x => x.Value);
+
+
+                                        property.SetValue(property.Name, histories);
                                     }
-                                    property.SetValue(PropertyName.BehaviorValues, bvalues);
                                 }
-                            }
-                            else if (property.Name.Equals("AlertValue"))
-                            {
-                                property.Value = "";
-                            }
-                            else if (property.Name.Equals(PropertyName.Behaviors))
-                            {
-                                if (clearEntityPropertyBehaviors)
+                                else if (property.Name.Equals(PropertyName.BehaviorValues))
+                                {
+                                    var bvalues = property.GetValue<List<BehaviorValue>>();
+                                    if (bvalues != null)
+                                    {
+                                        foreach (var bv in bvalues)
+                                        {
+
+                                            if (bv.Histories.Count > 0)
+                                            {
+                                                var archiveList = bv.Histories.Where(x => x.Timestamp.ToLocalTime().AddDays(7) < DateTime.Now).ToList();
+                                                foreach (var h in archiveList ?? new())
+                                                {
+
+                                                    try
+                                                    {
+                                                        if (h.DataTypeName.Equals("Boolean"))
+                                                        {
+                                                            _database.TimeSeries.Insert(bv.BehaviorId, (h.GetValue<Boolean>() ? 1 : 0), h.Timestamp);
+                                                        }
+                                                        else
+                                                        {
+                                                            _database.TimeSeries.Insert(bv.BehaviorId, h.GetValue<double>(), h.Timestamp);
+                                                        }
+                                                    }
+                                                    catch (Exception ex) { Console.WriteLine(ex.ToString()); }
+
+
+                                                }
+                                                var keepList = bv.Histories.Where(x => x.Timestamp.ToLocalTime().AddDays(7) >= DateTime.Now).ToList();
+                                                bv.Histories.Clear();
+                                                if (keepList?.Count > 0)
+                                                {
+                                                    bv.Histories.AddRange(keepList);
+                                                }
+                                            }
+                                        }
+                                        property.SetValue(PropertyName.BehaviorValues, bvalues);
+                                    }
+                                }
+                                else if (property.Name.Equals("AlertValue"))
                                 {
                                     property.Value = "";
                                 }
+                                else if (property.Name.Equals(PropertyName.Behaviors))
+                                {
+                                    if (clearEntityPropertyBehaviors)
+                                    {
+                                        property.Value = "";
+                                    }
+                                }
                             }
-                        }
+       
+                        
+                    } catch (Exception ex) { Console.WriteLine(ex); }
 
-                        _e.CleanUpDuplicatedProperties();
-                        existingEntity.OtherEntities.Add(_e);
-                    }
-
-                }
+                });
             }
         }
 
