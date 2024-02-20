@@ -25,7 +25,7 @@ namespace BrickSchema.Net.Helpers
         public static string BehaviorsToJson(List<BrickBehavior> behaviors)
         {
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto };
-
+ 
             // Create a complete copy of the list
             var behaviorsCopy = new List<BrickBehavior>(behaviors);
 
@@ -38,6 +38,21 @@ namespace BrickSchema.Net.Helpers
             return JsonConvert.SerializeObject(behaviorsJson, settings);
         }
 
+        public static string BehaviorsToIdList(List<BrickBehavior> behaviors)
+        {
+            var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto };
+            
+            // Create a complete copy of the list
+            var behaviorsCopy = new List<BrickBehavior>(behaviors);
+
+            List<string> behaviorsJson = new();
+            foreach (var b in behaviorsCopy)
+            {
+                //var bjson = JsonConvert.SerializeObject(b, settings);
+                behaviorsJson.Add(b.Id);
+            }
+            return JsonConvert.SerializeObject(behaviorsJson, settings);
+        }
 
         public static List<BrickBehavior> JsonToBehaviors(string json)
         {

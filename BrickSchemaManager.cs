@@ -186,7 +186,7 @@ namespace BrickSchema.Net
                                 List<DateTime> deleteList = new();
                                 foreach (var history in histories??new())
                                 {
-                                    if (history.Key.ToLocalTime().AddDays(-7) < DateTime.Now) //archive if older than 1 day.
+                                    if (history.Key.ToLocalTime().AddDays(7) < DateTime.Now) //archive if older than 1 day.
                                     {
                                         deleteList.Add(history.Key);
                                         _database.TimeSeries.Insert(property.Id, history.Value, timestamp: history.Key);
@@ -204,31 +204,35 @@ namespace BrickSchema.Net
                             else if (property.Name.Equals(PropertyName.BehaviorValues))
                             {
                                 var bvalues = property.GetValue<List<BehaviorValue>>();
-                                foreach (var bv in bvalues??new())
+                                if (bvalues != null)
                                 {
-                                    List<BehaviorValue> keepList = new();
-                                    foreach (var h in bv.Histories)
+                                    foreach (var bv in bvalues)
                                     {
-                                        if (h.Timestamp.ToLocalTime().AddDays(-7) < DateTime.Now) //archive if older than 1 day.
+                                        List<BehaviorValue> keepList = new();
+                                        foreach (var h in bv.Histories)
                                         {
-                                            if (h.DataTypeName.Equals("Boolean"))
+                                            if (h.Timestamp.ToLocalTime().AddDays(7) < DateTime.Now) //archive if older than 1 day.
                                             {
-                                                _database.TimeSeries.Insert(bv.BehaviorId, (h.GetValue<Boolean>()?1:0), h.Timestamp);
+                                                if (h.DataTypeName.Equals("Boolean"))
+                                                {
+                                                    _database.TimeSeries.Insert(bv.BehaviorId, (h.GetValue<Boolean>() ? 1 : 0), h.Timestamp);
+                                                }
+                                                else
+                                                {
+                                                    _database.TimeSeries.Insert(bv.BehaviorId, h.GetValue<double>(), h.Timestamp);
+                                                }
                                             }
                                             else
                                             {
-                                                _database.TimeSeries.Insert(bv.BehaviorId, h.GetValue<double>(), h.Timestamp);
+                                                keepList.Add(h);
                                             }
-                                        } else
-                                        {
-                                            keepList.Add(h);
+
                                         }
-                                        
+                                        bv.Histories.Clear();
+                                        bv.Histories.AddRange(keepList);
                                     }
-                                    bv.Histories.Clear();
-                                    bv.Histories.AddRange(keepList);
+                                    property.SetValue(PropertyName.BehaviorValues, bvalues);
                                 }
-                                property.SetValue(PropertyName.BehaviorValues, bvalues);
                             }
                             else if (property.Name.Equals("AlertValue"))
                             {
@@ -238,7 +242,7 @@ namespace BrickSchema.Net
                             {
                                 property.Value = "";
                             }
-                        }
+                        } 
 
                         _e.CleanUpDuplicatedProperties();
                         existingEntity.OtherEntities.Add(_e);
