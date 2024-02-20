@@ -46,6 +46,7 @@ namespace BrickSchema.Net.Helpers
             List<BrickBehavior> brickBehaviors= new List<BrickBehavior>();
             foreach (var b in behaviorsJson)
             {
+                
                 var bb = JsonConvert.DeserializeObject<BrickBehavior>(b);
                 if (bb != null) brickBehaviors.Add(bb);
             }
