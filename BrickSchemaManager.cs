@@ -306,7 +306,11 @@ namespace BrickSchema.Net
             lock (_lockObject) // Locking here
             {
                 PushEntitiesDataToDatabase(false);
-                SaveSchema(_brickPath ?? string.Empty);
+                try
+                {
+                    SaveSchema(_brickPath ?? string.Empty);
+                }
+                catch { }
 
             }
         }
