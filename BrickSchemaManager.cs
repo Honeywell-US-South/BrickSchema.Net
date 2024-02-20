@@ -170,21 +170,38 @@ namespace BrickSchema.Net
         {
             lock (_lockObject) // Locking here
             {
+                if (jsonLdFilePath.Equals(_brickPath))
+                {
+                    var dir = Path.GetDirectoryName(jsonLdFilePath);
+                    var name = Path.GetFileNameWithoutExtension(jsonLdFilePath);
+                    var backup = Path.Combine(dir, $"{name}.~json");
+                    try
+                    {
+                        File.Copy(jsonLdFilePath, backup, true);
+                    }
+                    catch { }
+                }
                 _entities = BrickSchemaUtility.ImportBrickSchema(jsonLdFilePath);
-                // Update the OtherEntities property of all entities
-                //var properties = _database.Tables<PropertyTable>("Properties");
+            }
+            
+        }
+
+        private void PushEntitiesDataToDatabase(bool clearEntityPropertyBehaviors = false)
+        {
+            lock (_lockObject)
+            {
                 foreach (var existingEntity in _entities)
                 {
                     foreach (var _e in _entities)
                     {
                         foreach (var property in _e.Properties)
                         {
-                            
+
                             if (property.Name.Equals(PropertyName.ConformanceHistory) || property.Name.Equals(PropertyName.AverageConformanceHistory))
                             {
                                 var histories = property.GetValue<Dictionary<DateTime, double>>();
                                 List<DateTime> deleteList = new();
-                                foreach (var history in histories??new())
+                                foreach (var history in histories ?? new())
                                 {
                                     if (history.Key.ToLocalTime().AddDays(7) < DateTime.Now) //archive if older than 1 day.
                                     {
@@ -240,9 +257,12 @@ namespace BrickSchema.Net
                             }
                             else if (property.Name.Equals(PropertyName.Behaviors))
                             {
-                                property.Value = "";
+                                if (clearEntityPropertyBehaviors)
+                                {
+                                    property.Value = "";
+                                }
                             }
-                        } 
+                        }
 
                         _e.CleanUpDuplicatedProperties();
                         existingEntity.OtherEntities.Add(_e);
@@ -256,6 +276,7 @@ namespace BrickSchema.Net
         {
             lock (_lockObject) // Locking here
             {
+                PushEntitiesDataToDatabase(false);
                 SaveSchema(_brickPath ?? string.Empty);
 
             }
@@ -264,15 +285,65 @@ namespace BrickSchema.Net
         public void SaveSchema(string jsonLdFilePath)
         {
             if (string.IsNullOrEmpty(jsonLdFilePath)) return;
+
             lock (_lockObject) // Locking here
             {
+                
+
+
                 var dir = Path.GetDirectoryName(jsonLdFilePath);
+                var name = Path.GetFileNameWithoutExtension(jsonLdFilePath);
+                var backup = Path.Combine(dir, $"{name}.+json");
+                var backup2 = Path.Combine(dir, $"{name}.-json");
                 if (!string.IsNullOrEmpty(dir))
                 {
                     if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 }
+                if (File.Exists(backup))
+                {
+                    try
+                    {
+                        if (File.Exists(backup2))
+                        {
+                            if (IsFileNewerThan(backup, backup2, TimeSpan.FromMinutes(60)))
+                            {
+                                File.Move(backup, backup2, true);
+                            }
+                        } else
+                        {
+                            File.Move(backup, backup2, true);
+                        }
+                        
+                    }
+                    catch { }
+                }
+                
+                if (File.Exists(jsonLdFilePath))
+                {
+                    File.Move(jsonLdFilePath, backup, true);
+                }
+
                 BrickSchemaUtility.WriteBrickSchemaToFile(_entities, jsonLdFilePath);
             }
+        }
+
+        private bool IsFileNewerThan(string filePath1, string filePath2, TimeSpan timeSpan)
+        {
+            FileInfo file1Info = new FileInfo(filePath1);
+            FileInfo file2Info = new FileInfo(filePath2);
+
+            // Ensure both files exist
+            if (!file1Info.Exists || !file2Info.Exists)
+            {
+                throw new FileNotFoundException("One or both of the files do not exist.");
+            }
+
+            // Compare last write times
+            DateTime lastWriteTime1 = file1Info.LastWriteTime;
+            DateTime lastWriteTime2 = file2Info.LastWriteTime;
+
+            // Check if file1 is at least 'timeSpan' newer than file2
+            return lastWriteTime1 - lastWriteTime2 >= timeSpan;
         }
 
         public void ArchiveEntityProperties(string entityId, int olderThanDays = 30)
