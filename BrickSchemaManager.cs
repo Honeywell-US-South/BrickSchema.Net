@@ -240,78 +240,9 @@ namespace BrickSchema.Net
                             }
                             else if (property.Name.Equals(PropertyName.Behaviors))
                             {
-                                //property.Value = "";
+                                property.Value = "";
                             }
                         } 
-
-                        foreach (var b in _e.Behaviors)
-                        {
-                            foreach (var property in b.Properties)
-                            {
-                                if (property.Name.Equals(PropertyName.ConformanceHistory) || property.Name.Equals(PropertyName.AverageConformanceHistory))
-                                {
-                                    var histories = property.GetValue<Dictionary<DateTime, double>>();
-                                    List<DateTime> deleteList = new();
-                                    foreach (var history in histories ?? new())
-                                    {
-                                        if (history.Key.ToLocalTime().AddDays(7) < DateTime.Now) //archive if older than 1 day.
-                                        {
-                                            deleteList.Add(history.Key);
-                                            _database.TimeSeries.Insert(property.Id, history.Value, timestamp: history.Key);
-                                        }
-                                    }
-                                    if (histories?.Count > 0)
-                                    {
-                                        foreach (var d in deleteList)
-                                        {
-                                            histories.Remove(d);
-                                        }
-                                    }
-                                    property.SetValue(property.Name, histories);
-                                }
-                                else if (property.Name.Equals(PropertyName.BehaviorValues))
-                                {
-                                    var bvalues = property.GetValue<List<BehaviorValue>>();
-                                    if (bvalues != null)
-                                    {
-                                        foreach (var bv in bvalues)
-                                        {
-                                            List<BehaviorValue> keepList = new();
-                                            foreach (var h in bv.Histories)
-                                            {
-                                                if (h.Timestamp.ToLocalTime().AddDays(7) < DateTime.Now) //archive if older than 1 day.
-                                                {
-                                                    if (h.DataTypeName.Equals("Boolean"))
-                                                    {
-                                                        _database.TimeSeries.Insert(bv.BehaviorId, (h.GetValue<Boolean>() ? 1 : 0), h.Timestamp);
-                                                    }
-                                                    else
-                                                    {
-                                                        _database.TimeSeries.Insert(bv.BehaviorId, h.GetValue<double>(), h.Timestamp);
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    keepList.Add(h);
-                                                }
-
-                                            }
-                                            bv.Histories.Clear();
-                                            bv.Histories.AddRange(keepList);
-                                        }
-                                        property.SetValue(PropertyName.BehaviorValues, bvalues);
-                                    }
-                                }
-                                else if (property.Name.Equals("AlertValue"))
-                                {
-                                    property.Value = "";
-                                }
-                                else if (property.Name.Equals(PropertyName.Behaviors))
-                                {
-                                    //property.Value = "";
-                                }
-                            }
-                        }
 
                         _e.CleanUpDuplicatedProperties();
                         existingEntity.OtherEntities.Add(_e);
