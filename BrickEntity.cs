@@ -11,6 +11,8 @@ namespace BrickSchema.Net
 {
     public partial class BrickEntity
     {
+        private readonly object _lockObject = new object();
+
         [JsonIgnore]
         internal List<BrickEntity> OtherEntities { get; set; } = new List<BrickEntity>();
 
@@ -129,10 +131,11 @@ namespace BrickSchema.Net
         public List<BrickEntity> GetChildEntities(string entityTypeName = "", OperationTypes comparisonOperation = OperationTypes.Equals, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase)
         {
             List<BrickEntity> entities = new();
-            
-         
-                entities = OtherEntities
-                    .Where(oe => oe.Relationships.Any(r => r.ParentId == Id)).ToList();
+
+
+            entities = OtherEntities
+                .Where(oe => oe != null && oe.Relationships.Any(r => r.ParentId == Id))
+                .ToList();
 
             if (string.IsNullOrEmpty(entityTypeName))
                 return entities;
