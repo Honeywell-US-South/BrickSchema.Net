@@ -530,10 +530,10 @@ namespace BrickSchema.Net
             // Runnable - can it run
             // Active - should it run
 
-            if (Parent.GetProperty<string>(PropertyName.Name).Equals("SIM_FCU_1") && Name.Equals("FCU Behavior"))
-            {
-                bool debug = true;
-            }
+            //if (Parent.GetProperty<string>(PropertyName.Name).Equals("SIM_FCU_1") && Name.Equals("FCU Behavior"))
+            //{
+            //    bool debug = true;
+            //}
 
 
             if (!IsBehaviorEnabled()) // Allow it to run
@@ -994,6 +994,8 @@ namespace BrickSchema.Net
             return null;
         }
 
+        
+
         protected virtual BehaviorTaskReturnCodes ManualTask(out List<BehaviorValue> behaviorValues)
         {
             behaviorValues = new();
@@ -1149,5 +1151,7 @@ namespace BrickSchema.Net
             }
             return null;
         }
+
+
     }
 }

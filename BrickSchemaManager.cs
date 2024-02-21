@@ -31,7 +31,7 @@ namespace BrickSchema.Net
 
         // Object used as lock for thread-safety
         private readonly object _lockObject = new object();
-        IoTDatabase _database;
+        IoTDatabase? _database = null;
 
         public BrickSchemaManager()
         {
@@ -101,10 +101,10 @@ namespace BrickSchema.Net
                         }
                         else //update
                         {
-                            if (e?.GetProperty<string>(EntityProperties.PropertyName.Name)?.Equals("SIM_FCU_1") ?? false)
-                            {
-                                bool debug = true;
-                            }
+                            //if (e?.GetProperty<string>(EntityProperties.PropertyName.Name)?.Equals("SIM_FCU_1") ?? false)
+                            //{
+                            //    bool debug = true;
+                            //}
                             _e.Clone(e);
                             var blist = e.GetProperty<List<string>>(EntityProperties.PropertiesEnum.Behaviors);
                             if (blist == null)
@@ -172,7 +172,7 @@ namespace BrickSchema.Net
             {
                 if (jsonLdFilePath.Equals(_brickPath))
                 {
-                    var dir = Path.GetDirectoryName(jsonLdFilePath);
+                    var dir = Path.GetDirectoryName(jsonLdFilePath)?? "";
                     var name = Path.GetFileNameWithoutExtension(jsonLdFilePath);
                     var backup = Path.Combine(dir, $"{name}.~json");
                     try
@@ -227,7 +227,7 @@ namespace BrickSchema.Net
 
                                                 try
                                                 {
-                                                    _database.TimeSeries.Insert(property.Id, history.Value, timestamp: history.Key);
+                                                    _database?.TimeSeries.Insert(property.Id, history.Value, timestamp: history.Key);
                                                 }
                                                 catch (Exception ex) { Console.WriteLine(ex.ToString()); }
                                             }
@@ -259,11 +259,11 @@ namespace BrickSchema.Net
                                                     {
                                                         if (h.DataTypeName.Equals("Boolean"))
                                                         {
-                                                            _database.TimeSeries.Insert(bv.BehaviorId, (h.GetValue<Boolean>() ? 1 : 0), h.Timestamp);
+                                                            _database?.TimeSeries.Insert(bv.BehaviorId, (h.GetValue<Boolean>() ? 1 : 0), h.Timestamp);
                                                         }
                                                         else
                                                         {
-                                                            _database.TimeSeries.Insert(bv.BehaviorId, h.GetValue<double>(), h.Timestamp);
+                                                            _database?.TimeSeries.Insert(bv.BehaviorId, h.GetValue<double>(), h.Timestamp);
                                                         }
                                                     }
                                                     catch (Exception ex) { Console.WriteLine(ex.ToString()); }
@@ -324,7 +324,7 @@ namespace BrickSchema.Net
                 
 
 
-                var dir = Path.GetDirectoryName(jsonLdFilePath);
+                var dir = Path.GetDirectoryName(jsonLdFilePath)??"";
                 var name = Path.GetFileNameWithoutExtension(jsonLdFilePath);
                 var backup = Path.Combine(dir, $"{name}.+json");
                 var backup2 = Path.Combine(dir, $"{name}.-json");

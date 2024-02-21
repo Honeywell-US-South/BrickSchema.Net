@@ -2,7 +2,7 @@
 {
     public class BrickRelationship : BrickEntity
     {
-        public string? ParentId { get; set; } = string.Empty;
+        public string ParentId { get; set; } = string.Empty;
 
         public BrickRelationship()
         {

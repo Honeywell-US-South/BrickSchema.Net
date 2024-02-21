@@ -14,8 +14,10 @@ namespace BrickSchema.Net.Behaviors
         public List<string> Tags { get; set; } = new List<string>();
         public string ActivityDescription { get; set; } = string.Empty;
         public string ResolutionOnFail { get; set; } = string.Empty;
-        public virtual FaultAnalysisActivityCode RunActivity(BrickEntity entity)
+        public virtual FaultAnalysisActivityCode RunActivity(BrickEntity? entity)
         {
+            if (entity == null) return FaultAnalysisActivityCode.UnableToProcess;
+
             return FaultAnalysisActivityCode.Pass;
         }
 
