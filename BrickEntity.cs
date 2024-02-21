@@ -109,7 +109,7 @@ namespace BrickSchema.Net
 
         public List<BrickEntity> GetParentEntities<R>()
         {
-            var rs = Relationships.Where(relationship => relationship.EntityTypeName.Equals(typeof(R).Name));
+            var rs = Relationships.Where(r => r is R || r.EntityTypeName.Equals(typeof(R).Name));
 
             var entities = OtherEntities
             .Where(entity => rs.Any(x => x.ParentId == entity.Id)).ToList();
@@ -166,7 +166,7 @@ namespace BrickSchema.Net
         public List<BrickEntity> GetChildEntities<R>()
         {
             var entities = OtherEntities
-                            .Where(oe => oe.Relationships.Any(r => r.EntityTypeName.Equals(typeof(R).Name) && r.ParentId == Id)).ToList();
+                            .Where(oe => oe.Relationships.Any(r => (r is R || r.EntityTypeName.Equals(typeof(R).Name)) && r.ParentId == Id)).ToList();
 
             return entities;
         }
