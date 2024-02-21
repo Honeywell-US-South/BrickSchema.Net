@@ -105,22 +105,22 @@ namespace BrickSchema.Net
             return entities;
         }
 
-        public List<BrickEntity> GetParentEntities<T>()
+        public List<BrickEntity> GetParentEntities<R>()
         {
-            var rs = Relationships.Where(relationship => relationship.EntityTypeName.Equals(typeof(T).Name));
+            var rs = Relationships.Where(relationship => relationship.EntityTypeName.Equals(typeof(R).Name));
 
             var entities = OtherEntities
             .Where(entity => rs.Any(x => x.ParentId == entity.Id)).ToList();
             return entities;
         }
 
-        public List<U> GetParentEntities<T, U>()
+        public List<T> GetParentEntities<R, T>()
         {
-            var entities = GetParentEntities<T>();
-            List<U> result = new List<U>();
+            var entities = GetParentEntities<R>();
+            List<T> result = new List<T>();
             foreach(var entity in entities)
             {
-                if (entity is  U u) result.Add(u);
+                if (entity is  T u) result.Add(u);
             }
 
             return result;
@@ -160,22 +160,22 @@ namespace BrickSchema.Net
             return entities;
         }
 
-        public List<BrickEntity> GetChildEntities<T>()
+        public List<BrickEntity> GetChildEntities<R>()
         {
             var entities = OtherEntities
-                            .Where(oe => oe.Relationships.Any(r => r.EntityTypeName.Equals(typeof(T).Name) && r.ParentId == Id)).ToList();
+                            .Where(oe => oe.Relationships.Any(r => r.EntityTypeName.Equals(typeof(R).Name) && r.ParentId == Id)).ToList();
 
             return entities;
         }
 
-        public List<U> GetChildEntities<T, U>()
+        public List<T> GetChildEntities<R, T>()
         {
-            var entities = GetChildEntities<T>().ToList();
+            var entities = GetChildEntities<R>().ToList();
 
-            List<U> result = new List<U>();
+            List<T> result = new List<T>();
             foreach (var entity in entities)
             {
-                if (entity is  U u) result.Add(u);
+                if (entity is  T u) result.Add(u);
             }
 
             return result;
