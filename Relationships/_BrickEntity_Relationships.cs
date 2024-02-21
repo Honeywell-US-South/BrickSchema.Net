@@ -19,7 +19,7 @@ namespace BrickSchema.Net
             if (string.IsNullOrEmpty(rootId)) rootId = this.Id; //this is the true root
             
 
-            foreach (var entity in OtherEntities)
+            foreach (var entity in OtherEntities.ToArray())
             {
                 if (entity.Relationships.Any(x => x.ParentId == this.Id))
                 {
