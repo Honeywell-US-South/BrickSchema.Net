@@ -1,4 +1,5 @@
 ﻿using BrickSchema.Net.Shapes;
+using BrickSchema.Net.ThreadSafeObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +11,9 @@ namespace BrickSchema.Net
     public partial class BrickSchemaManager
     {
         
-        public List<BrickBehavior> GetBehaviors(List<string> behaviorIds, bool byReference = true)
+        public ThreadSafeList<BrickBehavior> GetBehaviors(List<string> behaviorIds, bool byReference = true)
         {
-            List<BrickBehavior> brickBehaviors = new List<BrickBehavior>();
+            ThreadSafeList<BrickBehavior> brickBehaviors = new ThreadSafeList<BrickBehavior>();
             foreach (var entity in _entities)
             {
                 var e = entity as BrickEntity;
@@ -22,23 +23,23 @@ namespace BrickSchema.Net
             return brickBehaviors;
         }
 
-        public List<BrickBehavior> GetBehaviorsByShapeType(List<string> behaviorIds, BehaviorFunction.Types type, bool byReference = true)
+        public ThreadSafeList<BrickBehavior> GetBehaviorsByShapeType(List<string> behaviorIds, BehaviorFunction.Types type, bool byReference = true)
         {
-            List<BrickBehavior> brickBehaviors = new List<BrickBehavior>();
+            ThreadSafeList<BrickBehavior> brickBehaviors = new ThreadSafeList<BrickBehavior>();
             foreach (var entity in _entities)
             {
                 var e = entity as BrickEntity;
-                brickBehaviors.AddRange(e.GetBehaviorsByShapeType(type).Where(x => behaviorIds.Contains(x.Id) || behaviorIds.Count == 0) ?? new List<BrickBehavior>());
+                brickBehaviors.AddRange(e.GetBehaviorsByShapeType(type).Where(x => behaviorIds.Contains(x.Id) || behaviorIds.Count == 0) ?? new ThreadSafeList<BrickBehavior>());
             }
 
             return brickBehaviors;
         }
 
-        public List<BrickBehavior> GetEquipmentBehaviors(string equipmentId, bool byReference = true)
+        public ThreadSafeList<BrickBehavior> GetEquipmentBehaviors(string equipmentId, bool byReference = true)
         {
             var equipments = GetEquipments(new() { equipmentId }, byReference);
 
-            List<BrickBehavior> brickBehaviors = new();
+            ThreadSafeList<BrickBehavior> brickBehaviors = new();
             foreach (var entity in equipments)
             {
                 var e = entity as BrickEntity;

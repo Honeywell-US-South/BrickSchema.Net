@@ -20,6 +20,7 @@ using BrickSchema.Net.Classes.Points;
 using BrickSchema.Net.DB;
 using BrickSchema.Net.Helpers;
 using BrickSchema.Net.StaticNames;
+using BrickSchema.Net.ThreadSafeObjects;
 using IoTDBdotNET;
 using Newtonsoft.Json;
 
@@ -28,7 +29,7 @@ namespace BrickSchema.Net
     public partial class BrickSchemaManager
     {
        
-        private List<BrickEntity> _entities;
+        private ThreadSafeList<BrickEntity> _entities;
         private readonly string? _brickPath;
 
         // Object used as lock for thread-safety
@@ -37,12 +38,12 @@ namespace BrickSchema.Net
 
         public BrickSchemaManager()
         {
-            _entities = new List<BrickEntity>();
+            _entities = new ThreadSafeList<BrickEntity>();
         }
 
         public BrickSchemaManager(string brickFilePath)
         {
-            _entities = new List<BrickEntity>();
+            _entities = new ThreadSafeList<BrickEntity>();
             _brickPath = brickFilePath;
             if (string.IsNullOrEmpty(_brickPath)) throw new ArgumentNullException("Empty path");
             var dbPath = Path.Combine(Path.GetDirectoryName(_brickPath)??"", "IoTDB");
@@ -54,7 +55,7 @@ namespace BrickSchema.Net
         public void LoadSchemaFromJson(string json, bool appendOrUpdate = false)
         {
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
-            var entities = JsonConvert.DeserializeObject<List<BrickEntity>>(json, settings) ?? new();
+            var entities = JsonConvert.DeserializeObject<ThreadSafeList<BrickEntity>>(json, settings) ?? new();
             ImportEntities(entities, appendOrUpdate);
         }
 
@@ -65,7 +66,7 @@ namespace BrickSchema.Net
             if (entity != null)
             {
 
-                List<BrickEntity> entities = new();
+                ThreadSafeList<BrickEntity> entities = new();
                 entities.Add(entity);
                 ImportEntities(entities, true);
             }
@@ -73,7 +74,7 @@ namespace BrickSchema.Net
 
 
 
-        public void ImportEntities(List<BrickEntity> entities, bool appendOrUpdate = false)
+        public void ImportEntities(ThreadSafeList<BrickEntity> entities, bool appendOrUpdate = false)
         {
             lock (_lockObject) // Locking here 
             {
@@ -97,7 +98,7 @@ namespace BrickSchema.Net
                                 _e.Behaviors = entities
                                     .Where(x => blist.Contains(x.Id) && x is BrickBehavior) // Find all entities that match the criteria.
                                     .Select(y => y as BrickBehavior ?? new()) // Safely cast them to BrickBehavior.
-                                    .ToList(); // Convert the result to a list.
+                                    .ToThreadSafeList(); // Convert the result to a list.
                             }
                             _entities.Add(_e);
                         }
@@ -119,7 +120,7 @@ namespace BrickSchema.Net
                                 _e.Behaviors = entities
                                     .Where(x => blist.Contains(x.Id) && x is BrickBehavior) // Find all entities that match the criteria.
                                     .Select(y => y as BrickBehavior ?? new()) // Safely cast them to BrickBehavior.
-                                    .ToList(); // Convert the result to a list.
+                                    .ToThreadSafeList(); // Convert the result to a list.
                             }
                         }
                         foreach (var _b in _e.Behaviors)
@@ -151,7 +152,7 @@ namespace BrickSchema.Net
                             e.Behaviors = entities
                                 .Where(x => blist.Contains(x.Id) && x is BrickBehavior) // Find all entities that match the criteria.
                                 .Select(y => y as BrickBehavior ?? new()) // Safely cast them to BrickBehavior.
-                                .ToList(); // Convert the result to a list.
+                                .ToThreadSafeList(); // Convert the result to a list.
                         }
                         foreach (var b in e.Behaviors)
                         {
@@ -465,9 +466,9 @@ namespace BrickSchema.Net
         }
 
 
-        public List<dynamic> SearchEntities(Func<dynamic, bool> predicate)
+        public ThreadSafeList<dynamic> SearchEntities(Func<dynamic, bool> predicate)
         {
-            return _entities.Where(predicate).ToList();
+            return _entities.Where<dynamic>(predicate).ToThreadSafeList();
         }
 
         public bool UpdateEntity(dynamic updatedEntity)
@@ -527,7 +528,7 @@ namespace BrickSchema.Net
                     var e = _e as BrickEntity;
                     e.OtherEntities.Add(entity);
                 }
-                entity.OtherEntities = new List<BrickEntity>(_entities);
+                entity.OtherEntities = new ThreadSafeList<BrickEntity>(_entities);
                 _entities.Add(entity);
             }
             return entity;
@@ -593,11 +594,11 @@ namespace BrickSchema.Net
             }
 
         }
-        public List<BrickEntity> GetEntities(bool byReference = true)
+        public ThreadSafeList<BrickEntity> GetEntities(bool byReference = true)
         {
 
 
-            List<BrickEntity> entities = new();
+            ThreadSafeList<BrickEntity> entities = new();
             lock (_lockObject) // Locking here
             {
                 foreach (var entity in _entities)
@@ -615,7 +616,7 @@ namespace BrickSchema.Net
             return entities;
 
         }
-        public List<BrickEntity> GetEntities<T>(bool byReference = true)
+        public ThreadSafeList<BrickEntity> GetEntities<T>(bool byReference = true)
         {
             lock (_lockObject) // Locking here
             {
@@ -626,7 +627,7 @@ namespace BrickSchema.Net
                 }
                 else
                 { //get specified type
-                    List<BrickEntity> entities = new();
+                    ThreadSafeList<BrickEntity> entities = new();
                     var isBrickClass = typeof(T).IsSubclassOf(typeof(BrickClass));
                     foreach (var entity in _entities)
                     {
@@ -673,9 +674,9 @@ namespace BrickSchema.Net
             return null;
         }
 
-        public List<BrickEntity> GetEquipments(List<string> equipmentIds, bool byReference = true)
+        public ThreadSafeList<BrickEntity> GetEquipments(List<string> equipmentIds, bool byReference = true)
         {
-            List<BrickEntity> entities = new List<BrickEntity>();
+            ThreadSafeList<BrickEntity> entities = new ThreadSafeList<BrickEntity>();
             var matchedEntities = _entities.Where(x => equipmentIds.Contains(x.Id)).ToList();
 
             foreach (var entity in matchedEntities)

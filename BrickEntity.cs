@@ -4,6 +4,7 @@ using BrickSchema.Net.Enums;
 using BrickSchema.Net.Relationships;
 using BrickSchema.Net.Shapes;
 using BrickSchema.Net.StaticNames;
+using BrickSchema.Net.ThreadSafeObjects;
 using Newtonsoft.Json;
 using System.Drawing;
 
@@ -14,21 +15,21 @@ namespace BrickSchema.Net
         private readonly object _lockObject = new object();
 
         [JsonIgnore]
-        internal List<BrickEntity> OtherEntities { get; set; } = new List<BrickEntity>();
+        internal ThreadSafeList<BrickEntity> OtherEntities { get; set; } = new ThreadSafeList<BrickEntity>();
 
         public string Id { get; set; } = string.Empty;
         public string EntityTypeName { get; set; } = string.Empty;
         public DateTime LastUpdate { get; set; }
 
-        public List<EntityProperty> Properties { get; set; } = new();
-        public List<BrickRelationship> Relationships { get; set; } = new();
+        public ThreadSafeList<EntityProperty> Properties { get; set; } = new();
+        public ThreadSafeList<BrickRelationship> Relationships { get; set; } = new();
 
-        public List<BrickShape> Shapes { get; set; } = new();
+        public ThreadSafeList<BrickShape> Shapes { get; set; } = new();
 
         public Dictionary<string, string> RegisteredBehaviors { get; set; } = new(); //type, guid
 
         [JsonIgnore]
-        public List<BrickBehavior> Behaviors { get; set; } = new();
+        public ThreadSafeList<BrickBehavior> Behaviors { get; set; } = new();
 
         public BrickEntity(BrickEntity entity)
         {
@@ -46,13 +47,13 @@ namespace BrickSchema.Net
         public BrickEntity()
         {
             OnPropertyValueChanged = delegate { };
-            OtherEntities = new List<BrickEntity>();
+            OtherEntities = new ThreadSafeList<BrickEntity>();
             Id = Guid.NewGuid().ToString();
-            Properties = new List<EntityProperty>();
-            Relationships = new List<BrickRelationship>();
-            Shapes = new List<BrickShape>();
+            Properties = new ThreadSafeList<EntityProperty>();
+            Relationships = new ThreadSafeList<BrickRelationship>();
+            Shapes = new ThreadSafeList<BrickShape>();
             RegisteredBehaviors = new Dictionary<string, string>();
-            Behaviors = new List<BrickBehavior>();
+            Behaviors = new ThreadSafeList<BrickBehavior>();
             LastUpdate = DateTime.Now;
             EntityTypeName = string.Empty;
         }
@@ -100,19 +101,19 @@ namespace BrickSchema.Net
             return entity;
         }
 
-        public List<BrickEntity> GetParentEntities()
+        public ThreadSafeList<BrickEntity> GetParentEntities()
         {
             var entities = OtherEntities
-            .Where(entity => Relationships.Any(x => x.ParentId == entity.Id)).ToList();
+            .Where(entity => Relationships.Any(x => x.ParentId == entity.Id)).ToThreadSafeList();
             return entities;
         }
 
-        public List<BrickEntity> GetParentEntities<R>()
+        public ThreadSafeList<BrickEntity> GetParentEntities<R>()
         {
             var rs = Relationships.Where(r => r is R || r.EntityTypeName.Equals(typeof(R).Name));
 
             var entities = OtherEntities
-            .Where(entity => rs.Any(x => x.ParentId == entity.Id)).ToList();
+            .Where(entity => rs.Any(x => x.ParentId == entity.Id)).ToThreadSafeList();
             return entities;
         }
 
@@ -128,14 +129,14 @@ namespace BrickSchema.Net
             return result;
         }
 
-        public List<BrickEntity> GetChildEntities(string entityTypeName = "", OperationTypes comparisonOperation = OperationTypes.Equals, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase)
+        public ThreadSafeList<BrickEntity> GetChildEntities(string entityTypeName = "", OperationTypes comparisonOperation = OperationTypes.Equals, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase)
         {
-            List<BrickEntity> entities = new();
+            ThreadSafeList<BrickEntity> entities = new();
 
 
             entities = OtherEntities
                 .Where(oe => oe != null && oe.Relationships.Any(r => r.ParentId == Id))
-                .ToList();
+                .ToThreadSafeList();
 
             if (string.IsNullOrEmpty(entityTypeName))
                 return entities;
@@ -144,29 +145,29 @@ namespace BrickSchema.Net
                 {
                     case OperationTypes.Equals:
                         entities = entities
-                            .Where(oe => oe.EntityTypeName.Equals(entityTypeName, comparisonType)).ToList();
+                            .Where(oe => oe.EntityTypeName.Equals(entityTypeName, comparisonType)).ToThreadSafeList();
                         break;
                     case OperationTypes.Contains:
                         entities = entities
-                            .Where(oe => oe.EntityTypeName.Equals(entityTypeName, comparisonType)).ToList();
+                            .Where(oe => oe.EntityTypeName.Equals(entityTypeName, comparisonType)).ToThreadSafeList();
                     break;
                     case OperationTypes.EndsWith:
                         entities = entities
-                            .Where(oe => oe.EntityTypeName.Equals(entityTypeName, comparisonType)).ToList();
+                            .Where(oe => oe.EntityTypeName.Equals(entityTypeName, comparisonType)).ToThreadSafeList();
                     break;
                     case OperationTypes.StartsWith:
                         entities = entities
-                            .Where(oe => oe.EntityTypeName.Equals(entityTypeName, comparisonType)).ToList();
+                            .Where(oe => oe.EntityTypeName.Equals(entityTypeName, comparisonType)).ToThreadSafeList();
                     break;
                 }
             
             return entities;
         }
 
-        public List<BrickEntity> GetChildEntities<R>()
+        public ThreadSafeList<BrickEntity> GetChildEntities<R>()
         {
             var entities = OtherEntities
-                            .Where(oe => oe.Relationships.Any(r => (r is R || r.EntityTypeName.Equals(typeof(R).Name)) && r.ParentId == Id)).ToList();
+                            .Where(oe => oe.Relationships.Any(r => (r is R || r.EntityTypeName.Equals(typeof(R).Name)) && r.ParentId == Id)).ToThreadSafeList();
 
             return entities;
         }
@@ -250,18 +251,18 @@ namespace BrickSchema.Net
             return foundTags;
         }
 
-        public List<BrickEntity> GetEquipmentEntities()
+        public ThreadSafeList<BrickEntity> GetEquipmentEntities()
         {
             var entities = OtherEntities
-                .Where(e => e is Equipment && e.Relationships.Any(x => x.ParentId == this.Id)).ToList();
+                .Where(e => e is Equipment && e.Relationships.Any(x => x.ParentId == this.Id)).ToThreadSafeList();
             return entities;
         }
 
 
-        public List<BrickEntity> GetEquipmentEntities(params string[] entityTypeNames)
+        public ThreadSafeList<BrickEntity> GetEquipmentEntities(params string[] entityTypeNames)
         {
             var entities = OtherEntities
-                .Where(e => e is Equipment && entityTypeNames.Contains(e.EntityTypeName) && e.Relationships.Any(x => x.ParentId == this.Id)).ToList();
+                .Where(e => e is Equipment && entityTypeNames.Contains(e.EntityTypeName) && e.Relationships.Any(x => x.ParentId == this.Id)).ToThreadSafeList();
             return entities;
         }
 

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using BrickSchema.Net.ThreadSafeObjects;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,14 +23,14 @@ namespace BrickSchema.Net.Helpers
             return tName;
         }
 
-        public static string BehaviorsToJson(List<BrickBehavior> behaviors)
+        public static string BehaviorsToJson(ThreadSafeList<BrickBehavior> behaviors)
         {
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto };
  
             // Create a complete copy of the list
-            var behaviorsCopy = new List<BrickBehavior>(behaviors);
+            var behaviorsCopy = new ThreadSafeList<BrickBehavior>(behaviors);
 
-            List<string> behaviorsJson = new();
+            ThreadSafeList<string> behaviorsJson = new();
             foreach (var b in behaviorsCopy)
             {
                 var bjson = JsonConvert.SerializeObject(b, settings);
@@ -38,12 +39,12 @@ namespace BrickSchema.Net.Helpers
             return JsonConvert.SerializeObject(behaviorsJson, settings);
         }
 
-        public static string BehaviorsToIdList(List<BrickBehavior> behaviors)
+        public static string BehaviorsToIdList(ThreadSafeList<BrickBehavior> behaviors)
         {
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto };
             
             // Create a complete copy of the list
-            var behaviorsCopy = new List<BrickBehavior>(behaviors);
+            var behaviorsCopy = new ThreadSafeList<BrickBehavior>(behaviors);
 
             List<string> behaviorsJson = new();
             foreach (var b in behaviorsCopy)
@@ -54,11 +55,11 @@ namespace BrickSchema.Net.Helpers
             return JsonConvert.SerializeObject(behaviorsJson, settings);
         }
 
-        public static List<BrickBehavior> JsonToBehaviors(string json)
+        public static ThreadSafeList<BrickBehavior> JsonToBehaviors(string json)
         {
             if (string.IsNullOrEmpty(json)) return new();
             List<string> behaviorsJson = JsonConvert.DeserializeObject<List<string>>(json)??new();
-            List<BrickBehavior> brickBehaviors= new List<BrickBehavior>();
+            ThreadSafeList<BrickBehavior> brickBehaviors= new ThreadSafeList<BrickBehavior>();
             foreach (var b in behaviorsJson)
             {
                 

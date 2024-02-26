@@ -4,6 +4,7 @@ using BrickSchema.Net.EntityProperties;
 using BrickSchema.Net.Relationships;
 using BrickSchema.Net.Shapes;
 using BrickSchema.Net.StaticNames;
+using BrickSchema.Net.ThreadSafeObjects;
 using EmberAnalyticsService.GraphBehaviors.Utils;
 using System;
 using System.Collections.Generic;
@@ -73,9 +74,9 @@ namespace BrickSchema.Net
             LastUpdate = DateTime.Now;
         }
 
-        public List<BrickBehavior> GetBehaviors(bool byReference = true)
+        public ThreadSafeList<BrickBehavior> GetBehaviors(bool byReference = true)
         {
-            List<BrickBehavior> behaviors = new();
+            ThreadSafeList<BrickBehavior> behaviors = new();
             if (Behaviors.Count == 0)
             {
                 behaviors = Helpers.EntityUtils.JsonToBehaviors(GetProperty<string>(StaticNames.PropertyName.Behaviors) ?? string.Empty);
