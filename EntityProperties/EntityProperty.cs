@@ -90,11 +90,11 @@ namespace BrickSchema.Net.EntityProperties
                 }
                 catch (Exception innerEx)
                 {
-                    // Log or handle the inner exception if needed
-                    Console.WriteLine($"Error converting the value for type {tName}: {innerEx.Message}");
+					// Log or handle the inner exception if needed
+					Console.Out.WriteLineAsync($"Error converting the value for type {tName}: {innerEx.Message}");
                 }
                 // Logging or handle the exception as needed
-                Console.WriteLine($"Error deserializing the value for type {tName}: {ex.Message}");
+                Console.Out.WriteLineAsync($"Error deserializing the value for type {tName}: {ex.Message}");
             }
 
             return default(T?);
