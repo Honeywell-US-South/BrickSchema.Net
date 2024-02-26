@@ -22,13 +22,31 @@ namespace BrickSchema.Net
             {
                 json = File.ReadAllText(jsonLdFilePath);
             }
+            var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
             if (!string.IsNullOrEmpty(json))
             {
                 try
                 {
-                    var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
+                    
                     b = JsonConvert.DeserializeObject<ThreadSafeList<BrickEntity>>(json, settings) ?? new();
-                } catch (Exception ex) { Console.Out.WriteLineAsync(ex.ToString()); }
+                } catch (Exception ex) { 
+                    
+                    try
+                    {
+                        //upgrade to ThreadSafeList
+                        json = json.Replace("System.Collections.Generic.List`1[[BrickSchema.Net.BrickEntity, BrickSchema.Net]], System.Private.CoreLib", "BrickSchema.Net.ThreadSafeObjects.ThreadSafeList`1[[BrickSchema.Net.BrickEntity, BrickSchema.Net]], BrickSchema.Net");
+                        json = json.Replace("System.Collections.Generic.List`1[[BrickSchema.Net.EntityProperties.EntityProperty, BrickSchema.Net]], System.Private.CoreLib", "BrickSchema.Net.ThreadSafeObjects.ThreadSafeList`1[[BrickSchema.Net.EntityProperties.EntityProperty, BrickSchema.Net]], BrickSchema.Net");
+                        json = json.Replace("System.Collections.Generic.List`1[[BrickSchema.Net.BrickRelationship, BrickSchema.Net]], System.Private.CoreLib", "BrickSchema.Net.ThreadSafeObjects.ThreadSafeList`1[[BrickSchema.Net.BrickRelationship, BrickSchema.Net]], BrickSchema.Net");
+                        json = json.Replace("System.Collections.Generic.List`1[[BrickSchema.Net.BrickShape, BrickSchema.Net]], System.Private.CoreLib", "BrickSchema.Net.ThreadSafeObjects.ThreadSafeList`1[[BrickSchema.Net.BrickShape, BrickSchema.Net]], BrickSchema.Net");
+                        b = JsonConvert.DeserializeObject<ThreadSafeList<BrickEntity>>(json, settings) ?? new();
+                    }
+                    catch (Exception ex2)
+                    {
+
+                        Console.Out.WriteLineAsync(ex2.ToString());
+
+                    }
+                }
             }
             return b;
         }
