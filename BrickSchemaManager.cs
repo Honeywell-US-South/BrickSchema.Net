@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
@@ -26,6 +27,7 @@ namespace BrickSchema.Net
 {
     public partial class BrickSchemaManager
     {
+       
         private List<BrickEntity> _entities;
         private readonly string? _brickPath;
 
