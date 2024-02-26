@@ -1,4 +1,5 @@
 ﻿using BrickSchema.Net.Relationships;
+using BrickSchema.Net.ThreadSafeObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,7 +38,7 @@ namespace BrickSchema.Net
             return relationship;
         }
 
-        public List<BrickRelationship> GetRelationships()
+        public ThreadSafeList<BrickRelationship> GetRelationships()
         {
             return Relationships;
         }

@@ -1,6 +1,7 @@
 ﻿using BrickSchema.Net.Classes.Equipments.HVACType;
 using BrickSchema.Net.EntityProperties;
 using BrickSchema.Net.Shapes;
+using BrickSchema.Net.ThreadSafeObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,7 +46,7 @@ namespace BrickSchema.Net
             return shape;
         }
 
-        public List<BrickShape> GetShapes()
+        public ThreadSafeList<BrickShape> GetShapes()
         {
             return Shapes;
         }

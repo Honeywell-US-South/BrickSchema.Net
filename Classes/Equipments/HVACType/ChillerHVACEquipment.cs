@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BrickSchema.Net.Classes.Equipments.HVACType.Chillers;
 using BrickSchema.Net.Relationships;
+using BrickSchema.Net.ThreadSafeObjects;
 
 namespace BrickSchema.Net.Classes.Equipments.HVACType
 {
@@ -32,15 +33,15 @@ namespace BrickSchema.Net.Classes.Equipments.HVACType
 
         }
 
-        public List<BrickEntity> GetCoolingValveEntities()
+        public ThreadSafeList<BrickEntity> GetCoolingValveEntities()
         {
             var entities = GetCoolingValveEntities(this); 
             return entities;
         }
 
-        private List<BrickEntity> GetCoolingValveEntities(BrickEntity entity)
+        private ThreadSafeList<BrickEntity> GetCoolingValveEntities(BrickEntity entity)
         {
-            List<BrickEntity> entities = new List<BrickEntity>();
+            ThreadSafeList<BrickEntity> entities = new ThreadSafeList<BrickEntity>();
             var children = entity.OtherEntities
             .Where(entity => entity.Relationships.Any(relationship => relationship.ParentId == this.Id))
             .ToList();

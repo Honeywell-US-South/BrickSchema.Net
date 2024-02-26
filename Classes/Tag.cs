@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BrickSchema.Net.ThreadSafeObjects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,11 +20,11 @@ namespace BrickSchema.Net.Classes
             SetProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Tag).Name);
         }
 
-        public List<BrickEntity> GetEntities()
+        public ThreadSafeList<BrickEntity> GetEntities()
         {
             var entities = OtherEntities
                 .Where(entity => entity.Relationships.Any(relationship => relationship.ParentId == Id))
-                .ToList();
+                .ToThreadSafeList();
             return entities;
         }
 

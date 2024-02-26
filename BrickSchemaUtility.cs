@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using System.Xml;
+using BrickSchema.Net.ThreadSafeObjects;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -12,10 +13,10 @@ namespace BrickSchema.Net
 {
     public static class BrickSchemaUtility
     {
-        public static List<BrickEntity> ImportBrickSchema(string jsonLdFilePath)
+        public static ThreadSafeList<BrickEntity> ImportBrickSchema(string jsonLdFilePath)
         {
 
-            List<BrickEntity> b = new();
+            ThreadSafeList<BrickEntity> b = new();
             string json = string.Empty;
             if (File.Exists(jsonLdFilePath))
             {
@@ -26,13 +27,13 @@ namespace BrickSchema.Net
                 try
                 {
                     var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
-                    b = JsonConvert.DeserializeObject<List<BrickEntity>>(json, settings) ?? new();
+                    b = JsonConvert.DeserializeObject<ThreadSafeList<BrickEntity>>(json, settings) ?? new();
                 } catch (Exception ex) { Console.WriteLine(ex.ToString()); }
             }
             return b;
         }
 
-        public static void WriteBrickSchemaToFile(List<BrickEntity> entities, string jsonLdFilePath)
+        public static void WriteBrickSchemaToFile(ThreadSafeList<BrickEntity> entities, string jsonLdFilePath)
         {
 
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
@@ -57,7 +58,7 @@ namespace BrickSchema.Net
             }
         }
 
-        public static string ExportBrickSchemaToJson(List<BrickEntity> entities)
+        public static string ExportBrickSchemaToJson(ThreadSafeList<BrickEntity> entities)
         {
             
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, Formatting = Newtonsoft.Json.Formatting.Indented };
@@ -76,7 +77,7 @@ namespace BrickSchema.Net
 
         
 
-        public static Dictionary<string, Tuple<double, double, double>> SpreadEntitiesInStarConfiguration(List<BrickEntity> entities, double centerX, double centerY, int desiredSpacing, params Type[] relationshipTypes)
+        public static Dictionary<string, Tuple<double, double, double>> SpreadEntitiesInStarConfiguration(ThreadSafeList<BrickEntity> entities, double centerX, double centerY, int desiredSpacing, params Type[] relationshipTypes)
         {
             Dictionary<string, Tuple<double, double, double>> coordinates = new();
 
@@ -90,7 +91,7 @@ namespace BrickSchema.Net
                 foreach (var (childEntity, zCoordinate) in childEntitiesWithZ)
                 {
                     // Use zCoordinate as layer
-                    var childEntities = childEntitiesWithZ.Select(ce => ce.Item1).ToList(); // Extract just the entities for spreading
+                    var childEntities = childEntitiesWithZ.Select(ce => ce.Item1).ToThreadSafeList(); // Extract just the entities for spreading
                     double childRadius = CalculateOptimumRadius(30, 5, childEntities.Count);
                     var (newCenterX, newCenterY) = CalculateNewCenter(parent, coordinates);
                     SpreadNodesInStarConfiguration(childEntities, newCenterX, newCenterY, childRadius, zCoordinate, coordinates);
@@ -102,7 +103,7 @@ namespace BrickSchema.Net
 
 
 
-        private static void SpreadNodesInStarConfiguration(List<BrickEntity> entities, double centerX, double centerY, double radius, int zCoordinate, Dictionary<string, Tuple<double, double, double>> coordinates)
+        private static void SpreadNodesInStarConfiguration(ThreadSafeList<BrickEntity> entities, double centerX, double centerY, double radius, int zCoordinate, Dictionary<string, Tuple<double, double, double>> coordinates)
         {
             int totalNodes = entities.Count;
             double angleIncrement = 360.0 / totalNodes;
@@ -128,7 +129,7 @@ namespace BrickSchema.Net
             return (0, 0); // Fallback if parent's coordinates not found
         }
 
-        public static List<BrickEntity> FindRootEntities(IEnumerable<BrickEntity> entities, params Type[] relationshipTypes)
+        public static ThreadSafeList<BrickEntity> FindRootEntities(ThreadSafeList<BrickEntity> entities, params Type[] relationshipTypes)
         {
             
             var relationshipTypeNamesSet = new HashSet<string>(relationshipTypes.Select(t => t.Name));
@@ -147,14 +148,14 @@ namespace BrickSchema.Net
             }
 
            
-            var result = entities.Where(entity => !childEntityIds.Contains(entity.Id)).ToList();
+            var result = entities.Where(entity => !childEntityIds.Contains(entity.Id)).ToThreadSafeList();
 
             return result;
         }
 
         
 
-        private static List<(BrickEntity, int)> FindChildEntities(BrickEntity parent, List<BrickEntity> entities, params Type[] relationshipTypes)
+        private static ThreadSafeList<(BrickEntity, int)> FindChildEntities(BrickEntity parent, ThreadSafeList<BrickEntity> entities, params Type[] relationshipTypes)
         {
             var relationshipTypeNamesSet = new Dictionary<string, int>();
             for (int i = 0; i < relationshipTypes.Length; i++)
@@ -162,7 +163,7 @@ namespace BrickSchema.Net
                 relationshipTypeNamesSet[relationshipTypes[i].Name] = i;
             }
 
-            var childEntities = new List<(BrickEntity, int)>();
+            var childEntities = new ThreadSafeList<(BrickEntity, int)>();
 
             foreach (var entity in entities)
             {
