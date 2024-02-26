@@ -184,17 +184,12 @@ namespace BrickSchema.Net
                     }
                     catch { }
                 }
-                _entities = BrickSchemaUtility.ImportBrickSchema(jsonLdFilePath);
-                foreach (var e in _entities)
+                if (File.Exists(jsonLdFilePath))
                 {
-                    foreach (var _e in _entities)
-                    {
-                        if (e.Id != _e.Id)
-                        {
-                            e.OtherEntities.Clear();
-                            e.OtherEntities.Add(_e);
-                        }
-                    }
+                    var json = File.ReadAllText(jsonLdFilePath);
+
+                    _entities = BrickSchemaUtility.ImportBrickSchema(jsonLdFilePath);
+                    
                 }
             }
             

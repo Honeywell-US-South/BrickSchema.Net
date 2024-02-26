@@ -14,8 +14,9 @@ namespace BrickSchema.Net
     {
         private readonly object _lockObject = new object();
 
+        [ThreadSafeListRef]
         [JsonIgnore]
-        internal ThreadSafeList<BrickEntity> OtherEntities { get; set; } = new ThreadSafeList<BrickEntity>();
+        public ThreadSafeList<BrickEntity> OtherEntities { get; set; } = new ThreadSafeList<BrickEntity>();
 
         public string Id { get; set; } = string.Empty;
         public string EntityTypeName { get; set; } = string.Empty;
