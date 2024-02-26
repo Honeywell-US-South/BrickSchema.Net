@@ -92,7 +92,7 @@ namespace BrickSchema.Net.Behaviors
 
         public void SetValue<T>(T value)
         {
-            if (value == null) { Console.WriteLine($"Property Set Value [{this.Name}:null]"); return; }
+            if (value == null) { Console.Out.WriteLineAsync($"Property Set Value [{this.Name}:null]"); return; }
             try
             {
                 this.DataTypeName = Helpers.EntityUtils.GetTypeName<T>();
@@ -103,7 +103,7 @@ namespace BrickSchema.Net.Behaviors
                 Histories.Add(behaviorResult);
 
             }
-            catch (Exception ex) { Console.WriteLine($"Property Set Value [{this.Name}:{ex.Message}]"); }
+            catch (Exception ex) { Console.Out.WriteLineAsync($"Property Set Value [{this.Name}:{ex.Message}]"); }
         }
 
         public void UpdateValue(BehaviorValue value)
@@ -134,7 +134,7 @@ namespace BrickSchema.Net.Behaviors
                 T? deserializedObject = JsonConvert.DeserializeObject<T>(this.Value);
                 return deserializedObject;
             }
-            catch (Exception ex) { Console.WriteLine($"Cannot convert {DataTypeName} to {tName}. {ex.Message}"); }
+            catch (Exception ex) { Console.Out.WriteLineAsync($"Cannot convert {DataTypeName} to {tName}. {ex.Message}"); }
             return default(T?);
         }
 
@@ -160,7 +160,7 @@ namespace BrickSchema.Net.Behaviors
                     return (deserializedObject, default(U));
                 }
             }
-            catch (Exception ex) { Console.WriteLine($"Cannot convert {DataTypeName} to {tName}. {ex.Message}"); }
+            catch (Exception ex) { Console.Out.WriteLineAsync($"Cannot convert {DataTypeName} to {tName}. {ex.Message}"); }
             return (default(T?), default(U));
         }
 

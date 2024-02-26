@@ -209,7 +209,7 @@ namespace BrickSchema.Net
                     try
                     {
                         var existingEntity = _entities[i];
-                        Console.WriteLine($"Processing entity {i} of {_entities.Count}");
+                        Console.Out.WriteLineAsync($"Processing entity {i} of {_entities.Count}");
                         
                             foreach (var property in existingEntity.Properties)
                             {
@@ -232,7 +232,7 @@ namespace BrickSchema.Net
                                                 {
                                                     _database?.TimeSeries.Insert(property.Id, history.Value, timestamp: history.Key);
                                                 }
-                                                catch (Exception ex) { Console.WriteLine(ex.ToString()); }
+                                                catch (Exception ex) { Console.Out.WriteLineAsync(ex.ToString()); }
                                             }
                                         }
 
@@ -269,7 +269,7 @@ namespace BrickSchema.Net
                                                             _database?.TimeSeries.Insert(bv.BehaviorId, h.GetValue<double>(), h.Timestamp);
                                                         }
                                                     }
-                                                    catch (Exception ex) { Console.WriteLine(ex.ToString()); }
+                                                    catch (Exception ex) { Console.Out.WriteLineAsync(ex.ToString()); }
 
 
                                                 }
@@ -298,7 +298,7 @@ namespace BrickSchema.Net
                             }
        
                         
-                    } catch (Exception ex) { Console.WriteLine(ex); }
+                    } catch (Exception ex) { Console.Out.WriteLineAsync(ex.ToString()); }
 
                 });
             }

@@ -28,7 +28,7 @@ namespace BrickSchema.Net
                 {
                     var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
                     b = JsonConvert.DeserializeObject<ThreadSafeList<BrickEntity>>(json, settings) ?? new();
-                } catch (Exception ex) { Console.WriteLine(ex.ToString()); }
+                } catch (Exception ex) { Console.Out.WriteLineAsync(ex.ToString()); }
             }
             return b;
         }

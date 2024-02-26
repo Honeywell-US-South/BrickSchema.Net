@@ -39,13 +39,13 @@ namespace BrickSchema.Net.EntityProperties
 
         public void SetValue<T> (string name, T value)
         {
-            if (value == null) { Console.WriteLine($"Property Set Value [{name}:null]"); return; }
+            if (value == null) { Console.Out.WriteLineAsync($"Property Set Value [{name}:null]"); return; }
             try
             {
                 this.DataTypeName = GetTypeName<T>();
                 this.Name = name;
                 this.Value = JsonConvert.SerializeObject(value);
-            } catch (Exception ex) { Console.WriteLine($"Property Set Value [{name}:{ex.Message}]"); }
+            } catch (Exception ex) { Console.Out.WriteLineAsync($"Property Set Value [{name}:{ex.Message}]"); }
         }
 
         public T? GetValue<T>()
@@ -91,10 +91,10 @@ namespace BrickSchema.Net.EntityProperties
                 catch (Exception innerEx)
                 {
                     // Log or handle the inner exception if needed
-                    Console.WriteLine($"Error converting the value for type {tName}: {innerEx.Message}");
+                    Console.Out.WriteLineAsync($"Error converting the value for type {tName}: {innerEx.Message}");
                 }
                 // Logging or handle the exception as needed
-                Console.WriteLine($"Error deserializing the value for type {tName}: {ex.Message}");
+                Console.Out.WriteLineAsync($"Error deserializing the value for type {tName}: {ex.Message}");
             }
 
             return default(T?);
