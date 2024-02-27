@@ -110,7 +110,7 @@ namespace BrickSchema.Net
                         //{
                         //    bool debug = true;
                         //}
-                        _e = e;
+                        _e.Clone(e);
                         //var blist = e.GetProperty<List<string>>(EntityProperties.PropertiesEnum.Behaviors);
                         //if (blist == null)
                         //{
