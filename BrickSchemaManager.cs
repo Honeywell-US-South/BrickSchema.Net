@@ -311,7 +311,7 @@ namespace BrickSchema.Net
         {
             lock (_lockObject) // Locking here
             {
-                PushEntitiesDataToDatabase(false);
+                //PushEntitiesDataToDatabase(false);
                 try
                 {
                     SaveSchema(_brickPath ?? string.Empty);
@@ -603,17 +603,19 @@ namespace BrickSchema.Net
 
             lock (_lockObject) // Locking here
             {
-                foreach (var entity in _entities)
-                {
-                    //var behaviors = entity.GetBehaviors();
-                    //var e = byReference ? entity : new(entity);
-                    var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(entity.GetBehaviors());
+                entities = _entities;
 
-					entity.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
-					entity.CleanUpDuplicatedProperties();
-                    entities.Add(entity);
+				//foreach (var entity in _entities)
+    //            {
+    //                //var behaviors = entity.GetBehaviors();
+    //                //var e = byReference ? entity : new(entity);
+    //                var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(entity.GetBehaviors());
 
-                }
+				//	entity.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+				//	entity.CleanUpDuplicatedProperties();
+    //                entities.Add(entity);
+
+    //            }
             }
           
 
