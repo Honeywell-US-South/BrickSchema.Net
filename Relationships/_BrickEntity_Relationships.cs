@@ -15,18 +15,22 @@ namespace BrickSchema.Net
         public double GetRelationshipDependancySore(string rootId = "", double factor = 1)
         {
             double score = 0;
+            
             if (this.Id == rootId) return score; //exit if circular
             if (string.IsNullOrEmpty(rootId)) rootId = this.Id; //this is the true root
-            
 
-            foreach (var entity in OtherEntities.ToArray())
+
+            foreach (var entity in OtherEntities)
             {
+                if (entity.Id == this.Id) continue;
+
                 if (entity.Relationships.Any(x => x.ParentId == this.Id))
                 {
                     score += (entity.Relationships.Count(x => x.ParentId == this.Id) * factor);
                     score += entity.GetRelationshipDependancySore(rootId, factor / 2);
                 }
-                
+
+
             }
 
             return score;

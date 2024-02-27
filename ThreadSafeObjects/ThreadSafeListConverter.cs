@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -31,6 +32,7 @@ namespace BrickSchema.Net.ThreadSafeObjects
 
 			var jsonObject = JObject.Load(reader);
 			var targetType = Type.GetType((string)jsonObject["$type"]);
+			Type typeOfT = typeof(T);
 
 			// Check if targetType is assignable to ThreadSafeList<T>
 			if (typeof(ThreadSafeList<T>).IsAssignableFrom(targetType))
@@ -60,9 +62,22 @@ namespace BrickSchema.Net.ThreadSafeObjects
 				}
 				return list ?? new ThreadSafeList<T>();
 			}
+			else if (targetType.IsArray && targetType.GetElementType().Equals(typeOfT))
+			{
+				
+				var list = jsonObject.ToObject(targetType, serializer) as IList;
+				
+				var tsList = new ThreadSafeList<T>();
+				if (list == null) return tsList;
+				foreach (var item in list)
+				{
+					tsList.Add(item as T);
+				}
+				return tsList;
+			}
 			else
 			{
-				throw new JsonSerializationException($"Unexpected type: {targetType}. Expected type: {typeof(ThreadSafeList<T>)}");
+				throw new JsonSerializationException($"Unexpected type: {targetType}. Expected type: {typeof(ThreadSafeList<>)}");
 			}
 		}
 

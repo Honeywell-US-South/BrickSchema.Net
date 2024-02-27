@@ -100,9 +100,7 @@ namespace BrickSchema.Net.ThreadSafeObjects
             {
                 foreach (var item in items)
                 {
-
                     AddThreadSafeListRef(item);
-                    _list.Add(item); // Add the item to the list after setting the parent property
                 }
 
                 _list.AddRange(items);
@@ -140,19 +138,42 @@ namespace BrickSchema.Net.ThreadSafeObjects
             }
         }
 
-        public void CopyTo(T[] array, int arrayIndex)
+        public void CopyTo(T[] array)
         {
             lock (_syncRoot)
             {
-                _list.CopyTo(array, arrayIndex);
+                _list.CopyTo(array);
             }
         }
+
+		public void CopyTo(T[] array, int arrayIndex)
+		{
+			if (array == null)
+			{
+				throw new ArgumentNullException(nameof(array), "Destination array cannot be null.");
+			}
+
+			if (arrayIndex < 0)
+			{
+				throw new ArgumentOutOfRangeException(nameof(arrayIndex), "Array index must be non-negative.");
+			}
+
+			if (array.Length - arrayIndex < Count)
+			{
+				throw new ArgumentException("The number of elements in the ThreadSafeList is greater than the available space from arrayIndex to the end of the destination array.");
+			}
+
+			lock (_syncRoot)
+			{
+				_list.CopyTo(array, arrayIndex);
+			}
+		}
 
 		#endregion
 
 		#region Conversion
 
-        public string ToJson()
+		public string ToJson()
         {
             string json = string.Empty;
             try
@@ -301,7 +322,10 @@ namespace BrickSchema.Net.ThreadSafeObjects
 			{
 				// Get the generic argument of the property type
 				Type genericArgument = propertyType.GetGenericArguments()[0];
-
+				if (genericArgument.IsAssignableFrom(targetType))
+				{
+					return true;
+				}
 				// Check if the generic argument matches T
 				return genericArgument == targetType;
 			}

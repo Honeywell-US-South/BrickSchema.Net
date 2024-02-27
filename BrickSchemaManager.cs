@@ -195,109 +195,156 @@ namespace BrickSchema.Net
             
         }
 
-        private void PushEntitiesDataToDatabase(bool clearEntityPropertyBehaviors = false)
-        {
-            lock (_lockObject)
-            {
-                Parallel.For(0, _entities.Count, i =>
-                {
-                    try
-                    {
-                        var existingEntity = _entities[i];
-                        Console.Out.WriteLineAsync($"Processing entity {i} of {_entities.Count}");
-                        
-                            foreach (var property in existingEntity.Properties)
-                            {
+		private void PushEntitiesDataToDatabase(bool clearEntityPropertyBehaviors = false)
+		{
+			lock (_lockObject)
+			{
+				int timeout = 1000 * 60; // Timeout in milliseconds (60 seconds)
+				var cts = new CancellationTokenSource();
+				cts.CancelAfter(timeout); // Set your timeout
+				var token = cts.Token;
+				var inProgressOperations = new ConcurrentDictionary<int, bool>();
+				List<Exception> exceptions = new List<Exception>(); // To capture exceptions
 
-                                if (property.Name.Equals(PropertyName.ConformanceHistory) || property.Name.Equals(PropertyName.AverageConformanceHistory))
-                                {
+				try
+				{
+					Parallel.For(0, _entities.Count, new ParallelOptions { CancellationToken = token }, (i, state) =>
+					{
+						inProgressOperations.TryAdd(i, true); // Mark as in progress
+						try
+						{
+							ProcessEntity(i, clearEntityPropertyBehaviors);
+						}
+						catch (Exception ex)
+						{
+							lock (exceptions)
+							{
+								exceptions.Add(ex);
+							}
+						}
+						finally
+						{
+							bool removed;
+							inProgressOperations.TryRemove(i, out removed); // Mark as completed
+						}
+					});
+				}
+				catch (OperationCanceledException)
+				{
+					// Log timed out operations
+					foreach (var inProgressOperation in inProgressOperations.Keys)
+					{
+						Console.Out.WriteLineAsync($"Operation {inProgressOperation} timed out.");
+					}
+				}
+				finally
+				{
+					// Log exceptions
+					if (exceptions.Any())
+					{
+						foreach (var ex in exceptions)
+						{
+							Console.Out.WriteLineAsync(ex.ToString());
+						}
+					}
+				}
+			}
+		}
 
-                                    var histories = property.GetValue<Dictionary<DateTime, double>>();
-                                    if (histories != null && histories.Count > 0)
-                                    {
+		private void ProcessEntity(int i, bool clearEntityPropertyBehaviors)
+		{
+			var existingEntity = _entities[i];
+			Console.Out.WriteLineAsync($"Processing entity {i} of {_entities.Count}");
 
-                                        var archiveList = histories.Where(x => x.Key.ToLocalTime().AddDays(7) < DateTime.Now).ToList();
+			foreach (var property in existingEntity.Properties)
+			{
 
-                                        foreach (var history in archiveList ?? new())
-                                        {
-                                            if (history.Key.ToLocalTime().AddDays(7) < DateTime.Now) //archive if older than 1 day.
-                                            {
+				if (property.Name.Equals(PropertyName.ConformanceHistory) || property.Name.Equals(PropertyName.AverageConformanceHistory))
+				{
 
-                                                try
-                                                {
-                                                    _database?.TimeSeries.Insert(property.Id, history.Value, timestamp: history.Key);
-                                                }
-                                                catch (Exception ex) { Console.Out.WriteLineAsync(ex.ToString()); }
-                                            }
-                                        }
+					var histories = property.GetValue<Dictionary<DateTime, double>>();
+					if (histories != null && histories.Count > 0)
+					{
 
-                                        var keepList = histories.Where(x => x.Key.ToLocalTime().AddDays(7) >= DateTime.Now);
-                                        histories.Clear();
-                                        histories = keepList.ToDictionary(x => x.Key, x => x.Value);
+						var archiveList = histories.Where(x => x.Key.ToLocalTime().AddDays(7) < DateTime.Now).ToList();
 
+						foreach (var history in archiveList ?? new())
+						{
+							if (history.Key.ToLocalTime().AddDays(7) < DateTime.Now) //archive if older than 1 day.
+							{
 
-                                        property.SetValue(property.Name, histories);
-                                    }
-                                }
-                                else if (property.Name.Equals(PropertyName.BehaviorValues))
-                                {
-                                    var bvalues = property.GetValue<List<BehaviorValue>>();
-                                    if (bvalues != null)
-                                    {
-                                        foreach (var bv in bvalues)
-                                        {
+								try
+								{
+									_database?.TimeSeries.Insert(property.Id, history.Value, timestamp: history.Key);
+								}
+								catch (Exception ex) { Console.Out.WriteLineAsync(ex.ToString()); }
+							}
+						}
 
-                                            if (bv.Histories.Count > 0)
-                                            {
-                                                var archiveList = bv.Histories.Where(x => x.Timestamp.ToLocalTime().AddDays(7) < DateTime.Now).ToList();
-                                                foreach (var h in archiveList ?? new())
-                                                {
-
-                                                    try
-                                                    {
-                                                        if (h.DataTypeName.Equals("Boolean"))
-                                                        {
-                                                            _database?.TimeSeries.Insert(bv.BehaviorId, (h.GetValue<Boolean>() ? 1 : 0), h.Timestamp);
-                                                        }
-                                                        else
-                                                        {
-                                                            _database?.TimeSeries.Insert(bv.BehaviorId, h.GetValue<double>(), h.Timestamp);
-                                                        }
-                                                    }
-                                                    catch (Exception ex) { Console.Out.WriteLineAsync(ex.ToString()); }
+						var keepList = histories.Where(x => x.Key.ToLocalTime().AddDays(7) >= DateTime.Now);
+						histories.Clear();
+						histories = keepList.ToDictionary(x => x.Key, x => x.Value);
 
 
-                                                }
-                                                var keepList = bv.Histories.Where(x => x.Timestamp.ToLocalTime().AddDays(7) >= DateTime.Now).ToList();
-                                                bv.Histories.Clear();
-                                                if (keepList?.Count > 0)
-                                                {
-                                                    bv.Histories.AddRange(keepList);
-                                                }
-                                            }
-                                        }
-                                        property.SetValue(PropertyName.BehaviorValues, bvalues);
-                                    }
-                                }
-                                else if (property.Name.Equals("AlertValue"))
-                                {
-                                    property.Value = "";
-                                }
-                                else if (property.Name.Equals(PropertyName.Behaviors))
-                                {
-                                    if (clearEntityPropertyBehaviors)
-                                    {
-                                        property.Value = "";
-                                    }
-                                }
-                            }
-       
-                        
-                    } catch (Exception ex) { Console.Out.WriteLineAsync(ex.ToString()); }
+						property.SetValue(property.Name, histories);
+					}
+				}
+				else if (property.Name.Equals(PropertyName.BehaviorValues))
+				{
+					var bvalues = property.GetValue<List<BehaviorValue>>();
+					if (bvalues != null)
+					{
+						foreach (var bv in bvalues)
+						{
 
-                });
-            }
-        }
+							if (bv.Histories.Count > 0)
+							{
+								var archiveList = bv.Histories.Where(x => x.Timestamp.ToLocalTime().AddDays(7) < DateTime.Now).ToList();
+								foreach (var h in archiveList ?? new())
+								{
+
+									try
+									{
+										if (h.DataTypeName.Equals("Boolean"))
+										{
+											_database?.TimeSeries.Insert(bv.BehaviorId, (h.GetValue<Boolean>() ? 1 : 0), h.Timestamp);
+										}
+										else
+										{
+											_database?.TimeSeries.Insert(bv.BehaviorId, h.GetValue<double>(), h.Timestamp);
+										}
+									}
+									catch (Exception ex) { Console.Out.WriteLineAsync(ex.ToString()); }
+
+
+								}
+								var keepList = bv.Histories.Where(x => x.Timestamp.ToLocalTime().AddDays(7) >= DateTime.Now).ToList();
+								bv.Histories.Clear();
+								if (keepList?.Count > 0)
+								{
+									bv.Histories.AddRange(keepList);
+								}
+							}
+						}
+						property.SetValue(PropertyName.BehaviorValues, bvalues);
+					}
+				}
+				else if (property.Name.Equals("AlertValue"))
+				{
+					property.Value = "";
+				}
+				else if (property.Name.Equals(PropertyName.Behaviors))
+				{
+					if (clearEntityPropertyBehaviors)
+					{
+						property.Value = "";
+					}
+				}
+			}
+		}
+
+
+		
 
         public void SaveSchema()
         {
