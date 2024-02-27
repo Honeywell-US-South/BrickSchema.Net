@@ -104,7 +104,24 @@ namespace BrickSchema.Net.ThreadSafeObjects
 			}
 		}
 
-        public void AddRange(IEnumerable<T> items)
+		public void AddRaw(T item)
+		{
+			if (item == null)
+			{
+				Console.Out.WriteLineAsync($"Cannot add null item. Exit function.");
+				return;
+			}
+			lock (_syncRoot)
+			{
+                //Do not AddThreadSafe list ref
+
+				// First, check if T is a class to avoid unnecessary reflection for value types
+				//AddThreadSafeListRef(item);
+				_list.Add(item);
+			}
+		}
+
+		public void AddRange(IEnumerable<T> items)
         {
             lock (_syncRoot)
             {
@@ -116,6 +133,18 @@ namespace BrickSchema.Net.ThreadSafeObjects
                 _list.AddRange(items);
             }
         }
+		public void AddRangeRaw(IEnumerable<T> items)
+		{
+			lock (_syncRoot)
+			{
+				//foreach (var item in items)
+				//{
+				//	AddThreadSafeListRef(item);
+				//}
+
+				_list.AddRange(items);
+			}
+		}
 		#endregion
 
 		#region C

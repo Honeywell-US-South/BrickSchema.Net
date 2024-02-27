@@ -618,31 +618,17 @@ namespace BrickSchema.Net
 
         public ThreadSafeList<BrickEntity> GetEntities()
         {
-			//lock (_lockObject) // Locking here
-			//{
-
-   //             UpdateBehaviorsProperty();
-                
-   //         }
 			return new(_entities);
-
 		}
 
 		public void GetEntities(ThreadSafeList<BrickEntity> entities)
         {
-
-
             lock (_lockObject) // Locking here
             {
 				//UpdateBehaviorsProperty();
 				entities = _entities;
-
-                
             }
-          
-
         }
-
 
         public ThreadSafeList<BrickEntity> GetEntities<T>()
         {
@@ -672,11 +658,8 @@ namespace BrickSchema.Net
 
 						if (add)
 						{
-                            
 							entities.Add(entity);
-
 						}
-
 					}
                     return entities;
 
@@ -695,7 +678,6 @@ namespace BrickSchema.Net
                 }
                 else
                 { //get specified type
-                   
                     var isBrickClass = typeof(T).IsSubclassOf(typeof(BrickClass));
                     foreach (var entity in _entities)
                     {
@@ -711,14 +693,11 @@ namespace BrickSchema.Net
 
                         if (add)
                         {
-                            //var behaviors = entity.GetBehaviors();
-
-                           
                             var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(entity.GetBehaviors());
 
 							entity.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
 							entity.CleanUpDuplicatedProperties();
-                            entities.Add(entity);
+                            entities.AddRaw(entity);
 
                         }
 
@@ -751,8 +730,6 @@ namespace BrickSchema.Net
             {
                 if (entity is Equipment)
                 {
-                    //var behaviors = entity.GetBehaviors();
-
                     var e = byReference ? entity : new(entity);
                     var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(entity.GetBehaviors());
 

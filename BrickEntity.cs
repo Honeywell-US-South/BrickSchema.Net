@@ -128,7 +128,6 @@ namespace BrickSchema.Net
         {
             ThreadSafeList<BrickEntity> entities = new();
 
-
             entities = OtherEntities
                 .Where(oe => oe != null && oe.Relationships.Any(r => r.ParentId == Id))
                 .ToThreadSafeList();
