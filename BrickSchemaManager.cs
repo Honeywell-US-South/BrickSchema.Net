@@ -597,40 +597,39 @@ namespace BrickSchema.Net
             }
 
         }
-        public ThreadSafeList<BrickEntity> GetEntities(bool byReference = true)
+        public void GetEntities(ThreadSafeList<BrickEntity> entities)
         {
 
 
-            ThreadSafeList<BrickEntity> entities = new();
             lock (_lockObject) // Locking here
             {
                 foreach (var entity in _entities)
                 {
                     //var behaviors = entity.GetBehaviors();
-                    var e = byReference ? entity : new(entity);
-                    var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(e.GetBehaviors());
+                    //var e = byReference ? entity : new(entity);
+                    var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(entity.GetBehaviors());
 
-                    e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
-                    e.CleanUpDuplicatedProperties();
-                    entities.Add(e);
+					entity.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+					entity.CleanUpDuplicatedProperties();
+                    entities.Add(entity);
 
                 }
             }
-            return entities;
+          
 
         }
-        public ThreadSafeList<BrickEntity> GetEntities<T>(bool byReference = true)
+        public void GetEntities<T>(ThreadSafeList<BrickEntity> entities)
         {
             lock (_lockObject) // Locking here
             {
                 var type = Helpers.EntityUtils.GetTypeName<T>();
                 if (string.IsNullOrEmpty(type) || type.Equals("null"))
                 { //no type so get all
-                    return GetEntities(byReference);
+                    GetEntities(entities);
                 }
                 else
                 { //get specified type
-                    ThreadSafeList<BrickEntity> entities = new();
+                   
                     var isBrickClass = typeof(T).IsSubclassOf(typeof(BrickClass));
                     foreach (var entity in _entities)
                     {
@@ -648,17 +647,17 @@ namespace BrickSchema.Net
                         {
                             //var behaviors = entity.GetBehaviors();
 
-                            var e = byReference ? entity : new(entity);
-                            var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(e.GetBehaviors());
+                           
+                            var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(entity.GetBehaviors());
 
-                            e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
-                            e.CleanUpDuplicatedProperties();
-                            entities.Add(e);
+							entity.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+							entity.CleanUpDuplicatedProperties();
+                            entities.Add(entity);
 
                         }
 
                     }
-                    return entities;
+  
                 }
             }
 
