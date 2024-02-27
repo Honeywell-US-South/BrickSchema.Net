@@ -585,25 +585,42 @@ namespace BrickSchema.Net
                 //var behaviors = entity?.GetBehaviors();
                 var e = byReference ? entity : entity?.Clone();
 
-                if (e != null)
-                {
-                    //JsonConvert.SerializeObject(entities, settings);
-                    var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(e.GetBehaviors());
+                //if (e != null)
+                //{
+                //    //JsonConvert.SerializeObject(entities, settings);
+                //    var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(e.GetBehaviors());
 
-                    e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
-                    e.CleanUpDuplicatedProperties();
-                }
+                //    e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+                //    e.CleanUpDuplicatedProperties();
+                //}
                 return e;
             }
 
         }
 
+        public void UpdateBehaviorsProperty()
+        {
+            lock (_lockObject)
+            {
+                foreach (var entity in _entities)
+                {
+                    var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(entity.GetBehaviors());
+
+                    entity.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+                    entity.CleanUpDuplicatedProperties();
+                }
+            }
+		}
 
         public ThreadSafeList<BrickEntity> GetEntities()
         {
-            ThreadSafeList<BrickEntity> entities = new();
-            GetEntities(entities);
-            return entities;
+			//lock (_lockObject) // Locking here
+			//{
+
+   //             UpdateBehaviorsProperty();
+                
+   //         }
+			return new(_entities);
 
 		}
 
@@ -613,32 +630,56 @@ namespace BrickSchema.Net
 
             lock (_lockObject) // Locking here
             {
-                entities = _entities;
+				//UpdateBehaviorsProperty();
+				entities = _entities;
 
-				//foreach (var entity in _entities)
-    //            {
-    //                //var behaviors = entity.GetBehaviors();
-    //                //var e = byReference ? entity : new(entity);
-    //                var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(entity.GetBehaviors());
-
-				//	entity.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
-				//	entity.CleanUpDuplicatedProperties();
-    //                entities.Add(entity);
-
-    //            }
+                
             }
           
 
         }
 
+
         public ThreadSafeList<BrickEntity> GetEntities<T>()
         {
-            ThreadSafeList<BrickEntity> entities = new();
-            GetEntities<T>(entities);
-            return entities;
+			lock (_lockObject) // Locking here
+			{
+				//UpdateBehaviorsProperty();
+				var type = Helpers.EntityUtils.GetTypeName<T>();
+				if (string.IsNullOrEmpty(type) || type.Equals("null"))
+				{ //no type so get all
+                    return new(_entities);
+				}
+				else
+				{ //get specified type
+                    ThreadSafeList<BrickEntity> entities = new();
+					var isBrickClass = typeof(T).IsSubclassOf(typeof(BrickClass));
+					foreach (var entity in _entities)
+					{
+						bool add = entity.GetType() == typeof(T);
+						if (!add && isBrickClass)
+						{
+							var brickClassName = entity.GetProperty<string>(EntityProperties.PropertiesEnum.BrickClass);
+							if (brickClassName?.Equals(type) ?? false)
+							{
+								add = true;
+							}
+						}
 
+						if (add)
+						{
+                            
+							entities.Add(entity);
+
+						}
+
+					}
+                    return entities;
+
+				}
+			}
+           
 		}
-
 		public void GetEntities<T>(ThreadSafeList<BrickEntity> entities)
         {
             lock (_lockObject) // Locking here

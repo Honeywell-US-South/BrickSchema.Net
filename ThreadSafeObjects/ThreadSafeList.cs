@@ -24,8 +24,18 @@ namespace BrickSchema.Net.ThreadSafeObjects
 
 		public ThreadSafeList(IEnumerable<T> collection)
         {
-            
-            _list = new List<T>(collection);
+            if (collection is ThreadSafeList<T>)
+            {
+                _list = new();
+                foreach (var col in collection)
+                {
+                    _list.Add(col);
+                }
+            }
+            else
+            {
+                _list = new List<T>(collection);
+            }
 			_isTHasRefProperty = IsTHasRefProperty();
 		}
 
@@ -138,42 +148,42 @@ namespace BrickSchema.Net.ThreadSafeObjects
             }
         }
 
-        public void CopyTo(T[] array)
+        //      public void CopyTo(T[] array)
+        //      {
+        //          lock (_syncRoot)
+        //          {
+        //              _list.CopyTo(array);
+        //          }
+        //      }
+
+        public void CopyTo(T[] array, int arrayIndex)
         {
+            if (array == null)
+            {
+                throw new ArgumentNullException(nameof(array), "Destination array cannot be null.");
+            }
+
+            if (arrayIndex < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(arrayIndex), "Array index must be non-negative.");
+            }
+
+            if (array.Length - arrayIndex < Count)
+            {
+                throw new ArgumentException("The number of elements in the ThreadSafeList is greater than the available space from arrayIndex to the end of the destination array.");
+            }
+
             lock (_syncRoot)
             {
-                _list.CopyTo(array);
+                _list.CopyTo(array, arrayIndex);
             }
         }
 
-		public void CopyTo(T[] array, int arrayIndex)
-		{
-			if (array == null)
-			{
-				throw new ArgumentNullException(nameof(array), "Destination array cannot be null.");
-			}
+        #endregion
 
-			if (arrayIndex < 0)
-			{
-				throw new ArgumentOutOfRangeException(nameof(arrayIndex), "Array index must be non-negative.");
-			}
+        #region Conversion
 
-			if (array.Length - arrayIndex < Count)
-			{
-				throw new ArgumentException("The number of elements in the ThreadSafeList is greater than the available space from arrayIndex to the end of the destination array.");
-			}
-
-			lock (_syncRoot)
-			{
-				_list.CopyTo(array, arrayIndex);
-			}
-		}
-
-		#endregion
-
-		#region Conversion
-
-		public string ToJson()
+        public string ToJson()
         {
             string json = string.Empty;
             try
@@ -331,6 +341,8 @@ namespace BrickSchema.Net.ThreadSafeObjects
 			}
 			return false;
 		}
+
+		
 
 		#endregion
 	}
