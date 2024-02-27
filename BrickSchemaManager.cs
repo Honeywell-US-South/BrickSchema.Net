@@ -304,24 +304,33 @@ namespace BrickSchema.Net
 			}
 		}
 
-
-		
-
         public void SaveSchema()
         {
-            lock (_lockObject) // Locking here
-            {
-                //PushEntitiesDataToDatabase(false);
-                try
-                {
-                    SaveSchema(_brickPath ?? string.Empty);
-                }
-                catch { }
-
-            }
+            SaveSchemaAsync().Wait();
         }
 
-        public void SaveSchema(string jsonLdFilePath)
+		public async Task SaveSchemaAsync()
+		{
+			await Task.Run(() =>
+			{
+				lock (_lockObject) // Locking here as before
+				{
+					PushEntitiesDataToDatabase(false);
+					try
+					{
+						UpdateBehaviorsProperty();
+						SaveSchema(_brickPath ?? string.Empty);
+					}
+					catch
+					{
+						// Consider logging the exception or handling it appropriately
+					}
+				}
+			});
+		}
+
+
+		public void SaveSchema(string jsonLdFilePath)
         {
             if (string.IsNullOrEmpty(jsonLdFilePath)) return;
 
