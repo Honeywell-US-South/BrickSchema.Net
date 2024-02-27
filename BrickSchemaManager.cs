@@ -597,7 +597,17 @@ namespace BrickSchema.Net
             }
 
         }
-        public void GetEntities(ThreadSafeList<BrickEntity> entities)
+
+
+        public ThreadSafeList<BrickEntity> GetEntities()
+        {
+            ThreadSafeList<BrickEntity> entities = new();
+            GetEntities(entities);
+            return entities;
+
+		}
+
+		public void GetEntities(ThreadSafeList<BrickEntity> entities)
         {
 
 
@@ -618,7 +628,16 @@ namespace BrickSchema.Net
           
 
         }
-        public void GetEntities<T>(ThreadSafeList<BrickEntity> entities)
+
+        public ThreadSafeList<BrickEntity> GetEntities<T>()
+        {
+            ThreadSafeList<BrickEntity> entities = new();
+            GetEntities<T>(entities);
+            return entities;
+
+		}
+
+		public void GetEntities<T>(ThreadSafeList<BrickEntity> entities)
         {
             lock (_lockObject) // Locking here
             {
