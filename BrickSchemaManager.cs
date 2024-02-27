@@ -532,13 +532,13 @@ namespace BrickSchema.Net
                 };
                 entity.SetProperty(EntityProperties.PropertiesEnum.Name, name);
 
-                foreach (var _e in _entities)
-                {
-                    //entity.OtherEntities.Add(_e);
-                    var e = _e as BrickEntity;
-                    e.OtherEntities.Add(entity);
-                }
-                entity.OtherEntities = new ThreadSafeList<BrickEntity>(_entities);
+                //foreach (var _e in _entities)
+                //{
+                //    //entity.OtherEntities.Add(_e);
+                //    var e = _e as BrickEntity;
+                //    e.OtherEntities.Add(entity);
+                //}
+                //entity.OtherEntities = new ThreadSafeList<BrickEntity>(_entities);
                 _entities.Add(entity);
             }
             return entity;
@@ -546,6 +546,7 @@ namespace BrickSchema.Net
 
         public T AddEntity<T>(string? id) where T : BrickEntity, new()
         {
+
             T entity;
             lock (_lockObject) // Locking here
             {
@@ -574,11 +575,6 @@ namespace BrickSchema.Net
                     EntityTypeName = typeof(T).Name
                 };
 
-                foreach (var _e in _entities)
-                {
-                    entity.OtherEntities.Add(_e);
-                }
-
                 _entities.Add(entity);
             }
             return entity;
@@ -592,14 +588,6 @@ namespace BrickSchema.Net
                 //var behaviors = entity?.GetBehaviors();
                 var e = byReference ? entity : entity?.Clone();
 
-                //if (e != null)
-                //{
-                //    //JsonConvert.SerializeObject(entities, settings);
-                //    var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(e.GetBehaviors());
-
-                //    e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
-                //    e.CleanUpDuplicatedProperties();
-                //}
                 return e;
             }
 
