@@ -55,6 +55,7 @@ namespace BrickSchema.Net.Helpers
             return JsonConvert.SerializeObject(behaviorsJson, settings);
         }
 
+
         public static void JsonToBehaviors(ThreadSafeList<BrickBehavior> brickBehaviors, string json, BrickEntity? parent = null)
         {
             if (string.IsNullOrEmpty(json)) return;
