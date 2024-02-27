@@ -79,9 +79,16 @@ namespace BrickSchema.Net
             lock (_lockObject) // Locking here 
             {
                 if (clearList) _entities.Clear();
-
+                if (_entities.Count == 0)
+                {
+                    int i = 0;
+                }
                 foreach (var e in newEntities)
                 {
+                    if (e.EntityTypeName.Contains("AHU"))
+                    {
+                        int i = 0;
+                    }
                     var _e = _entities.FirstOrDefault(x => x.Id == e.Id);
                     if (_e == null) //add new
                     {
