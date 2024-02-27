@@ -52,11 +52,11 @@ namespace BrickSchema.Net
             SaveSchema();
         }
 
-        public void LoadSchemaFromJson(string json, bool appendOrUpdate = false)
+        public void LoadSchemaFromJson(string json, bool clearList = false)
         {
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, Formatting = Newtonsoft.Json.Formatting.Indented };
             var entities = JsonConvert.DeserializeObject<ThreadSafeList<BrickEntity>>(json, settings) ?? new();
-            ImportEntities(entities, appendOrUpdate);
+            ImportEntities(entities, clearList);
         }
 
         public void AppendOrUpdateEntityFromJson(string json)
@@ -68,102 +68,66 @@ namespace BrickSchema.Net
 
                 ThreadSafeList<BrickEntity> entities = new();
                 entities.Add(entity);
-                ImportEntities(entities, true);
+                ImportEntities(entities, false);
             }
         }
 
 
 
-        public void ImportEntities(ThreadSafeList<BrickEntity> entities, bool appendOrUpdate = false)
+        public void ImportEntities(ThreadSafeList<BrickEntity> newEntities, bool clearList = false)
         {
             lock (_lockObject) // Locking here 
             {
-                if (appendOrUpdate)
+                if (clearList) _entities.Clear();
+
+                foreach (var e in newEntities)
                 {
-                    foreach (var e in entities)
+                    var _e = _entities.FirstOrDefault(x => x.Id == e.Id);
+                    if (_e == null) //add new
                     {
-                        var _e = _entities.FirstOrDefault(x => x.Id == e.Id);
-                        if (_e == null) //add new
-                        {
-                            _e = e;
-                            var blist = e.GetProperty<List<string>>(EntityProperties.PropertiesEnum.Behaviors);
-                            
-                            if (blist == null)
-                            {
-                                var bslist = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors) ?? "";
-                                _e.Behaviors = EntityUtils.JsonToBehaviors(bslist);
-                            }
-                            else
-                            {
-                                _e.Behaviors = entities
-                                    .Where(x => blist.Contains(x.Id) && x is BrickBehavior) // Find all entities that match the criteria.
-                                    .Select(y => y as BrickBehavior ?? new()) // Safely cast them to BrickBehavior.
-                                    .ToThreadSafeList(); // Convert the result to a list.
-                            }
-                            _entities.Add(_e);
-                        }
-                        else //update
-                        {
-                            //if (e?.GetProperty<string>(EntityProperties.PropertyName.Name)?.Equals("SIM_FCU_1") ?? false)
-                            //{
-                            //    bool debug = true;
-                            //}
-                            _e.Clone(e);
-                            var blist = e.GetProperty<List<string>>(EntityProperties.PropertiesEnum.Behaviors);
-                            if (blist == null)
-                            {
-                                var bslist = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors) ?? "";
-                                _e.Behaviors = EntityUtils.JsonToBehaviors(bslist);
-                            }
-                            else
-                            {
-                                _e.Behaviors = entities
-                                    .Where(x => blist.Contains(x.Id) && x is BrickBehavior) // Find all entities that match the criteria.
-                                    .Select(y => y as BrickBehavior ?? new()) // Safely cast them to BrickBehavior.
-                                    .ToThreadSafeList(); // Convert the result to a list.
-                            }
-                        }
-                        foreach (var _b in _e.Behaviors)
-                        {
-                            _b.Parent = _e;
-                        }
+                        _e = e;
+                        //var blist = e.GetProperty<ThreadSafeList<string====>>(EntityProperties.PropertiesEnum.Behaviors);
 
-                    }
-
-                    foreach (var _e in _entities)
-                    {
-                        _e.OtherEntities = _entities;
-                    }
-                }
-                else
-                {
-
-                    foreach (var e in entities)
-                    {
-                        var blist = e.GetProperty<List<string>>(EntityProperties.PropertiesEnum.Behaviors);
-
-                        if (blist == null)
-                        {
+                        //if (blist == null)
+                        //{
                             var bslist = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors) ?? "";
-                            e.Behaviors = EntityUtils.JsonToBehaviors(bslist);
-                        }
-                        else
-                        {
-                            e.Behaviors = entities
-                                .Where(x => blist.Contains(x.Id) && x is BrickBehavior) // Find all entities that match the criteria.
-                                .Select(y => y as BrickBehavior ?? new()) // Safely cast them to BrickBehavior.
-                                .ToThreadSafeList(); // Convert the result to a list.
-                        }
-                        foreach (var b in e.Behaviors)
-                        {
-                            b.Parent = e;
-                        }
+                           EntityUtils.JsonToBehaviors(_e, bslist);
+      //                  }
+      //                  else
+      //                  {
+						//	_e.Behaviors = newEntities
+	     //                       .Where(x => blist.Contains(x.Id) && x is BrickBehavior) // Find all entities that match the criteria.
+	     //                       .Select(x => x as BrickBehavior) // Safely cast them to BrickBehavior.
+	     //                       .Where(y => y != null) // Ensure y is not null.
+	     //                       .Select(y => { y.Parent = _e; return y; }) // Assign _e as the Parent for each BrickBehavior.
+	     //                       .ToThreadSafeList(); // Convert the result to a thread-safe list.
+						//}
+                        _entities.Add(_e);
                     }
-                    foreach (var e in entities)
+                    else //update
                     {
-                        e.OtherEntities = entities;
+                        //if (e?.GetProperty<string>(EntityProperties.PropertyName.Name)?.Equals("SIM_FCU_1") ?? false)
+                        //{
+                        //    bool debug = true;
+                        //}
+                        _e = e;
+                        //var blist = e.GetProperty<List<string>>(EntityProperties.PropertiesEnum.Behaviors);
+                        //if (blist == null)
+                        //{
+                            var bslist = e.GetProperty<string>(EntityProperties.PropertiesEnum.Behaviors) ?? "";
+                            EntityUtils.JsonToBehaviors(_e, bslist);
+      //                  }
+      //                  else
+      //                  {
+						//	_e.Behaviors = newEntities
+						//		.Where(x => blist.Contains(x.Id) && x is BrickBehavior) // Find all entities that match the criteria.
+						//		.Select(x => x as BrickBehavior) // Safely cast them to BrickBehavior.
+						//		.Where(y => y != null) // Ensure y is not null.
+						//		.Select(y => { y.Parent = _e; return y; }) // Assign _e as the Parent for each BrickBehavior.
+						//		.ToThreadSafeList(); // Convert the result to a thread-safe list.
+						//}
                     }
-                    _entities = entities;
+
                 }
 
             }
@@ -184,13 +148,10 @@ namespace BrickSchema.Net
                     }
                     catch { }
                 }
-                if (File.Exists(jsonLdFilePath))
-                {
-                    var json = File.ReadAllText(jsonLdFilePath);
-
-                    _entities = BrickSchemaUtility.ImportBrickSchema(jsonLdFilePath);
+               
+                BrickSchemaUtility.CreateBrickSchemaFromJsonFile(_entities, jsonLdFilePath);
                     
-                }
+                
             }
             
         }
@@ -621,13 +582,13 @@ namespace BrickSchema.Net
             lock (_lockObject) // Locking here
             {
                 var entity = _entities.FirstOrDefault(x => x.Id.Equals(id));
-                var behaviors = entity?.GetBehaviors(false);
+                //var behaviors = entity?.GetBehaviors();
                 var e = byReference ? entity : entity?.Clone();
 
                 if (e != null)
                 {
                     //JsonConvert.SerializeObject(entities, settings);
-                    var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(e.Behaviors);
+                    var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(e.GetBehaviors());
 
                     e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
                     e.CleanUpDuplicatedProperties();
@@ -645,9 +606,9 @@ namespace BrickSchema.Net
             {
                 foreach (var entity in _entities)
                 {
-                    var behaviors = entity.GetBehaviors(false);
+                    //var behaviors = entity.GetBehaviors();
                     var e = byReference ? entity : new(entity);
-                    var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(e.Behaviors);
+                    var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(e.GetBehaviors());
 
                     e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
                     e.CleanUpDuplicatedProperties();
@@ -685,10 +646,10 @@ namespace BrickSchema.Net
 
                         if (add)
                         {
-                            var behaviors = entity.GetBehaviors(false);
+                            //var behaviors = entity.GetBehaviors();
 
                             var e = byReference ? entity : new(entity);
-                            var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(e.Behaviors);
+                            var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(e.GetBehaviors());
 
                             e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
                             e.CleanUpDuplicatedProperties();
@@ -725,10 +686,10 @@ namespace BrickSchema.Net
             {
                 if (entity is Equipment)
                 {
-                    var behaviors = entity.GetBehaviors(false);
+                    //var behaviors = entity.GetBehaviors();
 
                     var e = byReference ? entity : new(entity);
-                    var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(entity.Behaviors);
+                    var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(entity.GetBehaviors());
 
                     e.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
                     e.CleanUpDuplicatedProperties();

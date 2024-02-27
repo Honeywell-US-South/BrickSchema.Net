@@ -17,7 +17,7 @@ namespace BrickSchema.Net
             foreach (var entity in _entities)
             {
                 var e = entity as BrickEntity;
-                brickBehaviors.AddRange(e.GetBehaviors(byReference).Where(x => behaviorIds.Contains(x.Id) || behaviorIds.Count == 0));// e?.Behaviors.Where(x => behaviorIds.Contains(x.Id) || behaviorIds.Count == 0) ?? new List<BrickBehavior>());
+                brickBehaviors.AddRange(e.GetBehaviors().Where(x => behaviorIds.Contains(x.Id) || behaviorIds.Count == 0));// e?.Behaviors.Where(x => behaviorIds.Contains(x.Id) || behaviorIds.Count == 0) ?? new List<BrickBehavior>());
             }
 
             return brickBehaviors;
@@ -43,7 +43,7 @@ namespace BrickSchema.Net
             foreach (var entity in equipments)
             {
                 var e = entity as BrickEntity;
-                brickBehaviors.AddRange(e.GetBehaviors(byReference));
+                brickBehaviors.AddRange(e.GetBehaviors());
 
             }
 

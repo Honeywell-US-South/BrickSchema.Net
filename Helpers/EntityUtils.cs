@@ -55,22 +55,31 @@ namespace BrickSchema.Net.Helpers
             return JsonConvert.SerializeObject(behaviorsJson, settings);
         }
 
-        public static ThreadSafeList<BrickBehavior> JsonToBehaviors(string json)
+        public static void JsonToBehaviors(ThreadSafeList<BrickBehavior> brickBehaviors, string json, BrickEntity? parent = null)
         {
-            if (string.IsNullOrEmpty(json)) return new();
+            if (string.IsNullOrEmpty(json)) return;
             List<string> behaviorsJson = JsonConvert.DeserializeObject<List<string>>(json)??new();
-            ThreadSafeList<BrickBehavior> brickBehaviors= new ThreadSafeList<BrickBehavior>();
-            foreach (var b in behaviorsJson)
+            brickBehaviors.Clear();
+
+			foreach (var b in behaviorsJson)
             {
-                
                 var bb = JsonConvert.DeserializeObject<BrickBehavior>(b);
-                if (bb != null) brickBehaviors.Add(bb);
+                if (bb != null)
+                {
+                    if (parent != null) bb.Parent = parent;
+                    brickBehaviors.Add(bb);
+                }
             }
 
-            return brickBehaviors;
         }
 
-        public static T? GetTypeFromString<T>(string typeName) where T : class
+		public static void JsonToBehaviors (BrickEntity entity, string json)
+        {
+            JsonToBehaviors(entity.Behaviors, json, entity);
+        }
+
+
+		public static T? GetTypeFromString<T>(string typeName) where T : class
         {
             var type = Type.GetType(typeName);
             if (type == null)

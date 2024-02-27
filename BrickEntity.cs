@@ -85,16 +85,10 @@ namespace BrickSchema.Net
                 Shapes = clone.Shapes;
                 var json = e.GetProperty<string>(EntityProperties.PropertyName.Behaviors) ?? string.Empty;
 
-                Behaviors = Helpers.EntityUtils.JsonToBehaviors(json);
+                Helpers.EntityUtils.JsonToBehaviors(this, json);
 
-                foreach (var _b in Behaviors)
-                {
-                    _b.Parent = this;
-                }
             }
         }
-
-
 
         public BrickEntity? GetEntity(string Id)
         {

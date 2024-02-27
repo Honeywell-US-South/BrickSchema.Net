@@ -74,28 +74,38 @@ namespace BrickSchema.Net
             LastUpdate = DateTime.Now;
         }
 
-        public ThreadSafeList<BrickBehavior> GetBehaviors(bool byReference = true)
+        public ThreadSafeList<BrickBehavior> GetBehaviors()
         {
             ThreadSafeList<BrickBehavior> behaviors = new();
             if (Behaviors.Count == 0)
             {
-                behaviors = Helpers.EntityUtils.JsonToBehaviors(GetProperty<string>(StaticNames.PropertyName.Behaviors) ?? string.Empty);
+                Helpers.EntityUtils.JsonToBehaviors(behaviors, GetProperty<string>(StaticNames.PropertyName.Behaviors) ?? string.Empty);
                 
             } else
             {
-                behaviors = Behaviors;
+                behaviors = new(Behaviors);
             }
-            if (byReference)
-            {
-                
-                return behaviors;
-            }
-           
-            return new(behaviors);
+            
+            return behaviors;
     
         }
 
-        public List<BrickBehavior> GetBehaviors(string type, bool byReference = true)
+		public void GetBehaviors(ThreadSafeList<BrickBehavior> behaviors)
+		{
+
+			if (Behaviors.Count == 0)
+			{
+				Helpers.EntityUtils.JsonToBehaviors(behaviors, GetProperty<string>(StaticNames.PropertyName.Behaviors) ?? string.Empty);
+
+			}
+			else
+			{
+				behaviors = new(Behaviors);
+			}
+
+		}
+
+		public List<BrickBehavior> GetBehaviors(string type, bool byReference = true)
         {
             var behaviors = Behaviors.Where(x => x.EntityTypeName == type).ToList();
             if (byReference) return behaviors;

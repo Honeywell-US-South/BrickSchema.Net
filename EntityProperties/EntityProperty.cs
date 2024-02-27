@@ -63,6 +63,7 @@ namespace BrickSchema.Net.EntityProperties
 
             try
             {
+                if (this.Value.Equals("\"[]\"")) return default(T);
                 T? deserializedObject = JsonConvert.DeserializeObject<T>(this.Value, settings);
                 return deserializedObject;
             }
@@ -91,7 +92,7 @@ namespace BrickSchema.Net.EntityProperties
                 catch (Exception innerEx)
                 {
                     // Log or handle the inner exception if needed
-                    Console.WriteLine($"Error converting the value for type {tName}: {innerEx.Message}");
+                    Console.Out.WriteLineAsync($"Error converting the value for type {tName}: {innerEx.Message}");
                 }
                 // Logging or handle the exception as needed
                 Console.Out.WriteLineAsync($"Error deserializing the value for type {tName}: {ex.Message}");
