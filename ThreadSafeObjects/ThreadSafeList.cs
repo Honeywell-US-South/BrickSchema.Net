@@ -337,6 +337,15 @@ namespace BrickSchema.Net.ThreadSafeObjects
             }
         }
 
+        public U? Find<U>() where U : class, T
+        {
+            lock (_syncRoot)
+            {
+                var item = Find<U>(x=>x is U);
+                return item;
+            }
+        }
+
         public T? FirstOrDefault(Func<T, bool> predicate)
         {
             lock (_syncRoot)
@@ -353,6 +362,15 @@ namespace BrickSchema.Net.ThreadSafeObjects
                 var item = _list.FirstOrDefault(predicate);
                 if (item == null) return default(U?);
                 return Clone(item) as U;
+            }
+        }
+
+        public U? FirstOrDefault<U>() where U : class, T
+        {
+            lock (_syncRoot)
+            {
+                var item = FirstOrDefault<U>(x=>x is U);
+                return item;
             }
         }
         #endregion
