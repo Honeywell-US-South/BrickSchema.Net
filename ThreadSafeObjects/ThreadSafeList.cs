@@ -1,7 +1,7 @@
 ﻿using IoTDBdotNET;
 using Newtonsoft.Json;
 using System.Collections;
-
+using System.Reflection;
 
 namespace BrickSchema.Net.ThreadSafeObjects
 {
@@ -10,44 +10,46 @@ namespace BrickSchema.Net.ThreadSafeObjects
 		#region Private Variables
 		private readonly List<T> _list = new List<T>();
         private readonly object _syncRoot = new object();
-        private readonly bool _isTHasRefProperty = false;
-		#endregion
+        private PropertyInfo? _refPropertyInfo = null;
+        private PropertyInfo? _idPropertyInfo = null;
 
-		#region Constructors
-		public ThreadSafeList()
+        #endregion
+
+        #region Constructors
+        public ThreadSafeList()
         {
 			// No need to lock here since _list is being initialized and not yet accessible to other threads.
 			_list = new List<T>();
-            _isTHasRefProperty = IsTHasRefProperty();
+            InitTRefProperty();
+            InitTIdProperty();
 
 		}
 
-		public ThreadSafeList(IEnumerable<T> collection)
+        public ThreadSafeList(IEnumerable<T> collection)
         {
-            if (collection is ThreadSafeList<T>)
-            {
-                _list = new();
-                foreach (var col in collection)
-                {
-                    _list.Add(col);
-                }
-            }
-            else
-            {
-                _list = new List<T>(collection);
-            }
-			_isTHasRefProperty = IsTHasRefProperty();
-		}
+            
+            _list = new();
+            InitTRefProperty();
+            InitTIdProperty();
 
-		#endregion
+            foreach (var col in collection)
+            {
+                Add(Clone(col));
+            }
 
-		#region Array
-		public T this[int index]
+        }
+
+        #endregion
+
+        #region Array
+        public T this[int index]
         {
             get
             {
                 lock (_syncRoot)
                 {
+                    
+
                     return _list[index];
                 }
             }
@@ -62,32 +64,96 @@ namespace BrickSchema.Net.ThreadSafeObjects
                     }
                     else
                     {
-                        _list[index] = value;
                         AddThreadSafeListRef(value);
+                        
+                            _list[index] = value;
+                            
+                        
                         
                     }
 				}
             }
         }
-		#endregion
 
-		#region A
-
-		public void AddThreadSafeListRef(T item)
+        public T? this[long id]
         {
-			if (_isTHasRefProperty)
-			{
-				// Check if the item has a 'Parent' property of type ThreadSafeList<T>
-				var parentProperty = item?.GetType().GetProperties()
-					.FirstOrDefault(prop => Attribute.IsDefined(prop, typeof(ThreadSafeListRefAttribute)) && prop.PropertyType == typeof(ThreadSafeList<T>));
+            get
+            {
+                lock (_syncRoot)
+                {
+                    if (_idPropertyInfo == null) throw new NullReferenceException("ThreadSafeListId reference is null");
+                    if (_idPropertyInfo.PropertyType != typeof(long))
+                        throw new InvalidCastException("Invalid Id data type. ThreadSafeListId property valid data types: long, string");
 
-				if (parentProperty != null)
-				{
-					// If the 'Parent' property exists, set it to this instance
-					parentProperty.SetValue(item, this);
-				}
-			}
-		}
+                    return FindItemById(id);
+                }
+            }
+            set
+            {
+                lock (_syncRoot)
+                {
+                    if (value == null)
+                    {
+                        Console.Out.WriteLineAsync("Cannot add null item. Exit function.");
+                        return;
+                    }
+
+                    AddThreadSafeListRef(value);
+                    var index = FindIndexById(id);
+                    if (index >= 0) _list[index] = value;
+                }
+            }
+        }
+
+        public T? this[string id]
+        {
+            get
+            {
+                lock (_syncRoot)
+                {
+                    if (_idPropertyInfo == null) throw new NullReferenceException("ThreadSafeListId reference is null");
+                    if (_idPropertyInfo.PropertyType != typeof(string))
+                        throw new InvalidCastException("Invalid Id data type. ThreadSafeListId property valid data types: long, string");
+
+                    return FindItemById(id);
+                }
+            }
+            set
+            {
+                lock (_syncRoot)
+                {
+                    if (value == null)
+                    {
+                        Console.Out.WriteLineAsync("Cannot add null item. Exit function.");
+                        return;
+                    }
+
+                    AddThreadSafeListRef(value);
+                    var index = FindIndexById(id);
+                    if (index >= 0) _list[index] = value;
+                }
+            }
+        }
+        #endregion
+
+        #region A
+
+        public void AddThreadSafeListRef(T item)
+        {
+            if (item == null) return;
+            if (_refPropertyInfo!= null)
+            {
+                // Check if the item has a 'Parent' property of type ThreadSafeList<T>
+                var parentProperty = item?.GetType().GetProperties()
+                    .FirstOrDefault(prop => Attribute.IsDefined(prop, typeof(ThreadSafeListRefAttribute)) && prop.PropertyType == typeof(ThreadSafeList<T>));
+
+                if (parentProperty != null)
+                {
+                    // If the 'Parent' property exists, set it to this instance
+                    parentProperty.SetValue(item, this);
+                }
+            }
+        }
 
 		public void Add(T item)
 		{
@@ -104,6 +170,10 @@ namespace BrickSchema.Net.ThreadSafeObjects
 			}
 		}
 
+        public void AddNew(T item)
+        {
+            Add(Clone(item));
+        }
 		public void AddRaw(T item)
 		{
 			if (item == null)
@@ -115,8 +185,6 @@ namespace BrickSchema.Net.ThreadSafeObjects
 			{
                 //Do not AddThreadSafe list ref
 
-				// First, check if T is a class to avoid unnecessary reflection for value types
-				//AddThreadSafeListRef(item);
 				_list.Add(item);
 			}
 		}
@@ -130,18 +198,19 @@ namespace BrickSchema.Net.ThreadSafeObjects
                     AddThreadSafeListRef(item);
                 }
 
-                _list.AddRange(items);
+                _list.AddRange(items.Where(i=>i != null));
             }
         }
+
+        public void AddRangeNew(IEnumerable<T> items)
+        {
+            AddRange(Clone(items)); 
+        }
+
 		public void AddRangeRaw(IEnumerable<T> items)
 		{
 			lock (_syncRoot)
 			{
-				//foreach (var item in items)
-				//{
-				//	AddThreadSafeListRef(item);
-				//}
-
 				_list.AddRange(items);
 			}
 		}
@@ -159,7 +228,33 @@ namespace BrickSchema.Net.ThreadSafeObjects
             }
         }
 
-        
+        public IEnumerable<T> Clone (IEnumerable<T> items)
+        {
+            List<T> list = new List<T>();
+            foreach (var item in items) { list.Add(Clone(item)); }
+            return list;
+        }
+        public T Clone(T item)
+        {
+            // Check if T is a class
+            if (typeof(T).IsClass)
+            {
+                // Try to find a "Clone" method on T
+                var cloneMethod = typeof(T).GetMethod("Clone", Type.EmptyTypes);
+
+                if (cloneMethod != null && cloneMethod.ReturnType == typeof(T))
+                {
+                    // If a "Clone" method exists and returns the correct type, invoke it
+                    var newItem = cloneMethod.Invoke(item, null);
+                    if (newItem == null) return item;
+                    return (T)newItem;
+                }
+            }
+
+            // If T is not a class, does not have a "Clone" method, or the "Clone" method does not return the correct type,
+            // return the original item
+            return item;
+        }
 
         public void Clear()
         {
@@ -176,14 +271,6 @@ namespace BrickSchema.Net.ThreadSafeObjects
                 return _list.Contains(item);
             }
         }
-
-        //      public void CopyTo(T[] array)
-        //      {
-        //          lock (_syncRoot)
-        //          {
-        //              _list.CopyTo(array);
-        //          }
-        //      }
 
         public void CopyTo(T[] array, int arrayIndex)
         {
@@ -233,7 +320,9 @@ namespace BrickSchema.Net.ThreadSafeObjects
         {
             lock (_syncRoot)
             {
-                return _list.Find(match);
+                var item = _list.Find(match);
+                if (item == null) return default(T?);
+                return Clone(item);
             }
         }
 
@@ -241,7 +330,9 @@ namespace BrickSchema.Net.ThreadSafeObjects
         {
             lock (_syncRoot)
             {
-                return _list.FirstOrDefault(predicate);
+                var item = _list.FirstOrDefault(predicate);
+                if (item == null) return default(T?);
+                return Clone(item);
             }
         }
 		#endregion
@@ -327,12 +418,46 @@ namespace BrickSchema.Net.ThreadSafeObjects
             return GetEnumerator();
         }
 
+        private void InitTIdProperty()
+        {
+            _idPropertyInfo = null;
+            if (!typeof(T).IsClass)
+            {
+                return;
+            }
 
-		private bool IsTHasRefProperty()
+            // Get the type object of T
+            Type typeOfT = typeof(T);
+
+            // Iterate over all public properties of T
+            var idProperty = typeOfT.GetProperties()
+                .FirstOrDefault(prop =>
+                    // Check if the property is marked with the ThreadSafeListIdAttribute
+                    Attribute.IsDefined(prop, typeof(ThreadSafeListIdAttribute)));
+
+            if (idProperty == null)
+            {
+                return;
+            }
+
+
+            // If not string, or long
+            if (idProperty.PropertyType != typeof(string) && idProperty.PropertyType != typeof(long))
+            {
+                //Have id but wrong data type.
+                throw new InvalidCastException($"ThreadSafeListId property has invalid data type. Valid data types: string or long");
+            }
+            _idPropertyInfo = idProperty;
+        }
+
+
+        private void InitTRefProperty()
 		{
-			if (!typeof(T).IsClass)
+            _refPropertyInfo = null;
+
+            if (!typeof(T).IsClass)
 			{
-				return false;
+				return;
 			}
 			// Get the type object of T
 			Type typeOfT = typeof(T);
@@ -344,15 +469,16 @@ namespace BrickSchema.Net.ThreadSafeObjects
 					Attribute.IsDefined(prop, typeof(ThreadSafeListRefAttribute)));
 			if (refProperty == null)
 			{
-				return false;
+				return;
 			}
 
 			if (!IsPropertyOfTypeThreadSafeListT(refProperty.PropertyType, typeOfT))
 			{
 				throw new InvalidCastException($"ThreadSafeListRef property has invalid data type. Cannot cast {refProperty.PropertyType} to {typeOfT}");
 			}
-			return true;
-		}
+            _refPropertyInfo = refProperty;
+
+        }
 
 		private bool IsPropertyOfTypeThreadSafeListT(Type propertyType, Type targetType)
 		{
@@ -371,8 +497,23 @@ namespace BrickSchema.Net.ThreadSafeObjects
 			return false;
 		}
 
-		
+        private int FindIndexById(object id)
+        {
+            return _list.FindIndex(x =>
+            {
+                var propertyValue = _idPropertyInfo?.GetValue(x);
+                return Equals(propertyValue, id);
+            });
+        }
 
-		#endregion
-	}
+        private T? FindItemById(object id)
+        {
+            return _list.FirstOrDefault(x =>
+            {
+                var propertyValue = _idPropertyInfo?.GetValue(x);
+                return Equals(propertyValue, id);
+            });
+        }
+        #endregion
+    }
 }

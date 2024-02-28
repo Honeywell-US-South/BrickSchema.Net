@@ -7,6 +7,11 @@ using System.Threading.Tasks;
 namespace BrickSchema.Net.ThreadSafeObjects
 {
     [AttributeUsage(AttributeTargets.Property)]
+    public class ThreadSafeListIdAttribute : Attribute
+    {
+    }
+
+    [AttributeUsage(AttributeTargets.Property)]
     public class ThreadSafeListRefAttribute : Attribute
     {
     }

@@ -18,6 +18,7 @@ namespace BrickSchema.Net
         [JsonIgnore]
         public ThreadSafeList<BrickEntity> OtherEntities { get; set; } = new ThreadSafeList<BrickEntity>();
 
+        [ThreadSafeListId]
         public string Id { get; set; } = string.Empty;
         public string EntityTypeName { get; set; } = string.Empty;
         public DateTime LastUpdate { get; set; }
@@ -70,7 +71,7 @@ namespace BrickSchema.Net
             clone.RegisteredBehaviors = new(RegisteredBehaviors);
             //do not clone behaviors
             clone.Shapes = new(Shapes);
-            
+            clone.OtherEntities = new();
             return clone;
         }
 

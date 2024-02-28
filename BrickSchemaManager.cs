@@ -33,9 +33,10 @@ namespace BrickSchema.Net
         private readonly string? _brickPath;
 
         // Object used as lock for thread-safety
-        private readonly object _lockObject = new object();
+        private readonly object _syncRoot = new object();
         IoTDatabase? _database = null;
 
+        #region Constructors
         public BrickSchemaManager()
         {
             _entities = new ThreadSafeList<BrickEntity>();
@@ -51,6 +52,11 @@ namespace BrickSchema.Net
             LoadSchemaFromFile(_brickPath);
             SaveSchema();
         }
+        #endregion
+
+        #region Entities
+        public ThreadSafeList<BrickEntity> Entities { get { return _entities; } }
+        #endregion
 
         public void LoadSchemaFromJson(string json, bool clearList = false)
         {
@@ -76,7 +82,7 @@ namespace BrickSchema.Net
 
         public void ImportEntities(ThreadSafeList<BrickEntity> newEntities, bool clearList = false)
         {
-            lock (_lockObject) // Locking here 
+            lock (_syncRoot) // Locking here 
             {
                 if (clearList) _entities.Clear();
                 if (_entities.Count == 0)
@@ -142,7 +148,7 @@ namespace BrickSchema.Net
 
         public void LoadSchemaFromFile(string jsonLdFilePath)
         {
-            lock (_lockObject) // Locking here
+            lock (_syncRoot) // Locking here
             {
                 if (jsonLdFilePath.Equals(_brickPath))
                 {
@@ -165,7 +171,7 @@ namespace BrickSchema.Net
 
 		private void PushEntitiesDataToDatabase(bool clearEntityPropertyBehaviors = false)
 		{
-			lock (_lockObject)
+			lock (_syncRoot)
 			{
 				int timeout = 1000 * 60; // Timeout in milliseconds (60 seconds)
 				var cts = new CancellationTokenSource();
@@ -320,7 +326,7 @@ namespace BrickSchema.Net
 		{
 			await Task.Run(() =>
 			{
-				lock (_lockObject) // Locking here as before
+				lock (_syncRoot) // Locking here as before
 				{
 					PushEntitiesDataToDatabase(false);
 					try
@@ -341,7 +347,7 @@ namespace BrickSchema.Net
         {
             if (string.IsNullOrEmpty(jsonLdFilePath)) return;
 
-            lock (_lockObject) // Locking here
+            lock (_syncRoot) // Locking here
             {
                 
 
@@ -403,7 +409,7 @@ namespace BrickSchema.Net
 
         public void ArchiveEntityProperties(string entityId, int olderThanDays = 30)
         {
-            lock (_lockObject) // Locking here
+            lock (_syncRoot) // Locking here
             {
                 BrickEntity? entity = _entities.FirstOrDefault(e => e.Id == entityId);
                 if (entity != null)
@@ -460,7 +466,7 @@ namespace BrickSchema.Net
         public string ToJson()
         {
             string json = "";
-            lock (_lockObject) // Locking here
+            lock (_syncRoot) // Locking here
             {
 
                 foreach (var _e in _entities)
@@ -492,7 +498,7 @@ namespace BrickSchema.Net
 
         public bool UpdateEntity(dynamic updatedEntity)
         {
-            lock (_lockObject) // Locking here
+            lock (_syncRoot) // Locking here
             {
                 BrickEntity? entityToUpdate = _entities.FirstOrDefault(e => e.Id == updatedEntity.Id);
                 if (entityToUpdate == null)
@@ -523,10 +529,11 @@ namespace BrickSchema.Net
             return false;
         }
 
+        #region Add
         public T AddEntity<T>(string id, string name) where T : BrickEntity, new()
         {
             T entity = new T();
-            lock (_lockObject) // Locking here
+            lock (_syncRoot) // Locking here
             {
                 if (!string.IsNullOrEmpty(id))
                 {
@@ -557,7 +564,7 @@ namespace BrickSchema.Net
         {
 
             T entity;
-            lock (_lockObject) // Locking here
+            lock (_syncRoot) // Locking here
             {
                 if (id == null)
                 {
@@ -576,7 +583,7 @@ namespace BrickSchema.Net
         {
 
             T entity = new T();
-            lock (_lockObject) // Locking here
+            lock (_syncRoot) // Locking here
             {
                 entity = new T
                 {
@@ -589,22 +596,43 @@ namespace BrickSchema.Net
             return entity;
         }
 
-        public BrickEntity? GetEntity(string id, bool byReference = true)
+        #endregion
+
+        public void GetEntity(BrickEntity entity, string id)
         {
-            lock (_lockObject) // Locking here
+            entity = _entities.FirstOrDefault(x => x.Id.Equals(id))??new(); 
+		}
+		public void GetEntity<T>(T entity, string id) where T : BrickEntity
+		{
+			BrickEntity? e = _entities.FirstOrDefault(x => x.Id.Equals(id));
+
+            // Initialize entity of type T to default
+            entity = default;
+
+            // Check if e is not null and T is derived from BrickEntity
+            if (e != null && e is T)
+            {
+                // Directly cast e to T since we've confirmed it's safe
+                entity = (T)e;
+            }
+        }
+
+		public BrickEntity? GetEntity(string id, bool byReference = true)
+        {
+            lock (_syncRoot) // Locking here
             {
                 var entity = _entities.FirstOrDefault(x => x.Id.Equals(id));
-                //var behaviors = entity?.GetBehaviors();
-                var e = byReference ? entity : entity?.Clone();
-
-                return e;
+                if (entity == null) return null;
+                return new BrickEntity(entity);
             }
 
         }
 
+        
+
         public void UpdateBehaviorsProperty()
         {
-            lock (_lockObject)
+            lock (_syncRoot)
             {
                 foreach (var entity in _entities)
                 {
@@ -621,18 +649,20 @@ namespace BrickSchema.Net
 			return new(_entities);
 		}
 
+
+
 		public void GetEntities(ThreadSafeList<BrickEntity> entities)
         {
-            lock (_lockObject) // Locking here
+            lock (_syncRoot) // Locking here
             {
 				//UpdateBehaviorsProperty();
 				entities = _entities;
             }
         }
 
-        public ThreadSafeList<BrickEntity> GetEntities<T>()
+        public ThreadSafeList<BrickEntity> GetEntities<T>() where T : BrickEntity
         {
-			lock (_lockObject) // Locking here
+			lock (_syncRoot) // Locking here
 			{
 				//UpdateBehaviorsProperty();
 				var type = Helpers.EntityUtils.GetTypeName<T>();
@@ -642,34 +672,34 @@ namespace BrickSchema.Net
 				}
 				else
 				{ //get specified type
-                    ThreadSafeList<BrickEntity> entities = new();
-					var isBrickClass = typeof(T).IsSubclassOf(typeof(BrickClass));
-					foreach (var entity in _entities)
-					{
-						bool add = entity.GetType() == typeof(T);
-						if (!add && isBrickClass)
-						{
-							var brickClassName = entity.GetProperty<string>(EntityProperties.PropertiesEnum.BrickClass);
-							if (brickClassName?.Equals(type) ?? false)
-							{
-								add = true;
-							}
-						}
+                    ThreadSafeList<BrickEntity> entities = _entities.Where(x => x is T).Select(x => x.Clone()).ToThreadSafeList();
+     //               var isBrickClass = typeof(T).IsSubclassOf(typeof(BrickClass));
+					//foreach (var entity in _entities)
+					//{
+					//	bool add = entity.GetType() == typeof(T);
+					//	if (!add && isBrickClass)
+					//	{
+					//		var brickClassName = entity.GetProperty<string>(EntityProperties.PropertiesEnum.BrickClass);
+					//		if (brickClassName?.Equals(type) ?? false)
+					//		{
+					//			add = true;
+					//		}
+					//	}
 
-						if (add)
-						{
-							entities.Add(entity);
-						}
-					}
+					//	if (add)
+					//	{
+					//		entities.Add(new(entity));
+					//	}
+					//}
                     return entities;
 
 				}
 			}
            
 		}
-		public void GetEntities<T>(ThreadSafeList<BrickEntity> entities)
+		public void GetEntities<T>(ThreadSafeList<BrickEntity> entities) where T : BrickEntity
         {
-            lock (_lockObject) // Locking here
+            lock (_syncRoot) // Locking here
             {
                 var type = Helpers.EntityUtils.GetTypeName<T>();
                 if (string.IsNullOrEmpty(type) || type.Equals("null"))
@@ -678,30 +708,31 @@ namespace BrickSchema.Net
                 }
                 else
                 { //get specified type
-                    var isBrickClass = typeof(T).IsSubclassOf(typeof(BrickClass));
-                    foreach (var entity in _entities)
-                    {
-                        bool add = entity.GetType() == typeof(T);
-                        if (!add && isBrickClass)
-                        {
-                            var brickClassName = entity.GetProperty<string>(EntityProperties.PropertiesEnum.BrickClass);
-                            if (brickClassName?.Equals(type) ?? false)
-                            {
-                                add = true;
-                            }
-                        }
+                    entities = _entities.Where(x => x is T).ToThreadSafeList();
+       //             var isBrickClass = typeof(T).IsSubclassOf(typeof(BrickClass));
+       //             foreach (var entity in _entities)
+       //             {
+       //                 bool add = entity.GetType() == typeof(T);
+       //                 if (!add && isBrickClass)
+       //                 {
+       //                     var brickClassName = entity.GetProperty<string>(EntityProperties.PropertiesEnum.BrickClass);
+       //                     if (brickClassName?.Equals(type) ?? false)
+       //                     {
+       //                         add = true;
+       //                     }
+       //                 }
 
-                        if (add)
-                        {
-                            var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(entity.GetBehaviors());
+       //                 if (add)
+       //                 {
+       //                     var behaviorsJson = Helpers.EntityUtils.BehaviorsToJson(entity.GetBehaviors());
 
-							entity.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
-							entity.CleanUpDuplicatedProperties();
-                            entities.AddRaw(entity);
+							//entity.SetProperty(EntityProperties.PropertiesEnum.Behaviors, behaviorsJson);
+							//entity.CleanUpDuplicatedProperties();
+       //                     entities.AddRaw(entity);
 
-                        }
+       //                 }
 
-                    }
+       //             }
   
                 }
             }
