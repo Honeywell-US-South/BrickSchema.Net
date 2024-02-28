@@ -235,27 +235,32 @@ namespace BrickSchema.Net.ThreadSafeObjects
             foreach (var item in items) { list.Add(Clone(item)); }
             return list;
         }
+
         public T Clone(T item)
         {
             // Check if T is a class
             if (typeof(T).IsClass)
             {
+                return item;
                 // Try to find a "Clone" method on T
-                var cloneMethod = typeof(T).GetMethod("Clone", Type.EmptyTypes);
+                //var cloneMethod = typeof(T).GetMethod("Clone");
 
-                if (cloneMethod != null && cloneMethod.ReturnType == typeof(T))
-                {
-                    // If a "Clone" method exists and returns the correct type, invoke it
-                    var newItem = cloneMethod.Invoke(item, null);
-                    if (newItem == null) return item;
-                    return (T)newItem;
-                }
+                //if (cloneMethod != null && cloneMethod.ReturnType == typeof(T))
+                //{
+                //    // If a "Clone" method exists and returns the correct type, invoke it
+                //    var newItem = cloneMethod.Invoke(item, null);
+                //    if (newItem == null) return item;
+                //    return (T)newItem;
+                //}
             }
+
 
             // If T is not a class, does not have a "Clone" method, or the "Clone" method does not return the correct type,
             // return the original item
             return item;
         }
+
+        
 
         public void Clear()
         {
@@ -331,9 +336,9 @@ namespace BrickSchema.Net.ThreadSafeObjects
         {
             lock (_syncRoot)
             {
-                var item = _list.Find(match);
+                var item = Find(match);
                 if (item == null) return default(U?);
-                return Clone(item) as U;
+                return item as U;
             }
         }
 
@@ -359,9 +364,11 @@ namespace BrickSchema.Net.ThreadSafeObjects
         {
             lock (_syncRoot)
             {
-                var item = _list.FirstOrDefault(predicate);
+                var item = FirstOrDefault(predicate);
                 if (item == null) return default(U?);
-                return Clone(item) as U;
+                if (item is U) return item as U;
+                return default(U?);
+               
             }
         }
 
