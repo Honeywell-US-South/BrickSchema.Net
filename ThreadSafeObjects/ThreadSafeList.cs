@@ -1,4 +1,5 @@
-﻿using IoTDBdotNET;
+﻿using BrickSchema.Net.Classes.Equipments.HVACType;
+using IoTDBdotNET;
 using Newtonsoft.Json;
 using System.Collections;
 using System.Reflection;
@@ -326,6 +327,16 @@ namespace BrickSchema.Net.ThreadSafeObjects
             }
         }
 
+        public U? Find<U>(Predicate<T> match) where U : class, T
+        {
+            lock (_syncRoot)
+            {
+                var item = _list.Find(match);
+                if (item == null) return default(U?);
+                return Clone(item) as U;
+            }
+        }
+
         public T? FirstOrDefault(Func<T, bool> predicate)
         {
             lock (_syncRoot)
@@ -335,10 +346,19 @@ namespace BrickSchema.Net.ThreadSafeObjects
                 return Clone(item);
             }
         }
-		#endregion
+        public U? FirstOrDefault<U>(Func<T, bool> predicate) where U : class, T
+        {
+            lock (_syncRoot)
+            {
+                var item = _list.FirstOrDefault(predicate);
+                if (item == null) return default(U?);
+                return Clone(item) as U;
+            }
+        }
+        #endregion
 
-		#region G
-		public IEnumerator<T> GetEnumerator()
+        #region G
+        public IEnumerator<T> GetEnumerator()
         {
             lock (_syncRoot)
             {
