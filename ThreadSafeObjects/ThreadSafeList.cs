@@ -241,26 +241,33 @@ namespace BrickSchema.Net.ThreadSafeObjects
             // Check if T is a class
             if (typeof(T).IsClass)
             {
-                return item;
-                // Try to find a "Clone" method on T
-                //var cloneMethod = typeof(T).GetMethod("Clone");
-
-                //if (cloneMethod != null && cloneMethod.ReturnType == typeof(T))
-                //{
-                //    // If a "Clone" method exists and returns the correct type, invoke it
-                //    var newItem = cloneMethod.Invoke(item, null);
-                //    if (newItem == null) return item;
-                //    return (T)newItem;
-                //}
+                T? c = CloneClass(item);
+                if (c != null) return c;
             }
-
 
             // If T is not a class, does not have a "Clone" method, or the "Clone" method does not return the correct type,
             // return the original item
             return item;
         }
 
-        
+        private dynamic? CloneClass(T item)
+        {
+            // Try to find a "Clone" method on T
+            // Using BindingFlags to specify that we want to look for a public or non-public instance method
+            var bindingFlags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
+
+            // Specifying an empty Type array to represent a method that takes no parameters
+            var cloneMethod = typeof(T).GetMethod("Clone", bindingFlags, null, new Type[0], null);
+
+            if (cloneMethod != null && cloneMethod.ReturnType == typeof(T))
+            {
+                // If a "Clone" method exists and returns the correct type, invoke it
+                var newItem = cloneMethod.Invoke(item, null);
+                if (newItem == null) return default(T?);
+                return item as dynamic;
+            }
+            return default(T?);
+        }
 
         public void Clear()
         {
