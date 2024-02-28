@@ -35,7 +35,7 @@ namespace BrickSchema.Net.ThreadSafeObjects
 
             foreach (var col in collection)
             {
-                Add(Clone(col));
+                AddRaw(col);
             }
 
         }
@@ -166,9 +166,10 @@ namespace BrickSchema.Net.ThreadSafeObjects
 			lock (_syncRoot)
 			{
                 // First, check if T is a class to avoid unnecessary reflection for value types
-                AddThreadSafeListRef(item);
+                
 				_list.Add(item);
-			}
+                AddThreadSafeListRef(item);
+            }
 		}
 
         public void AddNew(T item)
@@ -252,6 +253,7 @@ namespace BrickSchema.Net.ThreadSafeObjects
 
         private dynamic? CloneClass(T item)
         {
+            
             // Try to find a "Clone" method on T
             // Using BindingFlags to specify that we want to look for a public or non-public instance method
             var bindingFlags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
