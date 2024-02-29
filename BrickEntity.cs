@@ -60,6 +60,7 @@ namespace BrickSchema.Net
             EntityTypeName = string.Empty;
         }
 
+
         public virtual BrickEntity Clone()
         {
             var clone = new BrickEntity();
@@ -85,7 +86,7 @@ namespace BrickSchema.Net
                 RegisteredBehaviors = clone.RegisteredBehaviors;
                 Shapes = clone.Shapes;
                 var json = e.GetProperty<string>(EntityProperties.PropertyName.Behaviors) ?? string.Empty;
-
+                OtherEntities.Clear();
                 Helpers.EntityUtils.JsonToBehaviors(this, json);
 
             }

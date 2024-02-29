@@ -7,7 +7,7 @@ namespace BrickSchema.Net.Classes
 
         
 
-        public BrickClass() { 
+        public BrickClass():base() { 
         
             
         }
@@ -30,6 +30,7 @@ namespace BrickSchema.Net.Classes
             set { SetProperty(EntityProperties.PropertiesEnum.Description, value); }
         }
 
+        
         public override BrickClass Clone()
         {
             var clone = new BrickClass(base.Clone());

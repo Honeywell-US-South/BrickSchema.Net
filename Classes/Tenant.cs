@@ -12,5 +12,13 @@ namespace BrickSchema.Net.Classes
         {
             SetProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Tenant).Name);
         }
+
+        public Tenant(BrickEntity entity) : base(entity) { }
+
+        public override Tenant Clone()
+        {
+            Tenant clone = new Tenant(base.Clone());
+            return clone;
+        }
     }
 }

@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace BrickSchema.Net.Classes.Locations
 {
-    public class Building : Location { }
+    public class Building : Location {
+    
+    
+    }
 
     public class Floor : Location { }
     public class OutdoorArea : Location { }

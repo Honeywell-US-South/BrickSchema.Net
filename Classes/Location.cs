@@ -24,6 +24,13 @@ namespace BrickSchema.Net.Classes
             return entities;
         }
 
+        public Location(BrickEntity entity) : base(entity) { }
+
+        public override Location Clone()
+        {
+            Location clone = new(base.Clone());
+            return clone;
+        }
     }
 
     

@@ -15,6 +15,13 @@ namespace BrickSchema.Net.Classes
         {
             SetProperty(EntityProperties.PropertiesEnum.BrickClass, typeof(Measurable).Name);
         }
+        public Measurable(BrickEntity entity) : base(entity) { }
+
+        public override Measurable Clone()
+        {
+            Measurable clone = new (base.Clone());
+            return clone;
+        }
     }
 }
     

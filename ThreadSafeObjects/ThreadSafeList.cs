@@ -35,7 +35,7 @@ namespace BrickSchema.Net.ThreadSafeObjects
 
             foreach (var col in collection)
             {
-                AddRaw(col);
+                AddNew(col);
             }
 
         }
@@ -251,25 +251,27 @@ namespace BrickSchema.Net.ThreadSafeObjects
             return item;
         }
 
-        private dynamic? CloneClass(T item)
+        private T? CloneClass(T item)
         {
-            
-            // Try to find a "Clone" method on T
-            // Using BindingFlags to specify that we want to look for a public or non-public instance method
+
+            if (item == null) return default(T);
+
             var bindingFlags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
 
-            // Specifying an empty Type array to represent a method that takes no parameters
-            var cloneMethod = typeof(T).GetMethod("Clone", bindingFlags, null, new Type[0], null);
+            // Use item's runtime type to find the "Clone" method, ensuring it works for derived types
+            var cloneMethod = item.GetType().GetMethod("Clone", bindingFlags, null, Type.EmptyTypes, null);
 
-            if (cloneMethod != null && cloneMethod.ReturnType == typeof(T))
+            if (cloneMethod != null && cloneMethod.ReturnType.IsAssignableFrom(item.GetType()))
             {
                 // If a "Clone" method exists and returns the correct type, invoke it
                 var newItem = cloneMethod.Invoke(item, null);
-                if (newItem == null) return default(T?);
-                return item as dynamic;
+                return newItem == null ? default(T?) : (T)newItem;
+         
             }
             return default(T?);
         }
+
+
 
         public void Clear()
         {
