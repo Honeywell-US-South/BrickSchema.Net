@@ -13,7 +13,7 @@ namespace BrickSchema.Net
 {
     public static class BrickSchemaUtility
     {
-        public static void CreateBrickSchemaFromJsonFile(ThreadSafeList<BrickEntity> entities, string jsonLdFilePath)
+        public static ThreadSafeList<BrickEntity> CreateBrickSchemaFromJsonFile(string jsonLdFilePath)
         {
             
             string json = string.Empty;
@@ -32,17 +32,18 @@ namespace BrickSchema.Net
             {
                 try
                 {
-					entities.Clear();
+					
 					json = json.Replace("System.Collections.Generic.List`1[[BrickSchema.Net.BrickEntity, BrickSchema.Net]], System.Private.CoreLib", "BrickSchema.Net.ThreadSafeObjects.ThreadSafeList`1[[BrickSchema.Net.BrickEntity, BrickSchema.Net]], BrickSchema.Net");
 					json = json.Replace("System.Collections.Generic.List`1[[BrickSchema.Net.EntityProperties.EntityProperty, BrickSchema.Net]], System.Private.CoreLib", "BrickSchema.Net.ThreadSafeObjects.ThreadSafeList`1[[BrickSchema.Net.EntityProperties.EntityProperty, BrickSchema.Net]], BrickSchema.Net");
 					json = json.Replace("System.Collections.Generic.List`1[[BrickSchema.Net.BrickRelationship, BrickSchema.Net]], System.Private.CoreLib", "BrickSchema.Net.ThreadSafeObjects.ThreadSafeList`1[[BrickSchema.Net.BrickRelationship, BrickSchema.Net]], BrickSchema.Net");
 					json = json.Replace("System.Collections.Generic.List`1[[BrickSchema.Net.BrickShape, BrickSchema.Net]], System.Private.CoreLib", "BrickSchema.Net.ThreadSafeObjects.ThreadSafeList`1[[BrickSchema.Net.BrickShape, BrickSchema.Net]], BrickSchema.Net");
-					entities = JsonConvert.DeserializeObject<ThreadSafeList<BrickEntity>>(json, settings) ?? new();
+					var entities = JsonConvert.DeserializeObject<ThreadSafeList<BrickEntity>>(json, settings) ?? new();
+                    return entities;
 				} catch (Exception ex) { 
                         Console.Out.WriteLineAsync(ex.ToString());
                 }
             }
-
+            return new();
         }
 
         public static void WriteBrickSchemaToFile(ThreadSafeList<BrickEntity> entities, string jsonLdFilePath)

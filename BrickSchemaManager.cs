@@ -161,8 +161,8 @@ namespace BrickSchema.Net
                     }
                     catch { }
                 }
-               
-                BrickSchemaUtility.CreateBrickSchemaFromJsonFile(_entities, jsonLdFilePath);
+
+                _entities = BrickSchemaUtility.CreateBrickSchemaFromJsonFile(jsonLdFilePath);
                     
                 
             }
