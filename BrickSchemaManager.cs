@@ -48,7 +48,7 @@ namespace BrickSchema.Net
             _brickPath = brickFilePath;
             if (string.IsNullOrEmpty(_brickPath)) throw new ArgumentNullException("Empty path");
             var dbPath = Path.Combine(Path.GetDirectoryName(_brickPath)??"", "IoTDB");
-            _database = new IoTDatabase("EmberAnalytics", dbPath, true);
+            _database = new IoTDatabase("EmberAnalytics", dbPath);
             LoadSchemaFromFile(_brickPath);
             SaveSchema();
         }
@@ -161,8 +161,8 @@ namespace BrickSchema.Net
                     }
                     catch { }
                 }
-               
-                BrickSchemaUtility.CreateBrickSchemaFromJsonFile(_entities, jsonLdFilePath);
+
+                _entities = BrickSchemaUtility.CreateBrickSchemaFromJsonFile(jsonLdFilePath);
                     
                 
             }
