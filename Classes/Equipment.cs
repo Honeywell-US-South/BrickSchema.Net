@@ -1,4 +1,5 @@
 ﻿using BrickSchema.Net.Relationships;
+using BrickSchema.Net.ThreadSafeObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,9 @@ namespace BrickSchema.Net.Classes
         public Equipment() { }
         internal Equipment(BrickEntity entity):base(entity) { } //for internal use
 
-        public override Equipment Clone()
+		
+
+		public override Equipment Clone()
         {
             var clone = new Equipment(base.Clone());
             return clone;

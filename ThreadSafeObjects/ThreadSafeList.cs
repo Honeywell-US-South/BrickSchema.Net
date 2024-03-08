@@ -35,7 +35,7 @@ namespace BrickSchema.Net.ThreadSafeObjects
 
             foreach (var col in collection)
             {
-                AddNew(col);
+                AddClone(col);
             }
 
         }
@@ -172,7 +172,7 @@ namespace BrickSchema.Net.ThreadSafeObjects
             }
 		}
 
-        public void AddNew(T item)
+        public void AddClone(T item)
         {
             Add(Clone(item));
         }
@@ -204,7 +204,7 @@ namespace BrickSchema.Net.ThreadSafeObjects
             }
         }
 
-        public void AddRangeNew(IEnumerable<T> items)
+        public void AddRangeClone(IEnumerable<T> items)
         {
             AddRange(Clone(items)); 
         }
