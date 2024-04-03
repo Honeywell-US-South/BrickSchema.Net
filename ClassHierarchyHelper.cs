@@ -26,16 +26,18 @@ namespace BrickSchema.Net
 
             foreach (var type in allTypes)
             {
-                if (type.BaseType != null && allTypes.Contains(type.BaseType))
-                {
-                    string baseTypeName = type.BaseType.Name;
-
-                    if (!classHierarchies.ContainsKey(baseTypeName))
+                if (type != null & type.BaseType != null) {
+                    if (allTypes.Contains(type.BaseType) || (type.FullName.StartsWith(namespaceName) && type.BaseType.Name.StartsWith("Brick")))
                     {
-                        classHierarchies[baseTypeName] = new List<string>();
-                    }
+                        string baseTypeName = type.BaseType.Name;
 
-                    classHierarchies[baseTypeName].Add(type.Name);
+                        if (!classHierarchies.ContainsKey(baseTypeName))
+                        {
+                            classHierarchies[baseTypeName] = new List<string>();
+                        }
+
+                        classHierarchies[baseTypeName].Add(type.Name);
+                    }
                 }
             }
 
