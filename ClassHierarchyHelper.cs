@@ -43,5 +43,48 @@ namespace BrickSchema.Net
 
             return classHierarchies;
         }
+
+        public static string GetClassUri(string name, string? namespaceName = null)
+        {
+            var classHierarchies = GetClassHierarchy(namespaceName);
+            // Temporary dictionary to hold reversed mappings for quick lookup.
+            return GetClassUri(name, classHierarchies);
+        }
+
+        public static string GetClassUri(string name, Dictionary<string, List<string>> classHierarchies)
+        {
+            
+            // Temporary dictionary to hold reversed mappings for quick lookup.
+            Dictionary<string, string> childToParentMap = new Dictionary<string, string>();
+
+            // Populate the childToParentMap for quick reverse lookup.
+            foreach (var parent in classHierarchies)
+            {
+                foreach (var child in parent.Value)
+                {
+                    if (!childToParentMap.ContainsKey(child))
+                    {
+                        childToParentMap[child] = parent.Key;
+                    }
+                }
+            }
+
+            // Starting with the target name, build the path backwards.
+            string currentName = name;
+            List<string> path = new List<string>();
+            while (childToParentMap.ContainsKey(currentName))
+            {
+                path.Insert(0, currentName); // Insert at the beginning to build the path backwards.
+                currentName = childToParentMap[currentName]; // Move up to the parent.
+            }
+
+            // Add the top-level parent if it's not already part of the path.
+            if (!path.Contains(currentName) && classHierarchies.ContainsKey(currentName))
+            {
+                path.Insert(0, currentName);
+            }
+
+            return string.Join(".", path); // Join the path components with dots.
+        }
     }
 }

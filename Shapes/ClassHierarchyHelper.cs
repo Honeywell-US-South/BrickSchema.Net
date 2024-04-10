@@ -18,5 +18,13 @@ namespace BrickSchema.Net.Shapes
             }
             return BrickSchema.Net.ClassHierarchyHelper.GetClassHierarchy(namespaceName);
         }
+        public static string GetClassUri(string name, string? namespaceName = null)
+        {
+            if (string.IsNullOrEmpty(namespaceName))
+            {
+                namespaceName = MethodBase.GetCurrentMethod().DeclaringType.Namespace;
+            }
+            return BrickSchema.Net.ClassHierarchyHelper.GetClassUri(name, namespaceName);
+        }
     }
 }
