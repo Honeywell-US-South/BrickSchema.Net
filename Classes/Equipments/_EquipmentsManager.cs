@@ -82,7 +82,7 @@ namespace BrickSchema.Net
 
 
         public FumeHood AddEquipmentHVACFumeHood(string? id = null) => AddEntity<FumeHood>(id);
-        public Classes.Equipments.HVACType.Valve AddEquipmentHVACValve(string? id = null) => AddEntity<Classes.Equipments.HVACType.Valve>(id);
+        public Classes.Equipments.HVACType.ValveHVAC AddEquipmentHVACValve(string? id = null) => AddEntity<Classes.Equipments.HVACType.ValveHVAC>(id);
         public HX AddEquipmentHVACHX(string? id = null) => AddEntity<HX>(id);
         public HeatExchanger AddEquipmentHVACHeatExchanger(string? id = null) => AddEntity<HeatExchanger>(id);
         public HeatingValve AddEquipmentHVACHeatingValve(string? id = null) => AddEntity<HeatingValve>(id);
@@ -118,7 +118,7 @@ namespace BrickSchema.Net
         public Motor AddEquipmentMotor(string? id = null) => AddEntity<Motor>(id);
         public PVPanel AddEquipmentPVPanel(string? id = null) => AddEntity<PVPanel>(id);
         public Relay AddEquipmentRelay(string? id = null) => AddEntity<Relay>(id);
-        public Safety AddEquipmentSafety(string? id = null) => AddEntity<Safety>(id);
+        public SafetyEquipment AddEquipmentSafety(string? id = null) => AddEntity<SafetyEquipment>(id);
         public Security AddEquipmentSecurity(string? id = null) => AddEntity<Security>(id);
         public SolarThermalCollector AddEquipmentSolarThermalCollector(string? id = null) => AddEntity<SolarThermalCollector>(id);
         public SteamDistribution AddEquipmentSteamDistribution(string? id = null) => AddEntity<SteamDistribution>(id);

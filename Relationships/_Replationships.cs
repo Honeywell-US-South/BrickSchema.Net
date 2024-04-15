@@ -45,7 +45,7 @@ namespace BrickSchema.Net
 
         //Relationship
         public AssociatedWith AddRelationshipAssociatedWith(string parentId) => AddRelationship<AssociatedWith>(parentId);
-        public Fedby AddRelationshipFedBy(string parentId) => AddRelationship<Fedby>(parentId);
+        public FedBy AddRelationshipFedBy(string parentId) => AddRelationship<FedBy>(parentId);
 
         public LocationOf AddRelationshipLocationOf(string parentId) => AddRelationship<LocationOf>(parentId);
 

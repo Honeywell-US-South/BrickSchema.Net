@@ -20,7 +20,8 @@ namespace BrickSchema.Net.Classes.Devices
         public string? Protocol { get; set; }
     }
     public class ModbusDevice : Device { }
-    public class  Server : Device { }
+    public class MqttDevice : Device { }
+    public class Server : Device { }
     public class Workstation : Device { }
 
 }

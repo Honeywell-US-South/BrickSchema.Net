@@ -8,5 +8,6 @@ namespace BrickSchema.Net.Classes.Measureable
 {
     public class Quantity : Measurable { }
     public class Substance : Measurable { }
+    public class Vibration : Measurable { }
 }
 

@@ -1,8 +1,7 @@
 ﻿namespace BrickSchema.Net.Relationships
 {
     public class AssociatedWith : BrickRelationship { }
-    public class Fedby : BrickRelationship { }
-    public class HasLocation : BrickRelationship { }
+    public class FedBy : BrickRelationship { }
     public class LocationOf : BrickRelationship { }
     public class MeterBy : BrickRelationship { }
     public class PartOf : BrickRelationship { }

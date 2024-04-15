@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace BrickSchema.Net.Classes.Points
 {
-    public class Alarm : Point { }
-    public class Command : Point { }
-    public class Parameter : Point { }
+    public class AlarmPoint : Point { }
+    public class CommandPoint : Point { }
+    public class ParameterPoint : Point { }
 
-    public class Sensor : Point { }
+    public class SensorPoint : Point { }
 
-    public class Setpoint : Point { }
-    public class Status : Point { }
+    public class SetpointPoint : Point { }
+    public class StatusPoint : Point { }
 }

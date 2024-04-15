@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 
 namespace BrickSchema.Net
 {
@@ -53,38 +54,75 @@ namespace BrickSchema.Net
 
         public static string GetClassUri(string name, Dictionary<string, List<string>> classHierarchies)
         {
-            
-            // Temporary dictionary to hold reversed mappings for quick lookup.
-            Dictionary<string, string> childToParentMap = new Dictionary<string, string>();
+            List<string> path = new List<string>();
 
-            // Populate the childToParentMap for quick reverse lookup.
-            foreach (var parent in classHierarchies)
-            {
-                foreach (var child in parent.Value)
+           
+                // Temporary dictionary to hold reversed mappings for quick lookup.
+                Dictionary<string, string> childToParentMap = new Dictionary<string, string>();
+
+                // Populate the childToParentMap for quick reverse lookup.
+                foreach (var parent in classHierarchies)
                 {
-                    if (!childToParentMap.ContainsKey(child))
+                    foreach (var child in parent.Value)
                     {
-                        childToParentMap[child] = parent.Key;
+                        if (!childToParentMap.ContainsKey(child))
+                        {
+                            childToParentMap[child] = parent.Key;
+                        }
                     }
+                }
+
+                // Starting with the target name, build the path backwards.
+                string currentName = name;
+
+                while (childToParentMap.ContainsKey(currentName))
+                {
+                    path.Insert(0, currentName); // Insert at the beginning to build the path backwards.
+                    currentName = childToParentMap[currentName]; // Move up to the parent.
+                }
+
+                // Add the top-level parent if it's not already part of the path.
+                if (!path.Contains(currentName) && classHierarchies.ContainsKey(currentName))
+                {
+                    path.Insert(0, currentName);
+                }
+           
+            return path.Count == 0 ? string.Empty : string.Join(".", path); // Join the path components with dots.
+        }
+
+        public static List<string> GetChildrenOfClass(string classUri, Dictionary<string, List<string>> classHierarchies)
+        {
+            // Split the URI by dots to navigate through nested dictionaries
+            string[] parts = classUri.Split('.');
+
+            // Attempt to find the children by navigating through the dictionary using the parts
+            List<string> currentList = null;
+            Dictionary<string, List<string>> currentDict = classHierarchies;
+
+            foreach (string part in parts)
+            {
+                if (currentDict != null && currentDict.TryGetValue(part, out List<string> tempList))
+                {
+                    currentList = tempList; // Move deeper into the hierarchy
+                    currentDict = null; // Reset dictionary for next iteration
+
+                    // Attempt to map each item in the list to a new dictionary entry
+                    foreach (string item in tempList)
+                    {
+                        if (classHierarchies.TryGetValue(item, out List<string> subList))
+                        {
+                            currentDict = classHierarchies; // Only update if there's a deeper level
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    return null; // Return null if any part of the URI does not match
                 }
             }
 
-            // Starting with the target name, build the path backwards.
-            string currentName = name;
-            List<string> path = new List<string>();
-            while (childToParentMap.ContainsKey(currentName))
-            {
-                path.Insert(0, currentName); // Insert at the beginning to build the path backwards.
-                currentName = childToParentMap[currentName]; // Move up to the parent.
-            }
-
-            // Add the top-level parent if it's not already part of the path.
-            if (!path.Contains(currentName) && classHierarchies.ContainsKey(currentName))
-            {
-                path.Insert(0, currentName);
-            }
-
-            return string.Join(".", path); // Join the path components with dots.
+            return currentList; // Return the final list of children classes
         }
     }
 }

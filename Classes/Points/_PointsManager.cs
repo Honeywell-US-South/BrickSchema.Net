@@ -11,11 +11,11 @@ namespace BrickSchema.Net
     {
         //point
 
-        public Alarm AddPointAlarm(string? id = null) => AddEntity<Alarm>(id);
-        public Command AddPointCommand(string? id = null) => AddEntity<Command>(id);
-        public Parameter AddPointParameter(string? id = null) => AddEntity<Parameter>(id);
-        public Sensor AddPointSensor(string? id = null) => AddEntity<Sensor>(id);
-        public Setpoint AddPointSetpoint(string? id = null) => AddEntity<Setpoint>(id);
-        public Status AddPointStatus(string? id = null) => AddEntity<Status>(id);
+        public AlarmPoint AddPointAlarm(string? id = null) => AddEntity<AlarmPoint>(id);
+        public CommandPoint AddPointCommand(string? id = null) => AddEntity<CommandPoint>(id);
+        public ParameterPoint AddPointParameter(string? id = null) => AddEntity<ParameterPoint>(id);
+        public SensorPoint AddPointSensor(string? id = null) => AddEntity<SensorPoint>(id);
+        public SetpointPoint AddPointSetpoint(string? id = null) => AddEntity<SetpointPoint>(id);
+        public StatusPoint AddPointStatus(string? id = null) => AddEntity<StatusPoint>(id);
     }
 }

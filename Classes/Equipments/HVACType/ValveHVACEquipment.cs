@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BrickSchema.Net.Classes.Equipments.HVACType
 {
-    public class Valve : HVAC
+    public class ValveHVAC : HVAC
     {
 
         new public static string About
@@ -32,7 +32,7 @@ namespace BrickSchema.Net.Classes.Equipments.HVACType
         }
     }
 
-    public class BypassValve : Valve
+    public class BypassValve : ValveHVAC
     {
 
         
@@ -51,7 +51,7 @@ namespace BrickSchema.Net.Classes.Equipments.HVACType
         }
     }
 
-    public class CoolingValve : Valve
+    public class CoolingValve : ValveHVAC
     {
         new public static string About
         {
@@ -73,7 +73,7 @@ namespace BrickSchema.Net.Classes.Equipments.HVACType
         }
     }
 
-    public class SteamValve : Valve
+    public class SteamValve : ValveHVAC
     {
         new public static string About
         {
@@ -94,7 +94,7 @@ namespace BrickSchema.Net.Classes.Equipments.HVACType
         }
     }
 
-    public class HeatingValve : Valve
+    public class HeatingValve : ValveHVAC
     {
         new public static string About
         {
@@ -116,7 +116,7 @@ namespace BrickSchema.Net.Classes.Equipments.HVACType
         }
     }
 
-    public class IsolationValve : Valve
+    public class IsolationValve : ValveHVAC
     {
         new public static string About
         {
