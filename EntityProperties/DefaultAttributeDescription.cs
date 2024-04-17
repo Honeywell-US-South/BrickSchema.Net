@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace BrickSchema.Net.EntityProperties
 {
-    public class DefaultPropertyDescription
+    public class DefaultAttributeDescription
     {
         public string Name { get; set; }
         public string Description { get; set; }
         public string Unit { get; set; }
 
-        public DefaultPropertyDescription() { }
+        public DefaultAttributeDescription() { }
 
-        public DefaultPropertyDescription(string name, string description, string unit)
+        public DefaultAttributeDescription(string name, string description, string unit)
         {
             Name = name;
             Description = description;
