@@ -6,5 +6,5 @@
     public class Longitude : Position { }
     public class Altitude : Position { }
     public class Heading : Position { }
-
+    public class Order : Position { }
 }
