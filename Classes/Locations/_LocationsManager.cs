@@ -27,7 +27,7 @@ namespace BrickSchema.Net
         public Tunnel AddLocationTunnel(string? id = null) => AddEntity<Tunnel>(id);
         public VerticalSpace AddLocationVerticalSpace(string? id = null) => AddEntity<VerticalSpace>(id);
         public WaterTank AddLocationWaterTank(string? id = null) => AddEntity<WaterTank>(id);
-        public Storey AddLocationStorey(string? id = null) => AddEntity<Storey>(id);
+        public Basement AddLocationBasement(string? id = null) => AddEntity<Basement>(id);
         public Wing AddLocationWing(string? id = null) => AddEntity<Wing>(id);
         public Zone AddLocationZone(string? id = null) => AddEntity<Zone>(id);
         public ChilledWaterPlant AddLocationChilledWaterPlant(string? id = null) => AddEntity<ChilledWaterPlant>(id);

@@ -19,6 +19,7 @@ namespace BrickSchema.Net.Classes.Locations
 
     }
 
+    public class Basement : Location { }
     public class Floor : Location { 
     
         public Floor() { }
@@ -66,7 +67,6 @@ namespace BrickSchema.Net.Classes.Locations
     public class Tunnel : Space { }
     public class VerticalSpace : Space { }
     public class WaterTank : Space { }
-    public class Storey : Location { }
     public class Wing : Location { }
     public class Zone : Location { }
     public class ChilledWaterPlant : Location { }
