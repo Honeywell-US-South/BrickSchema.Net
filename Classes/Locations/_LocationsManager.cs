@@ -1,4 +1,6 @@
 ﻿using BrickSchema.Net.Classes.Locations;
+using BrickSchema.Net.Classes.Locations.Floors;
+using BrickSchema.Net.Classes.Locations.Spaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;

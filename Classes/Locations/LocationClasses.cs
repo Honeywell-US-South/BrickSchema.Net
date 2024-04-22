@@ -19,9 +19,9 @@ namespace BrickSchema.Net.Classes.Locations
 
     }
 
-    public class Basement : Location { }
-    public class Floor : Location { 
-    
+    public class Floor : Location
+    {
+
         public Floor() { }
         public Floor(BrickEntity entity) : base(entity) { }
 
@@ -31,6 +31,8 @@ namespace BrickSchema.Net.Classes.Locations
             return clone;
         }
     }
+
+
     public class OutdoorArea : Location
     {
         public OutdoorArea() { }
@@ -57,16 +59,7 @@ namespace BrickSchema.Net.Classes.Locations
     public class Region : Location { }
     public class Site : Location { }
     public class Space : Location { }
-    public class CommonSpace : Space { }
-    public class Entrance : Space { }
-    public class GateHouse : Space { }
-    public class MediaHotDesk : Space { }
-    public class Parking : Space { }
-    public class Room : Space { }
-    public class TicketingBooth : Space { }
-    public class Tunnel : Space { }
-    public class VerticalSpace : Space { }
-    public class WaterTank : Space { }
+    
     public class Wing : Location { }
     public class Zone : Location { }
     public class ChilledWaterPlant : Location { }
