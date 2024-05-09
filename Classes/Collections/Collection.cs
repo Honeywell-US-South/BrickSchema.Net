@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BrickSchema.Net.Classes.Collection
+namespace BrickSchema.Net.Classes.Collections
 {
     //Collection Class
     public class Collection : BrickClass
@@ -20,4 +20,5 @@ namespace BrickSchema.Net.Classes.Collection
     public class PhotovoltaicArray : Collection { }
     public class Portfolio : Collection { }
     public class System : Collection { }
+    public class Group : Collection { }
 }

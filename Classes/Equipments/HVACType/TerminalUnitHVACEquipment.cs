@@ -1,4 +1,4 @@
-﻿using BrickSchema.Net.Classes.Collection.Loop;
+﻿
 using BrickSchema.Net.Shapes;
 using System;
 using System.Collections.Generic;

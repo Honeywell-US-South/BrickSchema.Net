@@ -1,4 +1,4 @@
-﻿using BrickSchema.Net.Classes.Collection.Loop;
+﻿
 using BrickSchema.Net.Relationships;
 using System;
 using System.Collections.Generic;

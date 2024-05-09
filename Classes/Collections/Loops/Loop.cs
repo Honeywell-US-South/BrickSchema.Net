@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BrickSchema.Net.Classes.Collection.Loop
+namespace BrickSchema.Net.Classes.Collections.Loops
 {
     public class Loop : Collection { }
     public class Air : Loop { }

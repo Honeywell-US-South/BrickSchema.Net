@@ -1,5 +1,5 @@
-﻿using BrickSchema.Net.Classes.Collection.Loop;
-using BrickSchema.Net.Classes.Collection;
+﻿using BrickSchema.Net.Classes.Collections.Loops;
+using BrickSchema.Net.Classes.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +22,6 @@ namespace BrickSchema.Net
         public PVArray AddCollectionPVArray(string? id = null) => AddEntity<PVArray>(id);
         public PhotovoltaicArray AddCollectionPhotovoltaicArray(string? id = null) => AddEntity<PhotovoltaicArray>(id);
         public Portfolio AddCollectionPortfolio(string? id = null) => AddEntity<Portfolio>(id);
-        public BrickSchema.Net.Classes.Collection.System AddCollectionSystem(string? id = null) => AddEntity<BrickSchema.Net.Classes.Collection.System>(id);
+        public BrickSchema.Net.Classes.Collections.System AddCollectionSystem(string? id = null) => AddEntity<BrickSchema.Net.Classes.Collections.System>(id);
     }
 }
