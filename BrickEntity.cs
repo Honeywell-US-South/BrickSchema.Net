@@ -1,4 +1,5 @@
 ﻿using BrickSchema.Net.Classes;
+using BrickSchema.Net.Classes.People;
 using BrickSchema.Net.EntityProperties;
 using BrickSchema.Net.Enums;
 using BrickSchema.Net.Relationships;
@@ -7,6 +8,7 @@ using BrickSchema.Net.StaticNames;
 using BrickSchema.Net.ThreadSafeObjects;
 using Newtonsoft.Json;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 
 namespace BrickSchema.Net
 {
@@ -271,5 +273,15 @@ namespace BrickSchema.Net
             return BrickSchemaUtility.EntityToJson(this);
         }
 
+
+        public virtual Dictionary<Type, string> DefaultShapes()
+        {
+            return new();
+        }
+
+        public static Dictionary<Type, string> EntityDefaultShapes<T>(T entity) where T: BrickEntity
+        {
+            return entity.DefaultShapes();
+        }
     }
 }

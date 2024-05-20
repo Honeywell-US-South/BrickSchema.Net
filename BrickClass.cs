@@ -5,7 +5,8 @@ using System.Runtime.CompilerServices;
 namespace BrickSchema.Net.Classes
 {
     public class BrickClass : BrickEntity {
-        public BrickClass():base() { 
+        public BrickClass():base() 
+        { 
         
             
         }

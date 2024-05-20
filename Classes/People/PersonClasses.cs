@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 namespace BrickSchema.Net.Classes.People
 {
-    public class User:Person
-    {
-    }
-
+    public class User:Person  { }
+    
 }

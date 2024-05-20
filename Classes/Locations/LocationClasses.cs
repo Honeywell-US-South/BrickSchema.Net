@@ -17,6 +17,17 @@ namespace BrickSchema.Net.Classes.Locations
             return clone;
         }
 
+        public override Dictionary<Type, string> DefaultShapes()
+        {
+            return new()
+            {
+                {typeof(BrickSchema.Net.Shapes.Positions.Longitude), "0" },
+                {typeof(BrickSchema.Net.Shapes.Positions.Latitude), "0" },
+                {typeof(BrickSchema.Net.Shapes.Area), "0" },
+                {typeof(BrickSchema.Net.Shapes.Positions.Elevation), "0" }
+            };
+        }
+
     }
 
     public class Floor : Location
@@ -64,4 +75,5 @@ namespace BrickSchema.Net.Classes.Locations
     public class Zone : Location { }
     public class ChilledWaterPlant : Location { }
     public class HotWaterPlant : Location { }
+   
 }
