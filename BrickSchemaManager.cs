@@ -39,7 +39,7 @@ namespace BrickSchema.Net
             _brickPath = brickFilePath;
             if (string.IsNullOrEmpty(_brickPath)) throw new ArgumentNullException("Empty path");
             var dbPath = Path.Combine(Path.GetDirectoryName(_brickPath)??"", "IoTDB");
-            _database = new IoTDatabase("EmberAnalytics", dbPath);
+           // _database = new IoTDatabase("EmberAnalytics", dbPath, "");
             LoadSchemaFromFile(_brickPath);
             SaveSchema();
         }
