@@ -16,7 +16,7 @@ namespace BrickSchema.Net.Classes.Collections.Groups
     public class EntityUserGroup : UserGroup { }
     public class EntityUserReadOnlyGroup : UserGroup { }
 
-    public class APIGroup : Group { }
-    public class GraphQLApiGroup : APIGroup { }
-    public class MQTTApiGroup : APIGroup { }
+    public class InterfaceGroup : Group { }
+    public class GraphQLInterfaceGroup : InterfaceGroup { }
+    public class MQTTInterfaceGroup : InterfaceGroup { }
 }
