@@ -11,4 +11,6 @@
     public class TagOf : BrickRelationship { }
     public class PersonOf : BrickRelationship { }
     public class AuthorityOf : BrickRelationship { }
+    public class CollectionOf : BrickRelationship { }
+    
 }
