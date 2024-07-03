@@ -240,7 +240,7 @@ namespace BrickSchema.Net
 
 								try
 								{
-									_database?.TimeSeries.Insert(property.Id, history.Value, timestamp: history.Key);
+									//_database?.TimeSeries.Insert(property.Id, history.Value, timestamp: history.Key);
 								}
 								catch (Exception ex) { Console.Out.WriteLineAsync(ex.ToString()); }
 							}
@@ -272,11 +272,11 @@ namespace BrickSchema.Net
 									{
 										if (h.DataTypeName.Equals("Boolean"))
 										{
-											_database?.TimeSeries.Insert(bv.BehaviorId, (h.GetValue<Boolean>() ? 1 : 0), h.Timestamp);
+											//_database?.TimeSeries.Insert(bv.BehaviorId, (h.GetValue<Boolean>() ? 1 : 0), h.Timestamp);
 										}
 										else
 										{
-											_database?.TimeSeries.Insert(bv.BehaviorId, h.GetValue<double>(), h.Timestamp);
+											//_database?.TimeSeries.Insert(bv.BehaviorId, h.GetValue<double>(), h.Timestamp);
 										}
 									}
 									catch (Exception ex) { Console.Out.WriteLineAsync(ex.ToString()); }

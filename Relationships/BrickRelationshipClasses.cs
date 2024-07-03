@@ -12,5 +12,5 @@
     public class PersonOf : BrickRelationship { }
     public class AuthorityOf : BrickRelationship { }
     public class CollectionOf : BrickRelationship { }
-    
+    public class DeviceOf : BrickRelationship { }
 }
