@@ -25,10 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\IoTDB.NET\IoTDB.NET.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="bricks.jpg">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
@@ -45,6 +41,10 @@
 
   <ItemGroup>
     <Folder Include="Shapes\Volumes\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IoTDB.NET\IoTDB.NET.csproj" />
   </ItemGroup>
 
 </Project>
