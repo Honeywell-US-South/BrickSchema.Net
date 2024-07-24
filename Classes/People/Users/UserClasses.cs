@@ -10,8 +10,8 @@ namespace BrickSchema.Net.Classes.People.Users
 
     public class SystemAdmin : User { }
     public class TenantAdmin : User { }
-    public class EntityAdmin : User { }
-    public class EntityUser : User { }
-    public class EntityUserViewOnly : User { }
-    public class EntityUserRestricted : User { }
+    public class CustomerAdmin : User { }
+    public class CustomerUser : User { }
+    public class CustomerUserViewOnly : User { }
+    public class CustomerUserRestricted : User { }
 }
