@@ -12,7 +12,7 @@ using BrickSchema.Net.Classes;
 using BrickSchema.Net.Helpers;
 using BrickSchema.Net.StaticNames;
 using BrickSchema.Net.ThreadSafeObjects;
-using IoTDBdotNET;
+using Iot.Database;
 using Newtonsoft.Json;
 
 namespace BrickSchema.Net
@@ -25,7 +25,7 @@ namespace BrickSchema.Net
 
         // Object used as lock for thread-safety
         private readonly object _syncRoot = new object();
-        IoTDatabase? _database = null;
+        IotDatabase? _database = null;
 
         #region Constructors
         public BrickSchemaManager()
@@ -39,7 +39,7 @@ namespace BrickSchema.Net
             _brickPath = brickFilePath;
             if (string.IsNullOrEmpty(_brickPath)) throw new ArgumentNullException("Empty path");
             var dbPath = Path.Combine(Path.GetDirectoryName(_brickPath)??"", "IoTDB");
-           // _database = new IoTDatabase("EmberAnalytics", dbPath, "");
+           // _database = new IotDatabase("EmberAnalytics", dbPath, "");
             LoadSchemaFromFile(_brickPath);
             SaveSchema();
         }

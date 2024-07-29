@@ -1,5 +1,4 @@
-﻿using BrickSchema.Net.Classes.Equipments.HVACType;
-using IoTDBdotNET;
+﻿using Iot.Database;
 using Newtonsoft.Json;
 using System.Collections;
 using System.Reflection;

@@ -44,7 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\IoTDB.NET\IoTDB.NET.csproj" />
+    <ProjectReference Include="..\Iot.Database\Iot.Database\Iot.Database.csproj" />
   </ItemGroup>
 
 </Project>
